@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Dashboard{% endblock %}</title>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-link {
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding-left: 1.5rem;
+        }
+
+        .sidebar-link.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-left: 4px solid white;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-pending { background: #FEF3C7; color: #92400E; }
+        .status-processing { background: #DBEAFE; color: #1E40AF; }
+        .status-ready { background: #D1FAE5; color: #065F46; }
+        .status-delivering { background: #E0E7FF; color: #3730A3; }
+        .status-complete { background: #D1FAE5; color: #065F46; }
+        .status-cancelled { background: #FEE2E2; color: #991B1B; }
+
+        .stock-critical { color: #DC2626; }
+        .stock-low { color: #F59E0B; }
+        .stock-adequate { color: #10B981; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Sidebar -->
+    <div class="fixed inset-y-0 left-0 w-64 gradient-bg text-white z-50">
+        <div class="flex flex-col h-full">
+            <!-- Logo -->
+            <div class="flex items-center justify-center h-16 border-b border-white border-opacity-20">
+                <h1 class="text-2xl font-bold">Admin Dashboard</h1>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 px-4 py-6 space-y-2">
+                <a href="{% url 'admin_dashboard:dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %} flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-chart-line mr-3"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="{% url 'admin_dashboard:orders' %}" class="sidebar-link {% if request.resolver_match.url_name == 'orders' %}active{% endif %} flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-shopping-cart mr-3"></i>
+                    <span>Orders</span>
+                </a>
+
+                <a href="{% url 'admin_dashboard:inventory' %}" class="sidebar-link {% if request.resolver_match.url_name == 'inventory' %}active{% endif %} flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-boxes mr-3"></i>
+                    <span>Inventory</span>
+                </a>
+
+                <a href="{% url 'admin_dashboard:products' %}" class="sidebar-link {% if request.resolver_match.url_name == 'products' %}active{% endif %} flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-tshirt mr-3"></i>
+                    <span>Products</span>
+                </a>
+
+                <a href="{% url 'admin_dashboard:design_components' %}" class="sidebar-link {% if request.resolver_match.url_name == 'design_components' %}active{% endif %} flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-puzzle-piece mr-3"></i>
+                    <span>Design Components</span>
+                </a>
+
+                <a href="{% url 'admin_dashboard:categories' %}" class="sidebar-link {% if request.resolver_match.url_name == 'categories' %}active{% endif %} flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-tags mr-3"></i>
+                    <span>Categories</span>
+                </a>
+
+                <a href="{% url 'admin_dashboard:customers' %}" class="sidebar-link {% if request.resolver_match.url_name == 'customers' %}active{% endif %} flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-users mr-3"></i>
+                    <span>Customers</span>
+                </a>
+
+                <a href="{% url 'admin_dashboard:analytics' %}" class="sidebar-link {% if request.resolver_match.url_name == 'analytics' %}active{% endif %} flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-chart-bar mr-3"></i>
+                    <span>Analytics</span>
+                </a>
+
+                <div class="border-t border-white border-opacity-20 my-4"></div>
+
+                <a href="/admin/" class="sidebar-link flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-cog mr-3"></i>
+                    <span>Django Admin</span>
+                </a>
+
+                <a href="{% url 'admin_dashboard:logout' %}" class="sidebar-link flex items-center px-4 py-3 rounded-lg">
+                    <i class="fas fa-sign-out-alt mr-3"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+
+            <!-- User Info -->
+            <div class="px-4 py-4 border-t border-white border-opacity-20">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium">{{ request.user.username }}</p>
+                        <p class="text-xs opacity-75">Administrator</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="ml-64 min-h-screen">
+        <!-- Top Bar -->
+        <div class="bg-white border-b border-gray-200 px-8 py-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-2xl font-bold text-gray-800">{% block page_title %}Dashboard{% endblock %}</h2>
+
+                <div class="flex items-center space-x-4">
+                    <!-- Period Selector -->
+                    <select id="period-selector" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="7">Last 7 Days</option>
+                        <option value="30" selected>Last 30 Days</option>
+                        <option value="90">Last 90 Days</option>
+                        <option value="365">Last Year</option>
+                    </select>
+
+                    <!-- Refresh Button -->
+                    <button onclick="location.reload()" class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page Content -->
+        <div class="p-8">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

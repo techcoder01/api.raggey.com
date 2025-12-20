@@ -1,0 +1,412 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Orders - Admin{% endblock %}
+{% block page_title %}Order Management{% endblock %}
+
+{% block content %}
+<!-- Filter Bar -->
+<div class="bg-white rounded-xl p-6 card-shadow mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Status Filter</label>
+            <select id="status-filter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <option value="">All Status</option>
+                <option value="Pending">Pending</option>
+                <option value="Processing">Processing</option>
+                <option value="Ready">Ready</option>
+                <option value="Delivering">Delivering</option>
+                <option value="Complete">Complete</option>
+                <option value="Cancelled">Cancelled</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+            <input type="text" id="search-input" placeholder="Invoice, customer, phone..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
+            <select id="payment-filter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <option value="">All Methods</option>
+                <option value="cash">Cash</option>
+                <option value="card">Card</option>
+                <option value="knet">KNET</option>
+            </select>
+        </div>
+
+        <div class="flex items-end">
+            <button onclick="filterOrders()" class="w-full px-4 py-2 gradient-bg text-white rounded-lg hover:opacity-90 transition">
+                <i class="fas fa-filter mr-2"></i> Apply Filters
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Orders Table -->
+<div class="bg-white rounded-xl p-6 card-shadow">
+    <div class="flex items-center justify-between mb-6">
+        <h3 class="text-lg font-semibold text-gray-800">All Orders (<span id="total-orders">0</span>)</h3>
+
+        <div class="flex items-center space-x-4">
+            <button onclick="exportOrders()" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                <i class="fas fa-download mr-2"></i> Export CSV
+            </button>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead>
+                <tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th class="pb-4">Invoice</th>
+                    <th class="pb-4">Customer</th>
+                    <th class="pb-4">Contact</th>
+                    <th class="pb-4">Items</th>
+                    <th class="pb-4">Total</th>
+                    <th class="pb-4">Payment</th>
+                    <th class="pb-4">Status</th>
+                    <th class="pb-4">Date</th>
+                    <th class="pb-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="orders-tbody" class="divide-y divide-gray-200">
+                <tr>
+                    <td colspan="9" class="py-8 text-center text-gray-500">
+                        <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                        <p>Loading orders...</p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
+        <p class="text-sm text-gray-500">
+            Showing <span id="showing-count">0</span> orders
+        </p>
+        <div id="pagination" class="flex items-center space-x-2">
+            <!-- Pagination buttons will be added by JavaScript -->
+        </div>
+    </div>
+</div>
+
+<!-- Order Detail Modal -->
+<div id="order-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl p-8 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-2xl font-bold text-gray-800">Order Details</h3>
+            <button onclick="closeOrderModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times text-2xl"></i>
+            </button>
+        </div>
+
+        <div id="order-detail-content">
+            <!-- Will be populated by JavaScript -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let allOrders = [];
+    let filteredOrders = [];
+
+    // Fetch all orders
+    async function fetchOrders() {
+        try {
+            const statusFilter = document.getElementById('status-filter').value;
+            const url = statusFilter ?
+                `/purchase/admin/orders/?status=${statusFilter}` :
+                '/purchase/admin/orders/';
+
+            const response = await fetch(url);
+            const data = await response.json();
+            allOrders = data.orders;
+            filteredOrders = allOrders;
+            renderOrders();
+        } catch (error) {
+            console.error('Error fetching orders:', error);
+        }
+    }
+
+    // Filter orders
+    function filterOrders() {
+        const searchTerm = document.getElementById('search-input').value.toLowerCase();
+        const paymentFilter = document.getElementById('payment-filter').value;
+
+        filteredOrders = allOrders.filter(order => {
+            const matchesSearch = !searchTerm ||
+                order.invoice_number.toLowerCase().includes(searchTerm) ||
+                order.full_name.toLowerCase().includes(searchTerm) ||
+                order.phone_number.includes(searchTerm);
+
+            const matchesPayment = !paymentFilter || order.payment_option === paymentFilter;
+
+            return matchesSearch && matchesPayment;
+        });
+
+        renderOrders();
+    }
+
+    // Render orders table
+    function renderOrders() {
+        const tbody = document.getElementById('orders-tbody');
+        document.getElementById('total-orders').textContent = filteredOrders.length;
+        document.getElementById('showing-count').textContent = filteredOrders.length;
+
+        if (filteredOrders.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="9" class="py-8 text-center text-gray-500">
+                        <i class="fas fa-inbox text-4xl mb-2"></i>
+                        <p>No orders found</p>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = filteredOrders.map(order => `
+            <tr class="hover:bg-gray-50">
+                <td class="py-4">
+                    <span class="font-medium text-purple-600">${order.invoice_number}</span>
+                </td>
+                <td class="py-4">
+                    <p class="font-medium text-gray-800">${order.full_name}</p>
+                    ${order.email ? `<p class="text-xs text-gray-500">${order.email}</p>` : ''}
+                </td>
+                <td class="py-4">
+                    <span class="text-sm text-gray-600">${order.phone_number}</span>
+                </td>
+                <td class="py-4">
+                    <span class="text-gray-600">${order.items_count} items</span>
+                </td>
+                <td class="py-4">
+                    <span class="font-medium text-gray-800">${order.total_price} KWD</span>
+                </td>
+                <td class="py-4">
+                    <span class="text-sm text-gray-600">${order.payment_option || 'N/A'}</span>
+                </td>
+                <td class="py-4">
+                    <span class="status-badge status-${order.status.toLowerCase()}">${order.status}</span>
+                </td>
+                <td class="py-4">
+                    <span class="text-sm text-gray-500">${new Date(order.timestamp).toLocaleDateString()}</span>
+                </td>
+                <td class="py-4">
+                    <div class="flex items-center space-x-2">
+                        <button onclick="viewOrder(${order.id})" class="text-purple-600 hover:text-purple-700" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        ${order.status !== 'Complete' && order.status !== 'Cancelled' ? `
+                            <button onclick="updateOrderStatus(${order.id})" class="text-blue-600 hover:text-blue-700" title="Update Status">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // View order details
+    async function viewOrder(orderId) {
+        try {
+            const response = await fetch(`/purchase/admin/order/${orderId}/`);
+            const data = await response.json();
+            const order = data.order;
+
+            const content = document.getElementById('order-detail-content');
+            content.innerHTML = `
+                <!-- Order Header -->
+                <div class="grid grid-cols-2 gap-6 mb-6 pb-6 border-b border-gray-200">
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-500 mb-2">Invoice Number</h4>
+                        <p class="text-lg font-bold text-purple-600">${order.invoice_number}</p>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-500 mb-2">Order Status</h4>
+                        <div class="flex items-center space-x-2">
+                            <span class="status-badge status-${order.status.toLowerCase()}">${order.status}</span>
+                            ${order.status !== 'Complete' && order.status !== 'Cancelled' ? `
+                                <select id="status-update-${orderId}" class="px-3 py-1 border border-gray-300 rounded-lg text-sm">
+                                    <option value="Pending" ${order.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                                    <option value="Processing" ${order.status === 'Processing' ? 'selected' : ''}>Processing</option>
+                                    <option value="Ready" ${order.status === 'Ready' ? 'selected' : ''}>Ready</option>
+                                    <option value="Delivering" ${order.status === 'Delivering' ? 'selected' : ''}>Delivering</option>
+                                    <option value="Complete" ${order.status === 'Complete' ? 'selected' : ''}>Complete</option>
+                                </select>
+                                <button onclick="saveOrderStatus(${orderId})" class="px-3 py-1 gradient-bg text-white rounded-lg text-sm">
+                                    Save
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer Info -->
+                <div class="mb-6">
+                    <h4 class="font-semibold text-gray-800 mb-3">Customer Information</h4>
+                    <div class="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
+                        <div>
+                            <p class="text-sm text-gray-500">Name</p>
+                            <p class="font-medium">${order.full_name}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Phone</p>
+                            <p class="font-medium">${order.phone_number}</p>
+                        </div>
+                        ${order.email ? `
+                            <div>
+                                <p class="text-sm text-gray-500">Email</p>
+                                <p class="font-medium">${order.email}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+
+                <!-- Delivery Address -->
+                <div class="mb-6">
+                    <h4 class="font-semibold text-gray-800 mb-3">Delivery Address</h4>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-gray-700">
+                            ${order.Area ? order.Area + ', ' : ''}
+                            ${order.block ? 'Block ' + order.block + ', ' : ''}
+                            ${order.street ? 'Street ' + order.street + ', ' : ''}
+                            ${order.house ? 'House ' + order.house : ''}
+                            ${order.apartment ? ', Apt ' + order.apartment : ''}
+                            ${order.floor ? ', Floor ' + order.floor : ''}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Order Items -->
+                <div class="mb-6">
+                    <h4 class="font-semibold text-gray-800 mb-3">Order Items (${order.items_count})</h4>
+                    <div class="space-y-3">
+                        ${order.items.map(item => `
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                <div class="flex items-center">
+                                    ${item.cover ? `<img src="${item.cover}" class="w-16 h-16 rounded-lg object-cover mr-4">` : ''}
+                                    <div>
+                                        <p class="font-medium text-gray-800">${item.product_name}</p>
+                                        <p class="text-sm text-gray-500">Size: ${item.product_size || 'N/A'}</p>
+                                        <p class="text-sm text-gray-500">Qty: ${item.quantity}</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-bold text-gray-800">${item.net_amount} KWD</p>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="border-t border-gray-200 pt-4">
+                    <div class="flex justify-between text-lg font-bold text-gray-800">
+                        <span>Total Amount</span>
+                        <span>${order.total_price} KWD</span>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-2">
+                        Payment Method: ${order.payment_option}
+                        ${order.is_cash ? '(Cash on Delivery)' : ''}
+                    </p>
+                    <p class="text-sm text-gray-500">
+                        Order Date: ${new Date(order.timestamp).toLocaleString()}
+                    </p>
+                </div>
+
+                <!-- Actions -->
+                ${order.status !== 'Complete' && order.status !== 'Cancelled' ? `
+                    <div class="mt-6 pt-6 border-t border-gray-200 flex justify-end space-x-3">
+                        <button onclick="cancelOrder(${orderId})" class="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50">
+                            Cancel Order
+                        </button>
+                    </div>
+                ` : ''}
+            `;
+
+            document.getElementById('order-modal').classList.remove('hidden');
+            document.getElementById('order-modal').classList.add('flex');
+        } catch (error) {
+            console.error('Error fetching order details:', error);
+        }
+    }
+
+    // Save order status
+    async function saveOrderStatus(orderId) {
+        const newStatus = document.getElementById(`status-update-${orderId}`).value;
+
+        try {
+            const response = await fetch(`/purchase/admin/order/${orderId}/status/`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ status: newStatus })
+            });
+
+            if (response.ok) {
+                alert('Order status updated successfully!');
+                closeOrderModal();
+                fetchOrders();
+            }
+        } catch (error) {
+            console.error('Error updating order status:', error);
+            alert('Failed to update order status');
+        }
+    }
+
+    // Cancel order
+    async function cancelOrder(orderId) {
+        if (!confirm('Are you sure you want to cancel this order? Inventory will be restored.')) return;
+
+        try {
+            const response = await fetch(`/purchase/admin/order/${orderId}/cancel/`, {
+                method: 'POST'
+            });
+
+            if (response.ok) {
+                alert('Order cancelled successfully!');
+                closeOrderModal();
+                fetchOrders();
+            }
+        } catch (error) {
+            console.error('Error cancelling order:', error);
+            alert('Failed to cancel order');
+        }
+    }
+
+    // Close modal
+    function closeOrderModal() {
+        document.getElementById('order-modal').classList.add('hidden');
+        document.getElementById('order-modal').classList.remove('flex');
+    }
+
+    // Export orders
+    function exportOrders() {
+        let csv = 'Invoice Number,Customer Name,Phone,Email,Items,Total,Status,Date\n';
+        filteredOrders.forEach(order => {
+            csv += `${order.invoice_number},${order.full_name},${order.phone_number},${order.email || ''},${order.items_count},${order.total_price},${order.status},${new Date(order.timestamp).toLocaleDateString()}\n`;
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `orders_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+    }
+
+    // Event listeners
+    document.getElementById('status-filter').addEventListener('change', fetchOrders);
+    document.getElementById('search-input').addEventListener('input', filterOrders);
+
+    // Initial load
+    fetchOrders();
+</script>
+{% endblock %}

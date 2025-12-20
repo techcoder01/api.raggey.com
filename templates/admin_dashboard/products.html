@@ -1,0 +1,1193 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Products Management - Admin Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Add this hidden input tag to ensure the cookie is set -->
+{% csrf_token %}
+<div style="display:none;">{% csrf_token %}</div> <!-- Or just this if you don't want a visible element -->
+
+
+<div class="p-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">Products Management</h1>
+        <p class="text-gray-600 mt-2">Manage Fabric Types and Fabric Colors</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="bg-white rounded-xl card-shadow mb-6">
+        <div class="flex border-b">
+            <button onclick="showTab('fabric-types')" id="tab-fabric-types" class="tab-button px-6 py-4 font-medium text-purple-600 border-b-2 border-purple-600">
+                Fabric Types
+            </button>
+            <button onclick="showTab('fabric-colors')" id="tab-fabric-colors" class="tab-button px-6 py-4 font-medium text-gray-600">
+                Fabric Colors
+            </button>
+        </div>
+    </div>
+
+    <!-- Fabric Types Tab -->
+    <div id="fabric-types-content" class="tab-content">
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div class="bg-white rounded-xl p-6 card-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm font-medium">Total Fabric Types</p>
+                        <h3 class="text-3xl font-bold text-gray-800 mt-2" id="total-fabric-types">0</h3>
+                    </div>
+                    <div class="w-14 h-14 rounded-full bg-purple-100 flex items-center justify-center">
+                        <i class="fas fa-tshirt text-purple-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 card-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm font-medium">Active Fabrics</p>
+                        <h3 class="text-3xl font-bold text-gray-800 mt-2" id="active-fabric-types">0</h3>
+                    </div>
+                    <div class="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center">
+                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 card-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm font-medium">Total Colors Available</p>
+                        <h3 class="text-3xl font-bold text-gray-800 mt-2" id="total-colors-available">0</h3>
+                    </div>
+                    <div class="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center">
+                        <i class="fas fa-palette text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Fabric Type Button -->
+        <div class="mb-4">
+            <button onclick="openFabricTypeModal()" class="gradient-bg text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition">
+                <i class="fas fa-plus mr-2"></i>Add New Fabric Type
+            </button>
+        </div>
+
+        <!-- Fabric Types Table -->
+        <div class="bg-white rounded-xl card-shadow overflow-hidden">
+            <div class="p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">All Fabric Types</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr class="text-left text-xs font-medium text-gray-500 uppercase">
+                                <th class="pb-4">ID</th>
+                                <th class="pb-4">Name</th>
+                                <th class="pb-4">Image</th>
+                                <th class="pb-4">Price</th>
+                                <th class="pb-4">Origin</th>
+                                <th class="pb-4">Season</th>
+                                <th class="pb-4">Category</th>
+                                <th class="pb-4">Composition</th>
+                                <th class="pb-4">Colors</th>
+                                <th class="pb-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fabric-types-table" class="divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="10" class="py-8 text-center text-gray-500">
+                                    <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                                    <p>Loading fabric types...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fabric Colors Tab -->
+    <div id="fabric-colors-content" class="tab-content hidden">
+        <!-- Filters -->
+        <div class="bg-white rounded-xl p-6 card-shadow mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Filter by Fabric Type</label>
+                    <select id="filter-fabric-type" onchange="loadFabricColors()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        <option value="">All Fabric Types</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Stock Status</label>
+                    <select id="filter-stock-status" onchange="filterFabricColors()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        <option value="">All Status</option>
+                        <option value="in-stock">In Stock</option>
+                        <option value="low-stock">Low Stock</option>
+                        <option value="out-of-stock">Out of Stock</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                    <input type="text" id="search-color" onkeyup="filterFabricColors()" placeholder="Search by color name..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Fabric Color Button -->
+        <div class="mb-4">
+            <button onclick="openFabricColorModal()" class="gradient-bg text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition">
+                <i class="fas fa-plus mr-2"></i>Add New Fabric Color
+            </button>
+        </div>
+
+        <!-- Fabric Colors Table -->
+        <div class="bg-white rounded-xl card-shadow overflow-hidden">
+            <div class="p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">All Fabric Colors</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr class="text-left text-xs font-medium text-gray-500 uppercase">
+                                <th class="pb-4">ID</th>
+                                <th class="pb-4">Fabric Type</th>
+                                <th class="pb-4">Color Name</th>
+                                <th class="pb-4">Color Name (Arabic)</th>
+                                <th class="pb-4">Image</th>
+                                <th class="pb-4">Quantity</th>
+                                <th class="pb-4">Price</th>
+                                <th class="pb-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fabric-colors-table" class="divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="8" class="py-8 text-center text-gray-500">
+                                    <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                                    <p>Loading fabric colors...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fabric Type Modal -->
+<div id="fabric-type-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl p-8 max-w-2xl w-full mx-4 max-h-screen overflow-y-auto">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold text-gray-800" id="fabric-type-modal-title">Add New Fabric Type</h2>
+            <button onclick="closeFabricTypeModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+        <form id="fabric-type-form" onsubmit="event.preventDefault(); saveFabricType();">
+            <input type="hidden" id="fabric-type-id">
+
+            <div class="space-y-4">
+                <!-- Basic Info Section -->
+                <div class="border-b pb-4 mb-4">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-3">Basic Information</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Fabric Name (English) *</label>
+                            <input type="text" id="fabric-type-name-eng" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Fabric Name (Arabic)</label>
+                            <input type="text" id="fabric-type-name-arb" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" dir="rtl">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pricing & Origin Section -->
+                <div class="border-b pb-4 mb-4">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-3">Pricing & Origin</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Price per Meter (KWD) *</label>
+                            <input type="number" step="0.001" id="fabric-type-base-price" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Originality (English)</label>
+                            <input type="text" id="fabric-type-originality" placeholder="e.g., Kuwait, Italy" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Originality (Arabic)</label>
+                            <input type="text" id="fabric-type-originality-arb" placeholder="e.g., الكويت" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" dir="rtl">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Classification Section -->
+                <div class="border-b pb-4 mb-4">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-3">Classification</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Season</label>
+                            <select id="fabric-type-season" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                <option value="all_season">All Season</option>
+                                <option value="summer">Summer</option>
+                                <option value="winter">Winter</option>
+                                <option value="spring">Spring</option>
+                                <option value="autumn">Autumn</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Category Type</label>
+                            <select id="fabric-type-category-type" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                <option value="standard">Standard</option>
+                                <option value="premium">Premium</option>
+                                <option value="luxury">Luxury</option>
+                                <option value="economy">Economy</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Composition & Weight Section -->
+                <div class="border-b pb-4 mb-4">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-3">Composition & Weight</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Composition (English)</label>
+                            <input type="text" id="fabric-type-composition" placeholder="e.g., 100% Polyester" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Composition (Arabic)</label>
+                            <input type="text" id="fabric-type-composition-arb" placeholder="e.g., 100% بوليستر" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" dir="rtl">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Weight (English)</label>
+                            <input type="text" id="fabric-type-weight" placeholder="e.g., per sq / m" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Weight (Arabic)</label>
+                            <input type="text" id="fabric-type-weight-arb" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" dir="rtl">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Features Section -->
+                <div class="border-b pb-4 mb-4">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-3">Features</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Features (English)</label>
+                            <input type="text" id="fabric-type-features" placeholder="e.g., Anti-Static, Anti-Breakable, Easy Iron" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <p class="text-xs text-gray-500 mt-1">Separate multiple features with commas</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Features (Arabic)</label>
+                            <input type="text" id="fabric-type-features-arb" placeholder="e.g., مضاد للكهرباء الساكنة" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" dir="rtl">
+                            <p class="text-xs text-gray-500 mt-1">Separate multiple features with commas</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Softness Grade Section -->
+                <div class="border-b pb-4 mb-4">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-3">Softness to Solidness Grade</h3>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Grade (1 = Soft, 5 = Solid)</label>
+                        <div class="flex items-center gap-4">
+                            <span class="text-sm text-gray-500">Soft</span>
+                            <input type="range" id="fabric-type-softness-grade" min="1" max="5" value="3" class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer" oninput="updateSoftnessDisplay(this.value)">
+                            <span class="text-sm text-gray-500">Solid</span>
+                            <span id="softness-grade-display" class="ml-2 px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">3</span>
+                        </div>
+                        <div class="flex justify-between mt-1 text-xs text-gray-400">
+                            <span>1</span>
+                            <span>2</span>
+                            <span>3</span>
+                            <span>4</span>
+                            <span>5</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Image Section -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-3">Cover Image</h3>
+                    <input type="file" id="fabric-type-image" accept="image/*" onchange="previewImage(event, 'fabric-type-preview')" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    <div id="fabric-type-preview" class="mt-2"></div>
+                    <p class="text-xs text-gray-500 mt-1">Upload image to Cloudinary (automatically handled)</p>
+                </div>
+            </div>
+
+            <div class="flex gap-4 mt-6">
+                <button type="submit" class="flex-1 gradient-bg text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition">
+                    <i class="fas fa-save mr-2"></i>Save Fabric Type
+                </button>
+                <button type="button" onclick="closeFabricTypeModal()" class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Fabric Color Modal -->
+<div id="fabric-color-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl p-8 max-w-2xl w-full mx-4 max-h-screen overflow-y-auto">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold text-gray-800" id="fabric-color-modal-title">Add New Fabric Color</h2>
+            <button onclick="closeFabricColorModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+        <form id="fabric-color-form" onsubmit="event.preventDefault(); saveFabricColor();">
+            <input type="hidden" id="fabric-color-id">
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Select Fabric Type *</label>
+                    <select id="fabric-color-fabric-type" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        <option value="">Select Fabric Type</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Color Name (English) *</label>
+                    <input type="text" id="fabric-color-name-eng" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Color Name (Arabic)</label>
+                    <input type="text" id="fabric-color-name-arb" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" dir="rtl">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Quantity *</label>
+                    <input type="number" id="fabric-color-quantity" required min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Price Adjustment (KWD) *</label>
+                    <input type="number" step="0.001" id="fabric-color-price-adjustment" value="0.000" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    <p class="text-xs text-gray-500 mt-1">Additional price for this color (can be negative)</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Cover Image</label>
+                    <input type="file" id="fabric-color-image" accept="image/*" onchange="previewImage(event, 'fabric-color-preview')" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    <div id="fabric-color-preview" class="mt-2"></div>
+                    <p class="text-xs text-gray-500 mt-1">Upload image to Cloudinary (automatically handled)</p>
+                </div>
+            </div>
+
+            <div class="flex gap-4 mt-6">
+                <button type="submit" class="flex-1 gradient-bg text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition">
+                    <i class="fas fa-save mr-2"></i>Save Fabric Color
+                </button>
+                <button type="button" onclick="closeFabricColorModal()" class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+
+
+    // Add this at the top of your script
+function getCSRFToken() {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+    return csrfToken ? csrfToken.value : '';
+}
+
+
+let fabricTypes = [];
+let allFabricColors = [];
+let filteredFabricColors = [];
+
+// Image Preview Function
+function previewImage(event, previewId) {
+    const file = event.target.files[0];
+    const preview = document.getElementById(previewId);
+
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.innerHTML = `<img src="${e.target.result}" class="w-32 h-32 object-cover rounded border">`;
+        };
+        reader.readAsDataURL(file);
+    } else {
+        preview.innerHTML = '';
+    }
+}
+
+// Convert image file to base64
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const base64String = reader.result.split(',')[1]; // Remove data:image/...;base64, prefix
+            resolve({
+                image: base64String,
+                name: file.name
+            });
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+// Tab Management
+function showTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('text-purple-600', 'border-b-2', 'border-purple-600');
+        btn.classList.add('text-gray-600');
+    });
+
+    document.getElementById(`${tabName}-content`).classList.remove('hidden');
+    const activeButton = document.getElementById(`tab-${tabName}`);
+    activeButton.classList.add('text-purple-600', 'border-b-2', 'border-purple-600');
+    activeButton.classList.remove('text-gray-600');
+
+    if (tabName === 'fabric-types') {
+        loadFabricTypes();
+    } else if (tabName === 'fabric-colors') {
+        loadFabricColors();
+    }
+}
+
+// Load Fabric Types
+async function loadFabricTypes() {
+    try {
+        const response = await fetch('/design/fetch/fabric/', {
+            credentials: 'include'
+        });
+        const data = await response.json();
+
+        fabricTypes = data || [];
+
+        // Update summary cards
+        const activeCount = fabricTypes.filter(f => !f.isHidden).length;
+        document.getElementById('total-fabric-types').textContent = fabricTypes.length;
+        document.getElementById('active-fabric-types').textContent = activeCount;
+
+        // Calculate total colors
+        let totalColors = 0;
+        fabricTypes.forEach(fabric => {
+            totalColors += fabric.colors_count || 0;
+        });
+        document.getElementById('total-colors-available').textContent = totalColors;
+
+        // Populate table
+        const tableBody = document.getElementById('fabric-types-table');
+        tableBody.innerHTML = '';
+
+        if (fabricTypes.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="10" class="py-8 text-center text-gray-500">
+                        <i class="fas fa-inbox text-3xl mb-2"></i>
+                        <p>No fabric types found</p>
+                    </td>
+                </tr>
+            `;
+        } else {
+            fabricTypes.forEach(fabric => {
+                const row = document.createElement('tr');
+                row.classList.add('hover:bg-gray-50');
+
+                // Format features for display
+                let featuresDisplay = '';
+                if (fabric.features && fabric.features.length > 0) {
+                    featuresDisplay = fabric.features.slice(0, 2).map(f =>
+                        `<span class="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs mr-1">${f}</span>`
+                    ).join('');
+                    if (fabric.features.length > 2) {
+                        featuresDisplay += `<span class="text-gray-400 text-xs">+${fabric.features.length - 2}</span>`;
+                    }
+                }
+
+                // Category type badge color
+                const categoryColors = {
+                    'premium': 'bg-purple-100 text-purple-800',
+                    'luxury': 'bg-yellow-100 text-yellow-800',
+                    'standard': 'bg-blue-100 text-blue-800',
+                    'economy': 'bg-green-100 text-green-800'
+                };
+                const categoryColor = categoryColors[fabric.category_type] || 'bg-gray-100 text-gray-800';
+
+                row.innerHTML = `
+                    <td class="py-4">${fabric.id}</td>
+                    <td class="py-4">
+                        <div class="font-medium">${fabric.fabric_name_eng || 'N/A'}</div>
+                        <div class="text-sm text-gray-500" dir="rtl">${fabric.fabric_name_arb || ''}</div>
+                    </td>
+                    <td class="py-4">
+                        ${fabric.cover ? `<img src="${fabric.cover}" alt="${fabric.fabric_name_eng}" class="w-12 h-12 object-cover rounded">` : '<span class="text-gray-400">No image</span>'}
+                    </td>
+                    <td class="py-4">${fabric.base_price ? parseFloat(fabric.base_price).toFixed(3) + ' KWD/m<sup>2</sup>' : 'N/A'}</td>
+                    <td class="py-4">${fabric.originality || '<span class="text-gray-400">-</span>'}</td>
+                    <td class="py-4">
+                        <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs capitalize">
+                            ${fabric.season_display || fabric.season || 'All Season'}
+                        </span>
+                    </td>
+                    <td class="py-4">
+                        <span class="px-2 py-1 ${categoryColor} rounded-full text-xs capitalize">
+                            ${fabric.category_type_display || fabric.category_type || 'Standard'}
+                        </span>
+                    </td>
+                    <td class="py-4 text-sm">${fabric.composition || '<span class="text-gray-400">-</span>'}</td>
+                    <td class="py-4">
+                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                            ${fabric.colors_count || 0}
+                        </span>
+                    </td>
+                    <td class="py-4">
+                        <button onclick="viewFabricTypeDetails(${fabric.id})" class="text-gray-600 hover:text-gray-800 mr-2" title="View Details">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button onclick="editFabricType(${fabric.id})" class="text-blue-600 hover:text-blue-800 mr-2" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteFabricType(${fabric.id})" class="text-red-600 hover:text-red-800" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Populate fabric type dropdown for color modal and filter
+        const fabricTypeSelect = document.getElementById('fabric-color-fabric-type');
+        const filterFabricType = document.getElementById('filter-fabric-type');
+
+        fabricTypeSelect.innerHTML = '<option value="">Select Fabric Type</option>';
+        filterFabricType.innerHTML = '<option value="">All Fabric Types</option>';
+
+        fabricTypes.forEach(fabric => {
+            fabricTypeSelect.innerHTML += `<option value="${fabric.id}">${fabric.fabric_name_eng}</option>`;
+            filterFabricType.innerHTML += `<option value="${fabric.id}">${fabric.fabric_name_eng}</option>`;
+        });
+    } catch (error) {
+        console.error('Error loading fabric types:', error);
+        showError('Failed to load fabric types: ' + error.message);
+    }
+}
+
+// Load Fabric Colors
+async function loadFabricColors() {
+    const selectedFabricType = document.getElementById('filter-fabric-type').value;
+
+    try {
+        allFabricColors = [];
+
+        if (selectedFabricType) {
+            // Load colors for specific fabric type
+            const response = await fetch(`/design/fetch/fabric/${selectedFabricType}/colors/`, {
+                credentials: 'include'
+            });
+            const data = await response.json();
+
+            if (data.available_colors) {
+                allFabricColors = data.available_colors.map(color => ({
+                    ...color,
+                    fabric_name_eng: data.fabric_name_eng,
+                    fabric_type: parseInt(selectedFabricType)
+                }));
+            }
+        } else {
+            // Load colors for all fabric types
+            for (const fabric of fabricTypes) {
+                try {
+                    const response = await fetch(`/design/fetch/fabric/${fabric.id}/colors/`, {
+                        credentials: 'include'
+                    });
+                    const data = await response.json();
+
+                    if (data.available_colors && Array.isArray(data.available_colors)) {
+                        const colorsWithFabric = data.available_colors.map(color => ({
+                            ...color,
+                            fabric_name_eng: fabric.fabric_name_eng,
+                            fabric_type: fabric.id
+                        }));
+                        allFabricColors = [...allFabricColors, ...colorsWithFabric];
+                    }
+                } catch (err) {
+                    console.error(`Error loading colors for fabric ${fabric.id}:`, err);
+                }
+            }
+        }
+
+        filterFabricColors();
+    } catch (error) {
+        console.error('Error loading fabric colors:', error);
+        showError('Failed to load fabric colors: ' + error.message);
+    }
+}
+
+// Filter Fabric Colors
+function filterFabricColors() {
+    const stockFilter = document.getElementById('filter-stock-status').value;
+    const searchQuery = document.getElementById('search-color').value.toLowerCase();
+
+    filteredFabricColors = allFabricColors.filter(color => {
+        let matches = true;
+
+        if (stockFilter) {
+            const quantity = color.quantity || 0;
+            if (stockFilter === 'in-stock' && quantity <= 10) matches = false;
+            if (stockFilter === 'low-stock' && (quantity > 10 || quantity === 0)) matches = false;
+            if (stockFilter === 'out-of-stock' && quantity > 0) matches = false;
+        }
+
+        if (searchQuery && !color.color_name_eng?.toLowerCase().includes(searchQuery)) {
+            matches = false;
+        }
+
+        return matches;
+    });
+
+    renderFabricColorsTable();
+}
+
+// Render Fabric Colors Table
+function renderFabricColorsTable() {
+    const tableBody = document.getElementById('fabric-colors-table');
+    tableBody.innerHTML = '';
+
+    if (filteredFabricColors.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="8" class="py-8 text-center text-gray-500">
+                    <i class="fas fa-inbox text-3xl mb-2"></i>
+                    <p>No fabric colors found</p>
+                </td>
+            </tr>
+        `;
+    } else {
+        filteredFabricColors.forEach(color => {
+            const quantity = color.quantity || 0;
+            let stockBadge = '';
+            if (quantity === 0) {
+                stockBadge = '<span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">Out of Stock</span>';
+            } else if (quantity <= 10) {
+                stockBadge = '<span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">Low Stock</span>';
+            } else {
+                stockBadge = '<span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">In Stock</span>';
+            }
+
+            const totalPrice = color.total_price || (color.fabric_base_price + (color.price_adjustment || 0));
+
+            const row = document.createElement('tr');
+            row.classList.add('hover:bg-gray-50');
+            row.innerHTML = `
+                <td class="py-4">${color.id}</td>
+                <td class="py-4 font-medium">${color.fabric_name_eng || 'N/A'}</td>
+                <td class="py-4">${color.color_name_eng || 'N/A'}</td>
+                <td class="py-4">${color.color_name_arb || 'N/A'}</td>
+                <td class="py-4">
+                    ${color.cover ? `<img src="${color.cover}" alt="${color.color_name_eng}" class="w-12 h-12 object-cover rounded">` : '<span class="text-gray-400">No image</span>'}
+                </td>
+                <td class="py-4">
+                    ${quantity} ${stockBadge}
+                </td>
+                <td class="py-4">${totalPrice ? parseFloat(totalPrice).toFixed(3) + ' KWD' : 'N/A'}</td>
+                <td class="py-4">
+                    <button onclick="editFabricColor(${color.id})" class="text-blue-600 hover:text-blue-800 mr-3" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button onclick="deleteFabricColor(${color.id})" class="text-red-600 hover:text-red-800" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+}
+
+// Modal Management
+function openFabricTypeModal(fabricId = null) {
+    document.getElementById('fabric-type-modal').classList.remove('hidden');
+    document.getElementById('fabric-type-modal-title').textContent = fabricId ? 'Edit Fabric Type' : 'Add New Fabric Type';
+
+    if (fabricId) {
+        loadFabricTypeForEdit(fabricId);
+    } else {
+        document.getElementById('fabric-type-form').reset();
+        document.getElementById('fabric-type-id').value = '';
+        document.getElementById('fabric-type-preview').innerHTML = '';
+        // Reset new fields to defaults
+        document.getElementById('fabric-type-season').value = 'all_season';
+        document.getElementById('fabric-type-category-type').value = 'standard';
+        document.getElementById('fabric-type-softness-grade').value = 3;
+        updateSoftnessDisplay(3);
+    }
+}
+
+function closeFabricTypeModal() {
+    document.getElementById('fabric-type-modal').classList.add('hidden');
+    document.getElementById('fabric-type-form').reset();
+    document.getElementById('fabric-type-preview').innerHTML = '';
+    // Reset softness display
+    updateSoftnessDisplay(3);
+}
+
+function openFabricColorModal(colorId = null) {
+    document.getElementById('fabric-color-modal').classList.remove('hidden');
+    document.getElementById('fabric-color-modal-title').textContent = colorId ? 'Edit Fabric Color' : 'Add New Fabric Color';
+
+    if (colorId) {
+        loadFabricColorForEdit(colorId);
+    } else {
+        document.getElementById('fabric-color-form').reset();
+        document.getElementById('fabric-color-id').value = '';
+        document.getElementById('fabric-color-preview').innerHTML = '';
+    }
+}
+
+function closeFabricColorModal() {
+    document.getElementById('fabric-color-modal').classList.add('hidden');
+    document.getElementById('fabric-color-form').reset();
+    document.getElementById('fabric-color-preview').innerHTML = '';
+}
+
+// Load for Edit
+async function loadFabricTypeForEdit(id) {
+    try {
+        const response = await fetch(`/design/detail/fabric-type/${id}/`, {
+            credentials: 'include'
+        });
+        const fabric = await response.json();
+
+        document.getElementById('fabric-type-id').value = id;
+        document.getElementById('fabric-type-name-eng').value = fabric.fabric_name_eng || '';
+        document.getElementById('fabric-type-name-arb').value = fabric.fabric_name_arb || '';
+        document.getElementById('fabric-type-base-price').value = fabric.base_price || '';
+
+        // New fields
+        document.getElementById('fabric-type-originality').value = fabric.originality || '';
+        document.getElementById('fabric-type-originality-arb').value = fabric.originality_arb || '';
+        document.getElementById('fabric-type-season').value = fabric.season || 'all_season';
+        document.getElementById('fabric-type-category-type').value = fabric.category_type || 'standard';
+        document.getElementById('fabric-type-composition').value = fabric.composition || '';
+        document.getElementById('fabric-type-composition-arb').value = fabric.composition_arb || '';
+        document.getElementById('fabric-type-weight').value = fabric.weight || '';
+        document.getElementById('fabric-type-weight-arb').value = fabric.weight_arb || '';
+
+        // Features - convert array to comma-separated string
+        if (fabric.features && Array.isArray(fabric.features)) {
+            document.getElementById('fabric-type-features').value = fabric.features.join(', ');
+        } else {
+            document.getElementById('fabric-type-features').value = '';
+        }
+        if (fabric.features_arb && Array.isArray(fabric.features_arb)) {
+            document.getElementById('fabric-type-features-arb').value = fabric.features_arb.join(', ');
+        } else {
+            document.getElementById('fabric-type-features-arb').value = '';
+        }
+
+        // Softness grade
+        const softnessGrade = fabric.softness_grade || 3;
+        document.getElementById('fabric-type-softness-grade').value = softnessGrade;
+        updateSoftnessDisplay(softnessGrade);
+
+        if (fabric.cover) {
+            document.getElementById('fabric-type-preview').innerHTML =
+                `<img src="${fabric.cover}" class="w-32 h-32 object-cover rounded border">`;
+        }
+    } catch (error) {
+        console.error('Error loading fabric type for edit:', error);
+        showError('Failed to load fabric type details');
+    }
+}
+
+async function loadFabricColorForEdit(id) {
+    try {
+        const response = await fetch(`/design/detail/fabric-color/${id}/`, {
+            credentials: 'include'
+        });
+        const color = await response.json();
+
+        document.getElementById('fabric-color-id').value = id;
+        document.getElementById('fabric-color-fabric-type').value = color.fabric_type || '';
+        document.getElementById('fabric-color-name-eng').value = color.color_name_eng || '';
+        document.getElementById('fabric-color-name-arb').value = color.color_name_arb || '';
+        document.getElementById('fabric-color-quantity').value = color.quantity || 0;
+        document.getElementById('fabric-color-price-adjustment').value = color.price_adjustment || 0;
+
+        if (color.cover) {
+            document.getElementById('fabric-color-preview').innerHTML =
+                `<img src="${color.cover}" class="w-32 h-32 object-cover rounded border">`;
+        }
+    } catch (error) {
+        console.error('Error loading fabric color for edit:', error);
+        showError('Failed to load fabric color details');
+    }
+}
+
+// Helper function to update softness display
+function updateSoftnessDisplay(value) {
+    document.getElementById('softness-grade-display').textContent = value;
+}
+
+// View fabric type details function
+function viewFabricTypeDetails(id) {
+    const fabric = fabricTypes.find(f => f.id === id);
+    if (!fabric) return;
+
+    // Format features for display
+    let featuresHtml = '<span class="text-gray-400">None</span>';
+    if (fabric.features && fabric.features.length > 0) {
+        featuresHtml = fabric.features.map(f =>
+            `<span class="px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm mr-1 mb-1 inline-block">${f}</span>`
+        ).join('');
+    }
+
+    const detailsHtml = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" id="fabric-details-modal">
+            <div class="bg-white rounded-xl p-8 max-w-2xl w-full mx-4 max-h-screen overflow-y-auto">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Fabric Type Details</h2>
+                    <button onclick="document.getElementById('fabric-details-modal').remove()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+
+                <div class="flex gap-6 mb-6">
+                    ${fabric.cover ? `<img src="${fabric.cover}" alt="${fabric.fabric_name_eng}" class="w-32 h-32 object-cover rounded-lg">` : '<div class="w-32 h-32 bg-gray-200 rounded-lg flex items-center justify-center"><i class="fas fa-image text-gray-400 text-3xl"></i></div>'}
+                    <div>
+                        <h3 class="text-xl font-semibold">${fabric.fabric_name_eng}</h3>
+                        <p class="text-gray-500" dir="rtl">${fabric.fabric_name_arb || ''}</p>
+                        <p class="text-2xl font-bold text-purple-600 mt-2">${fabric.base_price ? parseFloat(fabric.base_price).toFixed(3) + ' KWD/m²' : 'N/A'}</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-sm text-gray-500">Originality</p>
+                        <p class="font-medium">${fabric.originality || '-'}</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-sm text-gray-500">Season</p>
+                        <p class="font-medium capitalize">${fabric.season_display || fabric.season || 'All Season'}</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-sm text-gray-500">Category</p>
+                        <p class="font-medium capitalize">${fabric.category_type_display || fabric.category_type || 'Standard'}</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-sm text-gray-500">Composition</p>
+                        <p class="font-medium">${fabric.composition || '-'}</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-sm text-gray-500">Weight</p>
+                        <p class="font-medium">${fabric.weight || '-'}</p>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-sm text-gray-500">Colors Available</p>
+                        <p class="font-medium">${fabric.colors_count || 0} colors</p>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <p class="text-sm text-gray-500 mb-2">Features</p>
+                    <div>${featuresHtml}</div>
+                </div>
+
+                <div class="mb-6">
+                    <p class="text-sm text-gray-500 mb-2">Softness to Solidness Grade</p>
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm">Soft</span>
+                        <div class="flex-1 bg-gray-200 rounded-full h-2 relative">
+                            <div class="absolute h-2 bg-gradient-to-r from-green-400 to-gray-600 rounded-full" style="width: ${(fabric.softness_grade || 3) * 20}%"></div>
+                        </div>
+                        <span class="text-sm">Solid</span>
+                        <span class="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">${fabric.softness_grade || 3}</span>
+                    </div>
+                </div>
+
+                <div class="flex gap-4">
+                    <button onclick="document.getElementById('fabric-details-modal').remove(); editFabricType(${fabric.id})" class="flex-1 gradient-bg text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition">
+                        <i class="fas fa-edit mr-2"></i>Edit
+                    </button>
+                    <button onclick="document.getElementById('fabric-details-modal').remove()" class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', detailsHtml);
+}
+
+// Save Functions
+async function saveFabricType() {
+    const id = document.getElementById('fabric-type-id').value;
+    const fabricNameEng = document.getElementById('fabric-type-name-eng').value;
+    const fabricNameArb = document.getElementById('fabric-type-name-arb').value;
+    const basePrice = document.getElementById('fabric-type-base-price').value;
+    const imageFile = document.getElementById('fabric-type-image').files[0];
+
+    // New fields
+    const originality = document.getElementById('fabric-type-originality').value;
+    const originalityArb = document.getElementById('fabric-type-originality-arb').value;
+    const season = document.getElementById('fabric-type-season').value;
+    const categoryType = document.getElementById('fabric-type-category-type').value;
+    const composition = document.getElementById('fabric-type-composition').value;
+    const compositionArb = document.getElementById('fabric-type-composition-arb').value;
+    const weight = document.getElementById('fabric-type-weight').value;
+    const weightArb = document.getElementById('fabric-type-weight-arb').value;
+    const featuresStr = document.getElementById('fabric-type-features').value;
+    const featuresArbStr = document.getElementById('fabric-type-features-arb').value;
+    const softnessGrade = document.getElementById('fabric-type-softness-grade').value;
+
+    if (!fabricNameEng || !basePrice) {
+        showError('Please fill in all required fields');
+        return;
+    }
+
+    // Convert features string to array
+    const features = featuresStr ? featuresStr.split(',').map(f => f.trim()).filter(f => f) : [];
+    const featuresArb = featuresArbStr ? featuresArbStr.split(',').map(f => f.trim()).filter(f => f) : [];
+
+    try {
+        const payload = {
+            fabric_name_eng: fabricNameEng,
+            fabric_name_arb: fabricNameArb,
+            base_price: parseFloat(basePrice),
+            isHidden: false,
+            // New fields
+            originality: originality || null,
+            originality_arb: originalityArb || null,
+            season: season,
+            category_type: categoryType,
+            composition: composition || null,
+            composition_arb: compositionArb || null,
+            weight: weight || null,
+            weight_arb: weightArb || null,
+            features: features,
+            features_arb: featuresArb,
+            softness_grade: parseInt(softnessGrade) || 3
+        };
+
+        // Handle image upload
+        if (imageFile) {
+            const imageData = await fileToBase64(imageFile);
+            payload.cover = imageData;
+        }
+
+        const url = id ? `/design/update/fabric-type/${id}/` : '/design/create/fabric-type/';
+        const method = id ? 'PUT' : 'POST';
+
+        const csrfToken = getCookie('csrftoken');
+        console.log('CSRF Token:', csrfToken ? 'Found' : 'NOT FOUND');
+        console.log('Request URL:', url);
+        console.log('Request Method:', method);
+
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            credentials: 'include',
+            body: JSON.stringify(payload)
+        });
+
+        console.log('Response status:', response.status);
+
+        if (response.ok) {
+            showSuccess(id ? 'Fabric type updated successfully' : 'Fabric type created successfully');
+            closeFabricTypeModal();
+            loadFabricTypes();
+        } else {
+            let errorMessage = '';
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.error || JSON.stringify(errorData);
+            } catch (e) {
+                errorMessage = await response.text();
+            }
+            console.error('Server error response:', errorMessage);
+            console.error('Payload sent:', JSON.stringify(payload, null, 2));
+
+            if (response.status === 401) {
+                showError('Authentication error: You are not logged in or your session has expired. Please refresh the page and try again.');
+            } else if (response.status === 403) {
+                showError('Permission denied: You do not have permission to perform this action. Your user account may not have the required admin/partner/data-entry role.');
+            } else {
+                showError('Error: ' + errorMessage);
+            }
+        }
+    } catch (error) {
+        console.error('Error saving fabric type:', error);
+        showError('Failed to save fabric type: ' + error.message);
+    }
+}
+
+async function saveFabricColor() {
+    const id = document.getElementById('fabric-color-id').value;
+    const fabricType = document.getElementById('fabric-color-fabric-type').value;
+    const colorNameEng = document.getElementById('fabric-color-name-eng').value;
+    const colorNameArb = document.getElementById('fabric-color-name-arb').value;
+    const quantity = document.getElementById('fabric-color-quantity').value;
+    const priceAdjustment = document.getElementById('fabric-color-price-adjustment').value;
+    const imageFile = document.getElementById('fabric-color-image').files[0];
+
+    if (!fabricType || !colorNameEng || !quantity) {
+        showError('Please fill in all required fields');
+        return;
+    }
+
+    try {
+        const payload = {
+            fabric_type_id: parseInt(fabricType),
+            color_name_eng: colorNameEng,
+            color_name_arb: colorNameArb,
+            quantity: parseInt(quantity),
+            price_adjustment: parseFloat(priceAdjustment || 0),
+            inStock: parseInt(quantity) > 0
+        };
+
+        // Handle image upload
+        if (imageFile) {
+            const imageData = await fileToBase64(imageFile);
+            payload.cover = imageData;
+        }
+
+        const url = id ? `/design/update/fabric-color/${id}/` : '/design/create/fabric-color/';
+        const method = id ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            credentials: 'include',
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            showSuccess(id ? 'Fabric color updated successfully' : 'Fabric color created successfully');
+            closeFabricColorModal();
+            loadFabricColors();
+        } else {
+            const error = await response.text();
+            console.error('Server error response:', error);
+            showError('Error: ' + error + '. Check console for details.');
+        }
+    } catch (error) {
+        console.error('Error saving fabric color:', error);
+        showError('Failed to save fabric color: ' + error.message);
+    }
+}
+
+// Edit Functions
+function editFabricType(id) {
+    openFabricTypeModal(id);
+}
+
+function editFabricColor(id) {
+    openFabricColorModal(id);
+}
+
+// Delete Functions
+async function deleteFabricType(id) {
+    if (!confirm('Are you sure you want to delete this fabric type? This will also delete all associated colors.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/design/delete/fabric-type/${id}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            showSuccess('Fabric type deleted successfully');
+            loadFabricTypes();
+        } else {
+            showError('Failed to delete fabric type');
+        }
+    } catch (error) {
+        console.error('Error deleting fabric type:', error);
+        showError('Failed to delete fabric type: ' + error.message);
+    }
+}
+
+async function deleteFabricColor(id) {
+    if (!confirm('Are you sure you want to delete this fabric color?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/design/delete/fabric-color/${id}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            showSuccess('Fabric color deleted successfully');
+            loadFabricColors();
+        } else {
+            showError('Failed to delete fabric color');
+        }
+    } catch (error) {
+        console.error('Error deleting fabric color:', error);
+        showError('Failed to delete fabric color: ' + error.message);
+    }
+}
+
+// Utility Functions
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    // Fallback: try to get CSRF token from the DOM
+    if (!cookieValue) {
+        const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (csrfInput) {
+            cookieValue = csrfInput.value;
+        }
+    }
+    return cookieValue;
+}
+
+function showSuccess(message) {
+    alert('✓ ' + message);
+}
+
+function showError(message) {
+    alert('✗ ' + message);
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    loadFabricTypes();
+});
+</script>
+{% endblock %}

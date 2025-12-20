@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fabric types</title>
+</head>
+<body>
+    {% for fabric in fabrics %}
+        <h3>{{ fabric.fabric_name_eng}} in  {{ fabric.base_price }} price</h3>
+        <h3> {{fabric}}  </h3>
+    {% endfor %}
+</body>
+</html>

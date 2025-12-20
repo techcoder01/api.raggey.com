@@ -1,0 +1,634 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Categories Management - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="p-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">Categories Management</h1>
+        <p class="text-gray-600 mt-2">Manage Main Categories and Product Categories</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="bg-white rounded-xl card-shadow mb-6">
+        <div class="flex border-b">
+            <button onclick="showCategoryTab('main-categories')" id="tab-main-categories" class="tab-button px-6 py-4 font-medium text-purple-600 border-b-2 border-purple-600">
+                <i class="fas fa-th-large mr-2"></i>Main Categories
+            </button>
+            <button onclick="showCategoryTab('product-categories')" id="tab-product-categories" class="tab-button px-6 py-4 font-medium text-gray-600">
+                <i class="fas fa-tags mr-2"></i>Product Categories
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Categories Tab -->
+    <div id="main-categories-content" class="tab-content-cat">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div class="bg-white rounded-xl p-6 card-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm font-medium">Total Main Categories</p>
+                        <h3 class="text-3xl font-bold text-gray-800 mt-2" id="total-main-categories">0</h3>
+                    </div>
+                    <div class="w-14 h-14 rounded-full bg-purple-100 flex items-center justify-center">
+                        <i class="fas fa-th-large text-purple-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 card-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm font-medium">Active Categories</p>
+                        <h3 class="text-3xl font-bold text-gray-800 mt-2" id="active-main-categories">0</h3>
+                    </div>
+                    <div class="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center">
+                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 card-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm font-medium">Hidden Categories</p>
+                        <h3 class="text-3xl font-bold text-gray-800 mt-2" id="hidden-categories">0</h3>
+                    </div>
+                    <div class="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center">
+                        <i class="fas fa-eye-slash text-gray-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <button onclick="openCategoryModal('main')" class="gradient-bg text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition">
+                <i class="fas fa-plus mr-2"></i>Add Main Category
+            </button>
+        </div>
+
+        <div class="bg-white rounded-xl card-shadow overflow-hidden">
+            <div class="p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">All Main Categories</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr class="text-left text-xs font-medium text-gray-500 uppercase">
+                                <th class="pb-4">ID</th>
+                                <th class="pb-4">Image</th>
+                                <th class="pb-4">Name (English)</th>
+                                <th class="pb-4">Name (Arabic)</th>
+                                <th class="pb-4">Price</th>
+                                <th class="pb-4">Status</th>
+                                <th class="pb-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="main-categories-table" class="divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="7" class="py-8 text-center text-gray-500">
+                                    <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                                    <p>Loading main categories...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Categories Tab -->
+    <div id="product-categories-content" class="tab-content-cat hidden">
+        <div class="mb-6 bg-white rounded-xl p-6 card-shadow">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                    <input type="text" id="search-category" onkeyup="loadProductCategories()" placeholder="Search by name..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <button onclick="openCategoryModal('product')" class="gradient-bg text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition">
+                <i class="fas fa-plus mr-2"></i>Add Product Category
+            </button>
+        </div>
+
+        <div class="bg-white rounded-xl card-shadow overflow-hidden">
+            <div class="p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">All Product Categories</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr class="text-left text-xs font-medium text-gray-500 uppercase">
+                                <th class="pb-4">ID</th>
+                                <th class="pb-4">Name (English)</th>
+                                <th class="pb-4">Name (Arabic)</th>
+                                <th class="pb-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="product-categories-table" class="divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="4" class="py-8 text-center text-gray-500">
+                                    <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                                    <p>Loading product categories...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Category Modal -->
+<div id="category-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl p-8 max-w-2xl w-full mx-4 max-h-screen overflow-y-auto">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold text-gray-800" id="category-modal-title">Add Category</h2>
+            <button onclick="closeCategoryModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+        <form id="category-form">
+            <input type="hidden" id="category-id">
+            <input type="hidden" id="category-type">
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Name (English) *</label>
+                    <input type="text" id="category-name-eng" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Name (Arabic) *</label>
+                    <input type="text" id="category-name-arb" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" dir="rtl">
+                </div>
+
+                <!-- Main Category Only Fields -->
+                <div id="main-category-fields" class="space-y-4 hidden">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Delivery Period</label>
+                        <input type="text" id="category-delivery-period" placeholder="e.g., 3-5 days" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Initial Price (KWD) *</label>
+                        <input type="number" id="category-price" step="0.001" min="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Category Image</label>
+                        <input type="file" id="category-image" accept="image/*" onchange="previewCategoryImage(event)" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        <div id="category-image-preview" class="mt-2"></div>
+                    </div>
+
+                    <div class="flex items-center space-x-4">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="category-hidden" class="mr-2">
+                            <span class="text-sm text-gray-700">Hidden</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="category-coming-soon" class="mr-2">
+                            <span class="text-sm text-gray-700">Coming Soon</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-4 mt-6">
+                <button type="button" onclick="saveCategory()" class="flex-1 gradient-bg text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition">
+                    <i class="fas fa-save mr-2"></i>Save Category
+                </button>
+                <button type="button" onclick="closeCategoryModal()" class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+let mainCategories = [];
+let productCategories = [];
+let categoryImageFile = null;
+
+// Preview image function
+function previewCategoryImage(event) {
+    const file = event.target.files[0];
+    const preview = document.getElementById('category-image-preview');
+    if (file) {
+        categoryImageFile = file;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.innerHTML = `<img src="${e.target.result}" class="w-32 h-32 object-cover rounded border">`;
+        };
+        reader.readAsDataURL(file);
+    } else {
+        categoryImageFile = null;
+        preview.innerHTML = '';
+    }
+}
+
+// Convert file to base64
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const base64String = reader.result.split(',')[1];
+            resolve({
+                image: base64String,
+                name: file.name
+            });
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+// Tab Management
+function showCategoryTab(tabName) {
+    document.querySelectorAll('.tab-content-cat').forEach(tab => tab.classList.add('hidden'));
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('text-purple-600', 'border-b-2', 'border-purple-600');
+        btn.classList.add('text-gray-600');
+    });
+
+    document.getElementById(`${tabName}-content`).classList.remove('hidden');
+    const activeButton = document.getElementById(`tab-${tabName}`);
+    activeButton.classList.add('text-purple-600', 'border-b-2', 'border-purple-600');
+    activeButton.classList.remove('text-gray-600');
+
+    if (tabName === 'main-categories') {
+        loadMainCategories();
+    } else if (tabName === 'product-categories') {
+        loadProductCategories();
+    }
+}
+
+// Load Main Categories
+async function loadMainCategories() {
+    try {
+        const response = await fetch('/design/fetch/main/category/');
+        const data = await response.json();
+
+        // API returns serializer.data directly, not wrapped in {data: []}
+        mainCategories = Array.isArray(data) ? data : [];
+
+        // Update summary cards
+        document.getElementById('total-main-categories').textContent = mainCategories.length;
+        const activeCount = mainCategories.filter(cat => !cat.isHidden).length;
+        const hiddenCount = mainCategories.filter(cat => cat.isHidden).length;
+        document.getElementById('active-main-categories').textContent = activeCount;
+        document.getElementById('hidden-categories').textContent = hiddenCount;
+
+        // Populate table
+        const tableBody = document.getElementById('main-categories-table');
+        tableBody.innerHTML = '';
+
+        if (mainCategories.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="py-8 text-center text-gray-500">
+                        <i class="fas fa-inbox text-3xl mb-2"></i>
+                        <p>No main categories found</p>
+                    </td>
+                </tr>
+            `;
+        } else {
+            mainCategories.forEach(category => {
+                const row = document.createElement('tr');
+                row.classList.add('hover:bg-gray-50');
+                row.innerHTML = `
+                    <td class="py-4 font-mono text-sm">${category.id}</td>
+                    <td class="py-4">
+                        ${category.cover ? `<img src="${category.cover}" alt="${category.main_category_name_eng}" class="w-16 h-16 object-cover rounded">` : '<div class="w-16 h-16 bg-gray-200 rounded flex items-center justify-center"><i class="fas fa-image text-gray-400"></i></div>'}
+                    </td>
+                    <td class="py-4 font-medium">${category.main_category_name_eng || 'N/A'}</td>
+                    <td class="py-4" dir="rtl">${category.main_category_name_arb || 'N/A'}</td>
+                    <td class="py-4">
+                        <span class="font-medium text-purple-600">${parseFloat(category.initial_price).toFixed(3)} KWD</span>
+                    </td>
+                    <td class="py-4">
+                        <span class="px-3 py-1 rounded-full text-xs font-medium ${category.isHidden ? 'bg-gray-100 text-gray-700' : 'bg-green-100 text-green-700'}">
+                            ${category.isHidden ? 'Hidden' : 'Active'}
+                        </span>
+                        ${category.is_comming_soon ? '<span class="ml-2 px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">Coming Soon</span>' : ''}
+                    </td>
+                    <td class="py-4">
+                        <button onclick="editCategory('main', ${category.id})" class="text-blue-600 hover:text-blue-800 mr-3" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteCategory('main', ${category.id})" class="text-red-600 hover:text-red-800" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading main categories:', error);
+        document.getElementById('main-categories-table').innerHTML = `
+            <tr>
+                <td colspan="7" class="py-8 text-center text-red-500">
+                    <i class="fas fa-exclamation-triangle text-3xl mb-2"></i>
+                    <p>Failed to load main categories</p>
+                </td>
+            </tr>
+        `;
+    }
+}
+
+// Load Product Categories
+async function loadProductCategories() {
+    try {
+        const response = await fetch('/design/fetch/category/');
+        const data = await response.json();
+
+        // API returns serializer.data directly
+        let allCategories = Array.isArray(data) ? data : [];
+
+        // Apply search filter
+        const searchQuery = document.getElementById('search-category').value.toLowerCase();
+        if (searchQuery) {
+            allCategories = allCategories.filter(cat =>
+                cat.category_name_eng?.toLowerCase().includes(searchQuery) ||
+                cat.category_name_arb?.toLowerCase().includes(searchQuery)
+            );
+        }
+
+        productCategories = allCategories;
+
+        // Populate table
+        const tableBody = document.getElementById('product-categories-table');
+        tableBody.innerHTML = '';
+
+        if (productCategories.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="py-8 text-center text-gray-500">
+                        <i class="fas fa-inbox text-3xl mb-2"></i>
+                        <p>No product categories found</p>
+                    </td>
+                </tr>
+            `;
+        } else {
+            productCategories.forEach(category => {
+                const row = document.createElement('tr');
+                row.classList.add('hover:bg-gray-50');
+                row.innerHTML = `
+                    <td class="py-4 font-mono text-sm">${category.id}</td>
+                    <td class="py-4 font-medium">${category.category_name_eng || 'N/A'}</td>
+                    <td class="py-4" dir="rtl">${category.category_name_arb || 'N/A'}</td>
+                    <td class="py-4">
+                        <button onclick="editCategory('product', ${category.id})" class="text-blue-600 hover:text-blue-800 mr-3" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteCategory('product', ${category.id})" class="text-red-600 hover:text-red-800" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading product categories:', error);
+        document.getElementById('product-categories-table').innerHTML = `
+            <tr>
+                <td colspan="4" class="py-8 text-center text-red-500">
+                    <i class="fas fa-exclamation-triangle text-3xl mb-2"></i>
+                    <p>Failed to load product categories</p>
+                </td>
+            </tr>
+        `;
+    }
+}
+
+// Modal Management
+function openCategoryModal(type, categoryId = null) {
+    document.getElementById('category-modal').classList.remove('hidden');
+    document.getElementById('category-type').value = type;
+    categoryImageFile = null;
+
+    // Show/hide main category fields
+    if (type === 'main') {
+        document.getElementById('main-category-fields').classList.remove('hidden');
+    } else {
+        document.getElementById('main-category-fields').classList.add('hidden');
+    }
+
+    const titles = {
+        'main': 'Main Category',
+        'product': 'Product Category'
+    };
+
+    document.getElementById('category-modal-title').textContent =
+        categoryId ? `Edit ${titles[type]}` : `Add ${titles[type]}`;
+
+    if (categoryId) {
+        loadCategoryForEdit(type, categoryId);
+    } else {
+        document.getElementById('category-form').reset();
+        document.getElementById('category-id').value = '';
+        document.getElementById('category-image-preview').innerHTML = '';
+    }
+}
+
+function closeCategoryModal() {
+    document.getElementById('category-modal').classList.add('hidden');
+    document.getElementById('category-form').reset();
+    document.getElementById('category-image-preview').innerHTML = '';
+    categoryImageFile = null;
+}
+
+async function loadCategoryForEdit(type, id) {
+    try {
+        const url = type === 'main'
+            ? `/design/detail/main/category/${id}/`
+            : `/design/detail/category/${id}/`;
+
+        const response = await fetch(url);
+        const category = await response.json();
+
+        document.getElementById('category-id').value = id;
+
+        if (type === 'main') {
+            document.getElementById('category-name-eng').value = category.main_category_name_eng || '';
+            document.getElementById('category-name-arb').value = category.main_category_name_arb || '';
+            document.getElementById('category-delivery-period').value = category.duration_delivery_period || '';
+            document.getElementById('category-price').value = category.initial_price || '';
+            document.getElementById('category-hidden').checked = category.isHidden || false;
+            document.getElementById('category-coming-soon').checked = category.is_comming_soon || false;
+
+            if (category.cover) {
+                document.getElementById('category-image-preview').innerHTML =
+                    `<img src="${category.cover}" class="w-32 h-32 object-cover rounded border">`;
+            }
+        } else {
+            document.getElementById('category-name-eng').value = category.category_name_eng || '';
+            document.getElementById('category-name-arb').value = category.category_name_arb || '';
+        }
+    } catch (error) {
+        console.error('Error loading category for edit:', error);
+        alert('Failed to load category details');
+    }
+}
+
+// Save Category
+async function saveCategory() {
+    const type = document.getElementById('category-type').value;
+    const id = document.getElementById('category-id').value;
+
+    let payload = {};
+
+    if (type === 'main') {
+        const nameEng = document.getElementById('category-name-eng').value;
+        const nameArb = document.getElementById('category-name-arb').value;
+        const deliveryPeriod = document.getElementById('category-delivery-period').value;
+        const price = document.getElementById('category-price').value;
+        const isHidden = document.getElementById('category-hidden').checked;
+        const isComingSoon = document.getElementById('category-coming-soon').checked;
+
+        if (!nameEng || !nameArb || !price) {
+            alert('Please fill in all required fields');
+            return;
+        }
+
+        payload = {
+            main_category_name_eng: nameEng,
+            main_category_name_arb: nameArb,
+            duration_delivery_period: deliveryPeriod,
+            initial_price: parseFloat(price),
+            isHidden: isHidden,
+            is_comming_soon: isComingSoon
+        };
+
+        if (categoryImageFile) {
+            const imageData = await fileToBase64(categoryImageFile);
+            payload.cover = imageData;
+        } else if (id) {
+            // Keep existing image on update
+            payload.cover = null;
+        }
+    } else {
+        const nameEng = document.getElementById('category-name-eng').value;
+        const nameArb = document.getElementById('category-name-arb').value;
+
+        if (!nameEng || !nameArb) {
+            alert('Please fill in all required fields');
+            return;
+        }
+
+        payload = {
+            category_name_eng: nameEng,
+            category_name_arb: nameArb
+        };
+    }
+
+    try {
+        let url, method;
+
+        if (type === 'main') {
+            url = id ? `/design/update/main/category/${id}/` : '/design/create/main/category/';
+            method = id ? 'PUT' : 'POST';
+        } else {
+            url = id ? `/design/update/category/${id}/` : '/design/create/category/';
+            method = id ? 'PUT' : 'POST';
+        }
+
+        const response = await fetch(url, {
+            method: method,
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            alert(id ? 'Category updated successfully' : 'Category created successfully');
+            closeCategoryModal();
+
+            if (type === 'main') {
+                loadMainCategories();
+            } else {
+                loadProductCategories();
+            }
+        } else {
+            const error = await response.json();
+            alert('Error: ' + (error.error || error.message || 'Failed to save category'));
+        }
+    } catch (error) {
+        console.error('Error saving category:', error);
+        alert('Failed to save category');
+    }
+}
+
+// Edit Category
+function editCategory(type, id) {
+    openCategoryModal(type, id);
+}
+
+// Delete Category
+async function deleteCategory(type, id) {
+    if (!confirm('Are you sure you want to delete this category?')) {
+        return;
+    }
+
+    try {
+        const url = type === 'main'
+            ? `/design/delete/main/category/${id}/`
+            : `/design/delete/category/${id}/`;
+
+        const response = await fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        });
+
+        if (response.ok) {
+            alert('Category deleted successfully');
+
+            if (type === 'main') {
+                loadMainCategories();
+            } else {
+                loadProductCategories();
+            }
+        } else {
+            alert('Failed to delete category');
+        }
+    } catch (error) {
+        console.error('Error deleting category:', error);
+        alert('Failed to delete category');
+    }
+}
+
+// Get CSRF Token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    loadMainCategories();
+});
+</script>
+{% endblock %}

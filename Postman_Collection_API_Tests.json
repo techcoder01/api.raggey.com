@@ -1,0 +1,1458 @@
+{
+	"info": {
+		"_postman_id": "raggy-backend-api-collection",
+		"name": "Raggy Backend API - Complete Collection",
+		"description": "Complete API collection for Raggy Backend with all endpoints and sample request bodies",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{access_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"item": [
+		{
+			"name": "1. Authentication",
+			"item": [
+				{
+					"name": "Signup - User Registration",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.access) {",
+									"        pm.environment.set('access_token', jsonData.access);",
+									"        console.log('Access token saved:', jsonData.access);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"testuser123\",\n    \"email\": \"testuser123@example.com\",\n    \"password\": \"Test@1234\",\n    \"first_name\": \"Test\",\n    \"last_name\": \"User\",\n    \"dv_name\": \"TestDevice\",\n    \"dv_id\": \"device_123\",\n    \"dv_type\": \"mobile\",\n    \"fcm_token\": \"fcm_token_12345\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/signup/",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "signup", ""]
+						},
+						"description": "Register a new user. Returns access token on success."
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.access) {",
+									"        pm.environment.set('access_token', jsonData.access);",
+									"        console.log('Access token saved:', jsonData.access);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"testuser123@example.com\",\n    \"password\": \"Test@1234\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login/",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login", ""]
+						},
+						"description": "Login with email and password. Returns JWT access token."
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication endpoints for user signup and login"
+		},
+		{
+			"name": "2. User Management",
+			"item": [
+				{
+					"name": "Get User Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/user/fetch/info/",
+							"host": ["{{base_url}}"],
+							"path": ["user", "fetch", "info", ""]
+						},
+						"description": "Get logged-in user's information"
+					},
+					"response": []
+				},
+				{
+					"name": "List Addresses",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/user/list/address/",
+							"host": ["{{base_url}}"],
+							"path": ["user", "list", "address", ""]
+						},
+						"description": "Get all addresses of logged-in user"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Address",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"address_name\": \"Home\",\n    \"Area\": 1,\n    \"block\": \"A\",\n    \"street\": \"123\",\n    \"house\": \"456\",\n    \"apartment\": \"5\",\n    \"floor\": \"2\",\n    \"phone_number\": \"03001234567\",\n    \"longitude\": \"67.0011\",\n    \"latitude\": \"24.8607\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/user/create/address/",
+							"host": ["{{base_url}}"],
+							"path": ["user", "create", "address", ""]
+						},
+						"description": "Create a new address for user"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Address",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"address_name\": \"Office\",\n    \"Area\": 1,\n    \"block\": \"B\",\n    \"street\": \"456\",\n    \"house\": \"789\",\n    \"apartment\": \"3\",\n    \"floor\": \"1\",\n    \"phone_number\": \"03007654321\",\n    \"longitude\": \"67.0011\",\n    \"latitude\": \"24.8607\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/user/update/address/1/",
+							"host": ["{{base_url}}"],
+							"path": ["user", "update", "address", "1", ""]
+						},
+						"description": "Update existing address by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Address",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/user/delete/address/1/",
+							"host": ["{{base_url}}"],
+							"path": ["user", "delete", "address", "1", ""]
+						},
+						"description": "Delete address by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Set Default Address",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/user/default/address/1/",
+							"host": ["{{base_url}}"],
+							"path": ["user", "default", "address", "1", ""]
+						},
+						"description": "Set an address as default by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Default Address",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/user/fetch/default/address/",
+							"host": ["{{base_url}}"],
+							"path": ["user", "fetch", "default", "address", ""]
+						},
+						"description": "Get user's default address"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Specific Address",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/user/address/1/",
+							"host": ["{{base_url}}"],
+							"path": ["user", "address", "1", ""]
+						},
+						"description": "Get specific address by ID"
+					},
+					"response": []
+				}
+			],
+			"description": "User management and address APIs"
+		},
+		{
+			"name": "3. Design - User Side",
+			"item": [
+				{
+					"name": "Get Main Categories",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/design/fetch/main/category/",
+							"host": ["{{base_url}}"],
+							"path": ["design", "fetch", "main", "category", ""]
+						},
+						"description": "Get main categories (Infant, Kid, Adult)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Product Categories",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/design/fetch/category/",
+							"host": ["{{base_url}}"],
+							"path": ["design", "fetch", "category", ""]
+						},
+						"description": "Get product categories (Sleeve, Coller, Fabric, etc.)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Fabrics",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/design/fetch/fabric/",
+							"host": ["{{base_url}}"],
+							"path": ["design", "fetch", "fabric", ""]
+						},
+						"description": "Get all fabric types"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Fabric Colors",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/design/fetch/fabric/2/colors/",
+							"host": ["{{base_url}}"],
+							"path": ["design", "fetch", "fabric", "2", "colors", ""]
+						},
+						"description": "Get colors for specific fabric (replace 2 with fabric ID)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Collar Types",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/design/fetch/coller/",
+							"host": ["{{base_url}}"],
+							"path": ["design", "fetch", "coller", ""]
+						},
+						"description": "Get collar/ghola types"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Right Sleeves",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/design/fetch/sleeves/right/",
+							"host": ["{{base_url}}"],
+							"path": ["design", "fetch", "sleeves", "right", ""]
+						},
+						"description": "Get right sleeves options"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Left Sleeves",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/design/fetch/sleeves/left/",
+							"host": ["{{base_url}}"],
+							"path": ["design", "fetch", "sleeves", "left", ""]
+						},
+						"description": "Get left sleeves options"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Pockets",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/design/fetch/pocket/",
+							"host": ["{{base_url}}"],
+							"path": ["design", "fetch", "pocket", ""]
+						},
+						"description": "Get pocket types"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Buttons",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/design/fetch/button/",
+							"host": ["{{base_url}}"],
+							"path": ["design", "fetch", "button", ""]
+						},
+						"description": "Get button types"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Button Strips",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/design/fetch/button-strip/",
+							"host": ["{{base_url}}"],
+							"path": ["design", "fetch", "button-strip", ""]
+						},
+						"description": "Get button strip types"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Designs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/design/fetch/designs/",
+							"host": ["{{base_url}}"],
+							"path": ["design", "fetch", "designs", ""]
+						},
+						"description": "Get logged-in user's saved designs"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Design",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"main_category\": 3,\n    \"fabric_color\": 1,\n    \"ghola_type\": 1,\n    \"sleeves_type_right\": 2,\n    \"sleeves_type_left\": 1,\n    \"pocket_type\": 1,\n    \"button_type\": 1,\n    \"button_strip_type\": 1,\n    \"measurement\": 1,\n    \"quantity\": 2,\n    \"notes\": \"Custom design notes\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/design/create/design/",
+							"host": ["{{base_url}}"],
+							"path": ["design", "create", "design", ""]
+						},
+						"description": "Create a new design with selected components"
+					},
+					"response": []
+				},
+				{
+					"name": "Edit Design",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"main_category\": 3,\n    \"fabric_color\": 1,\n    \"ghola_type\": 1,\n    \"sleeves_type_right\": 2,\n    \"sleeves_type_left\": 1,\n    \"pocket_type\": 1,\n    \"button_type\": 1,\n    \"button_strip_type\": 1,\n    \"measurement\": 1,\n    \"quantity\": 3,\n    \"notes\": \"Updated design notes\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/design/edit/design/1/",
+							"host": ["{{base_url}}"],
+							"path": ["design", "edit", "design", "1", ""]
+						},
+						"description": "Edit existing design by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Preview Design Summary",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fabric_color\": 1,\n    \"ghola_type\": 1,\n    \"sleeves_type_right\": 2,\n    \"sleeves_type_left\": 1,\n    \"pocket_type\": 1,\n    \"button_type\": 1,\n    \"button_strip_type\": 1,\n    \"quantity\": 2\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/design/preview/summary/",
+							"host": ["{{base_url}}"],
+							"path": ["design", "preview", "summary", ""]
+						},
+						"description": "Preview design summary with price calculation"
+					},
+					"response": []
+				}
+			],
+			"description": "Design endpoints for users to create and manage designs"
+		},
+		{
+			"name": "4. Design - Admin Side",
+			"item": [
+				{
+					"name": "Main Category",
+					"item": [
+						{
+							"name": "Get Main Category Details",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/design/detail/main/category/1/",
+									"host": ["{{base_url}}"],
+									"path": ["design", "detail", "main", "category", "1", ""]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Main Category",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"main_category_name_eng\": \"Youth\",\n    \"main_category_name_arb\": \"شباب\",\n    \"duration_delivery_period\": \"60\",\n    \"initial_price\": \"15.000\",\n    \"review_rate\": 1400,\n    \"isHidden\": false,\n    \"is_comming_soon\": false\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/design/create/main/category/",
+									"host": ["{{base_url}}"],
+									"path": ["design", "create", "main", "category", ""]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Main Category",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"main_category_name_eng\": \"Youth Updated\",\n    \"main_category_name_arb\": \"شباب محدث\",\n    \"duration_delivery_period\": \"65\",\n    \"initial_price\": \"18.000\",\n    \"review_rate\": 1500\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/design/update/main/category/1/",
+									"host": ["{{base_url}}"],
+									"path": ["design", "update", "main", "category", "1", ""]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Main Category",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/design/delete/main/category/1/",
+									"host": ["{{base_url}}"],
+									"path": ["design", "delete", "main", "category", "1", ""]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Fabric Type",
+					"item": [
+						{
+							"name": "Get Fabric Type Details",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/design/detail/fabric-type/1/",
+									"host": ["{{base_url}}"],
+									"path": ["design", "detail", "fabric-type", "1", ""]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Fabric Type",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"fabric_name_eng\": \"Silk\",\n    \"fabric_name_arb\": \"حرير\",\n    \"base_price\": \"50.000\",\n    \"category\": [6],\n    \"isHidden\": false\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/design/create/fabric-type/",
+									"host": ["{{base_url}}"],
+									"path": ["design", "create", "fabric-type", ""]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Fabric Type",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"fabric_name_eng\": \"Premium Silk\",\n    \"fabric_name_arb\": \"حرير فاخر\",\n    \"base_price\": \"60.000\",\n    \"category\": [6],\n    \"isHidden\": false\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/design/update/fabric-type/1/",
+									"host": ["{{base_url}}"],
+									"path": ["design", "update", "fabric-type", "1", ""]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Fabric Type",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/design/delete/fabric-type/1/",
+									"host": ["{{base_url}}"],
+									"path": ["design", "delete", "fabric-type", "1", ""]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Fabric Color",
+					"item": [
+						{
+							"name": "Get Fabric Color Details",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/design/detail/fabric-color/1/",
+									"host": ["{{base_url}}"],
+									"path": ["design", "detail", "fabric-color", "1", ""]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Fabric Color",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"fabric_type\": 2,\n    \"color_name_eng\": \"Blue\",\n    \"color_name_arb\": \"أزرق\",\n    \"quantity\": 150,\n    \"price_adjustment\": \"15.000\",\n    \"inStock\": true\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/design/create/fabric-color/",
+									"host": ["{{base_url}}"],
+									"path": ["design", "create", "fabric-color", ""]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Fabric Color",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"fabric_type\": 2,\n    \"color_name_eng\": \"Dark Blue\",\n    \"color_name_arb\": \"أزرق داكن\",\n    \"quantity\": 200,\n    \"price_adjustment\": \"20.000\",\n    \"inStock\": true\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/design/update/fabric-color/1/",
+									"host": ["{{base_url}}"],
+									"path": ["design", "update", "fabric-color", "1", ""]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Fabric Color",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/design/delete/fabric-color/1/",
+									"host": ["{{base_url}}"],
+									"path": ["design", "delete", "fabric-color", "1", ""]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Inventory Management",
+					"item": [
+						{
+							"name": "Get Low Stock Items",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/design/inventory/low-stock/?threshold=50",
+									"host": ["{{base_url}}"],
+									"path": ["design", "inventory", "low-stock", ""],
+									"query": [
+										{
+											"key": "threshold",
+											"value": "50"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Bulk Update Inventory",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"updates\": [\n        {\n            \"id\": 1,\n            \"quantity_change\": 50,\n            \"action\": \"add\"\n        },\n        {\n            \"id\": 2,\n            \"quantity_change\": 30,\n            \"action\": \"subtract\"\n        }\n    ]\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/design/inventory/bulk-update/",
+									"host": ["{{base_url}}"],
+									"path": ["design", "inventory", "bulk-update", ""]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Inventory History",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/design/inventory/history/1/",
+									"host": ["{{base_url}}"],
+									"path": ["design", "inventory", "history", "1", ""]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			],
+			"description": "Admin endpoints for managing design components"
+		},
+		{
+			"name": "5. Sizes & Measurements",
+			"item": [
+				{
+					"name": "Get Default Measurements",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sizes/measurements/default/",
+							"host": ["{{base_url}}"],
+							"path": ["sizes", "measurements", "default", ""]
+						},
+						"description": "Get all default measurements"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Custom Measurements",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sizes/measurements/custom/",
+							"host": ["{{base_url}}"],
+							"path": ["sizes", "measurements", "custom", ""]
+						},
+						"description": "Get user's custom measurements"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Measurements",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sizes/measurements/all/",
+							"host": ["{{base_url}}"],
+							"path": ["sizes", "measurements", "all", ""]
+						},
+						"description": "Get both default and custom measurements for user"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Custom Measurement",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"size_name\": \"My Custom Size\",\n    \"front_height\": \"40\",\n    \"back_height\": \"39\",\n    \"neck_size\": \"55\",\n    \"around_legs\": \"45\",\n    \"full_chest\": \"38\",\n    \"half_chest\": \"90\",\n    \"full_belly\": \"80\",\n    \"half_belly\": \"80\",\n    \"neck_to_center_belly\": \"90\",\n    \"neck_to_chest_pocket\": \"58\",\n    \"shoulder_width\": \"78\",\n    \"arm_tall\": \"80\",\n    \"arm_width_1\": \"56\",\n    \"arm_width_2\": \"56\",\n    \"arm_width_3\": \"56\",\n    \"arm_width_4\": \"47\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sizes/measurements/custom/create/",
+							"host": ["{{base_url}}"],
+							"path": ["sizes", "measurements", "custom", "create", ""]
+						},
+						"description": "Create a custom measurement for user"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Custom Measurement",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"size_name\": \"My Updated Custom Size\",\n    \"front_height\": \"42\",\n    \"back_height\": \"41\",\n    \"neck_size\": \"57\",\n    \"around_legs\": \"47\",\n    \"full_chest\": \"40\",\n    \"half_chest\": \"92\",\n    \"full_belly\": \"82\",\n    \"half_belly\": \"82\",\n    \"neck_to_center_belly\": \"92\",\n    \"neck_to_chest_pocket\": \"60\",\n    \"shoulder_width\": \"80\",\n    \"arm_tall\": \"82\",\n    \"arm_width_1\": \"58\",\n    \"arm_width_2\": \"58\",\n    \"arm_width_3\": \"58\",\n    \"arm_width_4\": \"49\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sizes/measurements/custom/update/1/",
+							"host": ["{{base_url}}"],
+							"path": ["sizes", "measurements", "custom", "update", "1", ""]
+						},
+						"description": "Update custom measurement by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Custom Measurement",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sizes/measurements/custom/delete/1/",
+							"host": ["{{base_url}}"],
+							"path": ["sizes", "measurements", "custom", "delete", "1", ""]
+						},
+						"description": "Delete custom measurement by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Custom Measurement Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sizes/measurements/custom/1/",
+							"host": ["{{base_url}}"],
+							"path": ["sizes", "measurements", "custom", "1", ""]
+						},
+						"description": "Get specific custom measurement details"
+					},
+					"response": []
+				}
+			],
+			"description": "Measurement management endpoints"
+		},
+		{
+			"name": "6. Basket",
+			"item": [
+				{
+					"name": "Get Basket",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/basket/fetch/",
+							"host": ["{{base_url}}"],
+							"path": ["basket", "fetch", ""]
+						},
+						"description": "Get user's basket with all items"
+					},
+					"response": []
+				},
+				{
+					"name": "Add to Basket",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"design_id\": 1,\n    \"quantity\": 2\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/basket/add/",
+							"host": ["{{base_url}}"],
+							"path": ["basket", "add", ""]
+						},
+						"description": "Add design item to basket"
+					},
+					"response": []
+				},
+				{
+					"name": "Remove from Basket",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/basket/remove/1/",
+							"host": ["{{base_url}}"],
+							"path": ["basket", "remove", "1", ""]
+						},
+						"description": "Remove item from basket by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Edit Basket Item",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"quantity\": 3\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/basket/edit/1/",
+							"host": ["{{base_url}}"],
+							"path": ["basket", "edit", "1", ""]
+						},
+						"description": "Edit basket item quantity"
+					},
+					"response": []
+				}
+			],
+			"description": "Shopping basket management"
+		},
+		{
+			"name": "7. Purchase & Orders",
+			"item": [
+				{
+					"name": "User - Orders",
+					"item": [
+						{
+							"name": "Create Order",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"address_id\": 1,\n    \"payment_method\": \"cash_on_delivery\",\n    \"notes\": \"Please deliver between 2-5 PM\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/purchase/create-order/",
+									"host": ["{{base_url}}"],
+									"path": ["purchase", "create-order", ""]
+								},
+								"description": "Create order from basket items"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Order History",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/purchase/orders/",
+									"host": ["{{base_url}}"],
+									"path": ["purchase", "orders", ""]
+								},
+								"description": "Get user's order history"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Order Details",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/purchase/order/1/",
+									"host": ["{{base_url}}"],
+									"path": ["purchase", "order", "1", ""]
+								},
+								"description": "Get specific order details"
+							},
+							"response": []
+						},
+						{
+							"name": "Cancel Order",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"cancellation_reason\": \"Changed my mind\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/purchase/order/1/cancel/",
+									"host": ["{{base_url}}"],
+									"path": ["purchase", "order", "1", "cancel", ""]
+								},
+								"description": "Cancel an order"
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Admin - Orders",
+					"item": [
+						{
+							"name": "List All Orders",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/purchase/admin/orders/?status=pending&page=1",
+									"host": ["{{base_url}}"],
+									"path": ["purchase", "admin", "orders", ""],
+									"query": [
+										{
+											"key": "status",
+											"value": "pending"
+										},
+										{
+											"key": "page",
+											"value": "1"
+										}
+									]
+								},
+								"description": "Get all orders (admin only)"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Order Details (Admin)",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/purchase/admin/order/1/",
+									"host": ["{{base_url}}"],
+									"path": ["purchase", "admin", "order", "1", ""]
+								},
+								"description": "Get order details (admin only)"
+							},
+							"response": []
+						},
+						{
+							"name": "Update Order Status",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"status\": \"processing\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/purchase/admin/order/1/status/",
+									"host": ["{{base_url}}"],
+									"path": ["purchase", "admin", "order", "1", "status", ""]
+								},
+								"description": "Update order status (admin only). Statuses: pending, processing, completed, cancelled"
+							},
+							"response": []
+						},
+						{
+							"name": "Cancel Order (Admin)",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"cancellation_reason\": \"Out of stock\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/purchase/admin/order/1/cancel/",
+									"host": ["{{base_url}}"],
+									"path": ["purchase", "admin", "order", "1", "cancel", ""]
+								},
+								"description": "Cancel order (admin only)"
+							},
+							"response": []
+						}
+					]
+				}
+			],
+			"description": "Order management endpoints"
+		},
+		{
+			"name": "8. Analytics (Admin Only)",
+			"item": [
+				{
+					"name": "Dashboard KPIs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/purchase/analytics/kpis/",
+							"host": ["{{base_url}}"],
+							"path": ["purchase", "analytics", "kpis", ""]
+						},
+						"description": "Get dashboard KPIs (total revenue, orders, customers, etc.)"
+					},
+					"response": []
+				},
+				{
+					"name": "Revenue Trend",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/purchase/analytics/revenue-trend/?period=30",
+							"host": ["{{base_url}}"],
+							"path": ["purchase", "analytics", "revenue-trend", ""],
+							"query": [
+								{
+									"key": "period",
+									"value": "30"
+								}
+							]
+						},
+						"description": "Get revenue trend over time"
+					},
+					"response": []
+				},
+				{
+					"name": "Order Status Distribution",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/purchase/analytics/order-status/",
+							"host": ["{{base_url}}"],
+							"path": ["purchase", "analytics", "order-status", ""]
+						},
+						"description": "Get distribution of orders by status"
+					},
+					"response": []
+				},
+				{
+					"name": "Popular Fabrics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/purchase/analytics/popular-fabrics/?limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["purchase", "analytics", "popular-fabrics", ""],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Get most popular fabrics"
+					},
+					"response": []
+				},
+				{
+					"name": "Top Customers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/purchase/analytics/top-customers/?limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["purchase", "analytics", "top-customers", ""],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Get top customers by order value"
+					},
+					"response": []
+				},
+				{
+					"name": "Recent Orders Table",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/purchase/analytics/recent-orders/?limit=20",
+							"host": ["{{base_url}}"],
+							"path": ["purchase", "analytics", "recent-orders", ""],
+							"query": [
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Get recent orders table data"
+					},
+					"response": []
+				},
+				{
+					"name": "Inventory Status Table",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/purchase/analytics/inventory-status/",
+							"host": ["{{base_url}}"],
+							"path": ["purchase", "analytics", "inventory-status", ""]
+						},
+						"description": "Get inventory status overview"
+					},
+					"response": []
+				}
+			],
+			"description": "Analytics endpoints for admin dashboard"
+		},
+		{
+			"name": "9. Fee & Delivery",
+			"item": [
+				{
+					"name": "Get Delivery Areas",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/fee/area/",
+							"host": ["{{base_url}}"],
+							"path": ["fee", "area", ""]
+						},
+						"description": "Get available delivery areas for user"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Areas",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/fee/area/all/",
+							"host": ["{{base_url}}"],
+							"path": ["fee", "area", "all", ""]
+						},
+						"description": "Get all delivery areas (requires profile)"
+					},
+					"response": []
+				},
+				{
+					"name": "List Fees",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/fee/list/",
+							"host": ["{{base_url}}"],
+							"path": ["fee", "list", ""]
+						},
+						"description": "Get fee list (admin only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Fee",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"area_name\": \"Karachi City\",\n    \"delivery_fee\": \"50.00\",\n    \"is_active\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/fee/create/",
+							"host": ["{{base_url}}"],
+							"path": ["fee", "create", ""]
+						},
+						"description": "Create new delivery fee (admin only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Fee",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"area_name\": \"Karachi City\",\n    \"delivery_fee\": \"60.00\",\n    \"is_active\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/fee/update/1/",
+							"host": ["{{base_url}}"],
+							"path": ["fee", "update", "1", ""]
+						},
+						"description": "Update fee (admin only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Fee",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/fee/delete/1/",
+							"host": ["{{base_url}}"],
+							"path": ["fee", "delete", "1", ""]
+						},
+						"description": "Delete fee (admin only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Fee Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/fee/detail/1/",
+							"host": ["{{base_url}}"],
+							"path": ["fee", "detail", "1", ""]
+						},
+						"description": "Get specific fee details (admin only)"
+					},
+					"response": []
+				}
+			],
+			"description": "Delivery fee management"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:8000",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

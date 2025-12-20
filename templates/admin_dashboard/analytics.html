@@ -1,0 +1,108 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Analytics - Admin{% endblock %}
+{% block page_title %}Advanced Analytics{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Conversion Rate -->
+    <div class="bg-white rounded-xl p-6 card-shadow">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Conversion Metrics</h3>
+        <div class="space-y-4">
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-gray-600">Conversion Rate</span>
+                    <span class="font-bold text-green-600" id="conversion-rate">0%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="conversion-bar" class="bg-green-500 h-2 rounded-full" style="width: 0%"></div>
+                </div>
+            </div>
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-gray-600">Average Order Value</span>
+                    <span class="font-bold text-purple-600" id="avg-order-value">0 KWD</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Period Comparison -->
+    <div class="bg-white rounded-xl p-6 card-shadow">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Period Comparison</h3>
+        <div id="period-stats" class="space-y-4">
+            <!-- Will be populated by JavaScript -->
+        </div>
+    </div>
+</div>
+
+<!-- Monthly Performance Chart -->
+<div class="bg-white rounded-xl p-6 card-shadow mb-8">
+    <h3 class="text-lg font-semibold text-gray-800 mb-4">Monthly Performance</h3>
+    <canvas id="monthlyChart" height="80"></canvas>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function fetchAnalytics() {
+        try {
+            const response = await fetch('/purchase/analytics/kpis/?period=30');
+            const data = await response.json();
+
+            document.getElementById('conversion-rate').textContent = data.kpis.conversion_rate + '%';
+            document.getElementById('conversion-bar').style.width = data.kpis.conversion_rate + '%';
+            document.getElementById('avg-order-value').textContent = data.kpis.avg_order_value.toFixed(3) + ' KWD';
+
+            // Fetch revenue trend for chart
+            const trendResponse = await fetch('/purchase/analytics/revenue-trend/?period=365');
+            const trendData = await trendResponse.json();
+            renderMonthlyChart(trendData.data);
+        } catch (error) {
+            console.error('Error fetching analytics:', error);
+        }
+    }
+
+    function renderMonthlyChart(data) {
+        // Group by month
+        const monthlyData = {};
+        data.forEach(item => {
+            const month = new Date(item.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+            if (!monthlyData[month]) {
+                monthlyData[month] = { revenue: 0, orders: 0 };
+            }
+            monthlyData[month].revenue += item.revenue;
+            monthlyData[month].orders += item.orders_count;
+        });
+
+        const ctx = document.getElementById('monthlyChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(monthlyData),
+                datasets: [{
+                    label: 'Revenue (KWD)',
+                    data: Object.values(monthlyData).map(d => d.revenue),
+                    backgroundColor: '#667eea',
+                    yAxisID: 'y'
+                }, {
+                    label: 'Orders',
+                    data: Object.values(monthlyData).map(d => d.orders),
+                    backgroundColor: '#764ba2',
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { type: 'linear', position: 'left' },
+                    y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false } }
+                }
+            }
+        });
+    }
+
+    fetchAnalytics();
+</script>
+{% endblock %}
