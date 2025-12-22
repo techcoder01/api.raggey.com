@@ -19,8 +19,16 @@ from django.urls import path
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import JsonResponse
+
+def home(request):
+    return JsonResponse({
+        "status": "OK",
+        "service": "Raggey API",
+    })
 
 urlpatterns = [
+    path('', home),
     path('admin/', admin.site.urls),
     path('admin-dashboard/', include('AdminDashboard.urls', namespace='admin_dashboard')),
     # Removed: path('auth/', include('Auth.urls', namespace='Auth-api')),  # Empty app
