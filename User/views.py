@@ -6,8 +6,8 @@ from rest_framework.views import APIView
 from .models import Address, Profile
 from django.contrib.auth.models import User
 from django.db import transaction
-from Sizes.models import Sizes
 from Design.models import UserDesign, HomePageSelectionCategory, FabricColor, GholaType, SleevesType, PocketType, ButtonType, ButtonStripType, BodyType
+from Sizes.models import Sizes
 
 # Create your views here.
 class AddressAPIView(APIView):
@@ -174,12 +174,225 @@ class UpdateFCMTokenAPIView(APIView):
         }, status=HTTP_400_BAD_REQUEST)
 
 
+class SaveDesignAPIView(APIView):
+    """
+    POST: Save UserDesign when user adds to cart
+    This allows users to see their saved designs when adding another dishdasha
+
+    Request Body:
+    {
+        "design_name": "My Design",
+        "initial_size_selected_id": 1,
+        "main_body_fabric_color_id": 5,
+        "selected_coller_type_id": 2,
+        "selected_sleeve_left_type_id": 3,
+        "selected_sleeve_right_type_id": 4,
+        "selected_pocket_id": 1,
+        "selected_button_id": 2,
+        "selected_button_strip_id": 1,
+        "selected_body_type_id": 6,
+        "design_total": 25.500
+    }
+
+    Endpoint: /user/save-design/
+    """
+    def post(self, request):
+        user = self.request.user
+        if not user.is_authenticated:
+            return Response({
+                'success': False,
+                'error': 'Authentication required'
+            }, status=HTTP_401_UNAUTHORIZED)
+
+        try:
+            data = request.data
+
+            # Get foreign key instances
+            initial_category = HomePageSelectionCategory.objects.filter(
+                id=data.get('initial_size_selected_id')
+            ).first()
+            if not initial_category:
+                initial_category = HomePageSelectionCategory.objects.filter(isHidden=False).first()
+
+            # All components are nullable - users can save incomplete designs
+            fabric_color = FabricColor.objects.filter(id=data.get('main_body_fabric_color_id')).first() if data.get('main_body_fabric_color_id') else None
+            collar = GholaType.objects.filter(id=data.get('selected_coller_type_id')).first() if data.get('selected_coller_type_id') else None
+            sleeve_left = SleevesType.objects.filter(id=data.get('selected_sleeve_left_type_id')).first() if data.get('selected_sleeve_left_type_id') else None
+            sleeve_right = SleevesType.objects.filter(id=data.get('selected_sleeve_right_type_id')).first() if data.get('selected_sleeve_right_type_id') else None
+            pocket = PocketType.objects.filter(id=data.get('selected_pocket_id')).first() if data.get('selected_pocket_id') else None
+            button = ButtonType.objects.filter(id=data.get('selected_button_id')).first() if data.get('selected_button_id') else None
+            button_strip = ButtonStripType.objects.filter(id=data.get('selected_button_strip_id')).first() if data.get('selected_button_strip_id') else None
+            body = BodyType.objects.filter(id=data.get('selected_body_type_id')).first() if data.get('selected_body_type_id') else None
+
+            # Check if identical design already exists
+            design_filter = {
+                'user': user,
+                'initial_size_selected': initial_category,
+                'main_body_fabric_color': fabric_color,
+                'selected_coller_type': collar,
+                'selected_sleeve_left_type': sleeve_left,
+                'selected_sleeve_right_type': sleeve_right,
+                'selected_pocket_type': pocket,
+                'selected_button_type': button,
+                'selected_button_strip_type': button_strip,
+                'selected_body_type': body,
+            }
+
+            existing_design = UserDesign.objects.filter(**design_filter).first()
+
+            if existing_design:
+                # Reuse existing design
+                return Response({
+                    'success': True,
+                    'message': 'Design already exists, reusing',
+                    'design': {
+                        'id': existing_design.id,
+                        'design_name': existing_design.design_name,
+                        'design_total': str(existing_design.design_Total),
+                        'created': False
+                    }
+                }, status=HTTP_200_OK)
+            else:
+                # Create new design
+                design = UserDesign.objects.create(
+                    user=user,
+                    design_name=data.get('design_name', ''),
+                    initial_size_selected=initial_category,
+                    main_body_fabric_color=fabric_color,
+                    selected_coller_type=collar,
+                    selected_sleeve_left_type=sleeve_left,
+                    selected_sleeve_right_type=sleeve_right,
+                    selected_pocket_type=pocket,
+                    selected_button_type=button,
+                    selected_button_strip_type=button_strip,
+                    selected_body_type=body,
+                    design_Total=data.get('design_total', 0.0)
+                )
+
+                return Response({
+                    'success': True,
+                    'message': 'Design saved successfully',
+                    'design': {
+                        'id': design.id,
+                        'design_name': design.design_name,
+                        'design_total': str(design.design_Total),
+                        'created': True
+                    }
+                }, status=HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': 'Failed to save design',
+                'message': str(e)
+            }, status=HTTP_400_BAD_REQUEST)
+
+
+class SaveMeasurementAPIView(APIView):
+    """
+    POST: Save custom measurement (Sizes) when user enters measurements
+    This allows users to see their saved measurements when adding another dishdasha
+
+    Request Body:
+    {
+        "size_name": "My Custom Size",
+        "front_hight": "120",
+        "back_hight": "115",
+        "around_neck": "40",
+        "around_legs": "100",
+        "full_chest": "110",
+        "half_chest": "55",
+        "full_belly": "105",
+        "half_belly": "52",
+        "neck_to_center_belly": "75",
+        "neck_to_chest": "30",
+        "shoulders_width": "45",
+        "arm_tall": "60",
+        "arm_width_one": "35",
+        "arm_width_two": "30",
+        "arm_width_three": "25",
+        "arm_width_four": "20"
+    }
+
+    Endpoint: /user/save-measurement/
+    """
+    def post(self, request):
+        user = self.request.user
+        if not user.is_authenticated:
+            return Response({
+                'success': False,
+                'error': 'Authentication required'
+            }, status=HTTP_401_UNAUTHORIZED)
+
+        try:
+            data = request.data
+
+            # Check if identical measurement already exists
+            measurement_filter = {
+                'user': user,
+                'front_hight': data.get('front_hight', ''),
+                'back_hight': data.get('back_hight', ''),
+                'around_neck': data.get('around_neck', ''),
+                'around_legs': data.get('around_legs', ''),
+                'full_chest': data.get('full_chest', ''),
+                'half_chest': data.get('half_chest', ''),
+                'full_belly': data.get('full_belly', ''),
+                'half_belly': data.get('half_belly', ''),
+                'neck_to_center_belly': data.get('neck_to_center_belly', ''),
+                'neck_to_chest': data.get('neck_to_chest', ''),
+                'shoulders_width': data.get('shoulders_width', ''),
+                'arm_tall': data.get('arm_tall', ''),
+                'arm_width_one': data.get('arm_width_one', ''),
+                'arm_width_two': data.get('arm_width_two', ''),
+                'arm_width_three': data.get('arm_width_three', ''),
+                'arm_width_four': data.get('arm_width_four', ''),
+            }
+
+            existing_measurement = Sizes.objects.filter(**measurement_filter).first()
+
+            if existing_measurement:
+                # Reuse existing measurement
+                return Response({
+                    'success': True,
+                    'message': 'Measurement already exists, reusing',
+                    'measurement': {
+                        'id': existing_measurement.id,
+                        'size_name': existing_measurement.size_name,
+                        'created': False
+                    }
+                }, status=HTTP_200_OK)
+            else:
+                # Create new measurement
+                measurement = Sizes.objects.create(
+                    user=user,
+                    size_name=data.get('size_name', 'Custom Size'),
+                    **measurement_filter
+                )
+
+                return Response({
+                    'success': True,
+                    'message': 'Measurement saved successfully',
+                    'measurement': {
+                        'id': measurement.id,
+                        'size_name': measurement.size_name,
+                        'created': True
+                    }
+                }, status=HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': 'Failed to save measurement',
+                'message': str(e)
+            }, status=HTTP_400_BAD_REQUEST)
+
+
 class BulkSaveCartDataAPIView(APIView):
     """
-    POST: Save/Update all cart-related data before checkout
-    - Saves measurements (custom or default)
+    POST: Save/Update cart-related data before checkout
+    - Skips measurements (saved during order creation)
     - Saves/Updates address
-    - Saves cart items as UserDesign
+    - Saves cart items as UserDesign (with unique checking)
 
     Request Body:
     {
@@ -227,7 +440,6 @@ class BulkSaveCartDataAPIView(APIView):
     Endpoint: /user/bulk-save-cart-data/
     """
 
-    @transaction.atomic
     def post(self, request):
         user = self.request.user
         if not user.is_authenticated:
@@ -244,21 +456,90 @@ class BulkSaveCartDataAPIView(APIView):
                 'saved_items': {}
             }
 
-            # ========== 1. SKIP MEASUREMENT SAVING ==========
-            # NOTE: Measurements are NOT saved to Sizes table from cart screen
-            # They will be saved in Item.size_details JSON field during order creation
+            # ========== 1. SAVE MEASUREMENT (Sizes) ==========
             if 'measurement' in data and data['measurement']:
                 measurement_data = data['measurement']
                 measurement_type = measurement_data.get('type', 'default')
-                size_name = measurement_data.get('size_name', '')
 
-                # Just acknowledge receipt without creating Sizes entries
-                response_data['saved_items']['measurement'] = {
-                    'type': measurement_type,
-                    'size_name': size_name,
-                    'skipped': True,
-                    'message': 'Measurements will be saved during order creation'
-                }
+                if measurement_type == 'custom':
+                    # Save custom measurement to Sizes table
+                    try:
+                        # Check if identical measurement exists
+                        measurement_filter = {
+                            'user': user,
+                            'front_hight': measurement_data.get('front_hight', ''),
+                            'back_hight': measurement_data.get('back_hight', ''),
+                            'around_neck': measurement_data.get('around_neck', ''),
+                            'around_legs': measurement_data.get('around_legs', ''),
+                            'full_chest': measurement_data.get('full_chest', ''),
+                            'half_chest': measurement_data.get('half_chest', ''),
+                            'full_belly': measurement_data.get('full_belly', ''),
+                            'half_belly': measurement_data.get('half_belly', ''),
+                            'neck_to_center_belly': measurement_data.get('neck_to_center_belly', ''),
+                            'neck_to_chest': measurement_data.get('neck_to_chest', ''),
+                            'shoulders_width': measurement_data.get('shoulders_width', ''),
+                            'arm_tall': measurement_data.get('arm_tall', ''),
+                            'arm_width_one': measurement_data.get('arm_width_one', ''),
+                            'arm_width_two': measurement_data.get('arm_width_two', ''),
+                            'arm_width_three': measurement_data.get('arm_width_three', ''),
+                            'arm_width_four': measurement_data.get('arm_width_four', ''),
+                        }
+
+                        existing_measurement = Sizes.objects.filter(**measurement_filter).first()
+
+                        if existing_measurement:
+                            response_data['saved_items']['measurement'] = {
+                                'id': existing_measurement.id,
+                                'type': measurement_type,
+                                'size_name': existing_measurement.size_name,
+                                'created': False,
+                                'message': 'Reusing existing measurement'
+                            }
+                            print(f"♻️ BulkSave: Reusing existing measurement (ID: {existing_measurement.id})")
+                        else:
+                            # Create new custom measurement
+                            new_measurement = Sizes.objects.create(
+                                user=user,
+                                size_name=measurement_data.get('size_name', ''),
+                                front_hight=measurement_data.get('front_hight', ''),
+                                back_hight=measurement_data.get('back_hight', ''),
+                                around_neck=measurement_data.get('around_neck', ''),
+                                around_legs=measurement_data.get('around_legs', ''),
+                                full_chest=measurement_data.get('full_chest', ''),
+                                half_chest=measurement_data.get('half_chest', ''),
+                                full_belly=measurement_data.get('full_belly', ''),
+                                half_belly=measurement_data.get('half_belly', ''),
+                                neck_to_center_belly=measurement_data.get('neck_to_center_belly', ''),
+                                neck_to_chest=measurement_data.get('neck_to_chest', ''),
+                                shoulders_width=measurement_data.get('shoulders_width', ''),
+                                arm_tall=measurement_data.get('arm_tall', ''),
+                                arm_width_one=measurement_data.get('arm_width_one', ''),
+                                arm_width_two=measurement_data.get('arm_width_two', ''),
+                                arm_width_three=measurement_data.get('arm_width_three', ''),
+                                arm_width_four=measurement_data.get('arm_width_four', '')
+                            )
+                            response_data['saved_items']['measurement'] = {
+                                'id': new_measurement.id,
+                                'type': measurement_type,
+                                'size_name': new_measurement.size_name,
+                                'created': True,
+                                'message': 'Custom measurement saved successfully'
+                            }
+                            print(f"✅ BulkSave: Created new custom measurement (ID: {new_measurement.id})")
+                    except Exception as e:
+                        response_data['saved_items']['measurement'] = {
+                            'error': 'Failed to save custom measurement',
+                            'message': str(e)
+                        }
+                        print(f"⚠️ BulkSave: Error saving custom measurement: {e}")
+                else:
+                    # Default measurement - just acknowledge
+                    response_data['saved_items']['measurement'] = {
+                        'type': measurement_type,
+                        'size_name': measurement_data.get('size_name', ''),
+                        'skipped': True,
+                        'message': 'Default measurement will be used from selected size'
+                    }
 
             # ========== 2. SAVE/UPDATE ADDRESS ==========
             if 'address' in data and data['address']:
@@ -305,170 +586,80 @@ class BulkSaveCartDataAPIView(APIView):
                             'details': serializer.errors
                         }
 
-            # ========== 3. SAVE/UPDATE CART ITEMS (UserDesign) ==========
+            # ========== 3. SAVE CART ITEMS (UserDesign) ==========
             if 'cart_items' in data and data['cart_items']:
+                cart_items_data = data['cart_items']
                 saved_designs = []
 
-                for item in data['cart_items']:
-                    design_id = item.get('id')
-
+                for item_data in cart_items_data:
                     try:
-                        # Get required ForeignKey objects (only if IDs are provided)
-                        category = None
-                        if item.get('initial_size_selected_id'):
-                            try:
-                                category = HomePageSelectionCategory.objects.get(id=item['initial_size_selected_id'])
-                            except HomePageSelectionCategory.DoesNotExist:
-                                # If category doesn't exist, try to get a default one (first non-hidden category)
-                                category = HomePageSelectionCategory.objects.filter(isHidden=False).first()
+                        # Get foreign key instances
+                        initial_category = HomePageSelectionCategory.objects.filter(isHidden=False).first()
+                        fabric_color = FabricColor.objects.filter(id=item_data.get('main_body_fabric_color_id')).first() if item_data.get('main_body_fabric_color_id') else None
+                        collar = GholaType.objects.filter(id=item_data.get('selected_coller_type_id')).first() if item_data.get('selected_coller_type_id') else None
+                        sleeve_left = SleevesType.objects.filter(id=item_data.get('selected_sleeve_left_type_id')).first() if item_data.get('selected_sleeve_left_type_id') else None
+                        sleeve_right = SleevesType.objects.filter(id=item_data.get('selected_sleeve_right_type_id')).first() if item_data.get('selected_sleeve_right_type_id') else None
+                        pocket = PocketType.objects.filter(id=item_data.get('selected_pocket_id')).first() if item_data.get('selected_pocket_id') else None
+                        button = ButtonType.objects.filter(id=item_data.get('selected_button_id')).first() if item_data.get('selected_button_id') else None
+                        button_strip = ButtonStripType.objects.filter(id=item_data.get('selected_button_strip_id')).first() if item_data.get('selected_button_strip_id') else None
+                        body = BodyType.objects.filter(id=item_data.get('selected_body_type_id')).first() if item_data.get('selected_body_type_id') else None
 
-                        # If no category provided or found, use first available non-hidden category as fallback
-                        if not category:
-                            category = HomePageSelectionCategory.objects.filter(isHidden=False).first()
+                        # All components are nullable - save even incomplete designs
 
-                        fabric_color = None
-                        if item.get('main_body_fabric_color_id'):
-                            fabric_color = FabricColor.objects.get(id=item['main_body_fabric_color_id'])
-
-                        collar = None
-                        if item.get('selected_coller_type_id'):
-                            collar = GholaType.objects.get(id=item['selected_coller_type_id'])
-
-                        sleeve_left = None
-                        if item.get('selected_sleeve_left_type_id'):
-                            sleeve_left = SleevesType.objects.get(id=item['selected_sleeve_left_type_id'])
-
-                        sleeve_right = None
-                        if item.get('selected_sleeve_right_type_id'):
-                            sleeve_right = SleevesType.objects.get(id=item['selected_sleeve_right_type_id'])
-
-                        pocket = None
-                        if item.get('selected_pocket_id'):
-                            pocket = PocketType.objects.get(id=item['selected_pocket_id'])
-
-                        button = None
-                        if item.get('selected_button_id'):
-                            button = ButtonType.objects.get(id=item['selected_button_id'])
-
-                        button_strip = None
-                        if item.get('selected_button_strip_id'):
-                            button_strip = ButtonStripType.objects.get(id=item['selected_button_strip_id'])
-
-                        body_type = None
-                        if item.get('selected_body_type_id'):
-                            body_type = BodyType.objects.get(id=item['selected_body_type_id'])
-
-                        # Calculate total price (only add prices for non-null components)
-                        total_price = 0
-                        if category:
-                            total_price += category.initial_price
-                        if fabric_color:
-                            total_price += fabric_color.total_price
-                        if collar:
-                            total_price += collar.initial_price
-                        if sleeve_left:
-                            total_price += sleeve_left.initial_price
-                        if sleeve_right:
-                            total_price += sleeve_right.initial_price
-                        if pocket:
-                            total_price += pocket.initial_price
-                        if button:
-                            total_price += button.initial_price
-                        if button_strip:
-                            total_price += button_strip.initial_price
-                        if body_type:
-                            total_price += body_type.initial_price
-
-                        design_defaults = {
-                            'design_name': item.get('design_name', ''),
-                            'design_Total': total_price
+                        # Check if identical design already exists
+                        design_filter = {
+                            'user': user,
+                            'initial_size_selected': initial_category,
+                            'main_body_fabric_color': fabric_color,
+                            'selected_coller_type': collar,
+                            'selected_sleeve_left_type': sleeve_left,
+                            'selected_sleeve_right_type': sleeve_right,
+                            'selected_pocket_type': pocket,
+                            'selected_button_type': button,
+                            'selected_button_strip_type': button_strip,
+                            'selected_body_type': body,
                         }
 
-                        # Only add non-null ForeignKey fields
-                        if category:
-                            design_defaults['initial_size_selected'] = category
-                        if fabric_color:
-                            design_defaults['main_body_fabric_color'] = fabric_color
-                        if collar:
-                            design_defaults['selected_coller_type'] = collar
-                        if sleeve_left:
-                            design_defaults['selected_sleeve_left_type'] = sleeve_left
-                        if sleeve_right:
-                            design_defaults['selected_sleeve_right_type'] = sleeve_right
-                        if pocket:
-                            design_defaults['selected_pocket_type'] = pocket
-                        if button:
-                            design_defaults['selected_button_type'] = button
-                        if button_strip:
-                            design_defaults['selected_button_strip_type'] = button_strip
-                        if body_type:
-                            design_defaults['selected_body_type'] = body_type
+                        existing_design = UserDesign.objects.filter(**design_filter).first()
 
-                        if design_id:
-                            # EDIT MODE: Update existing design by ID
-                            design = UserDesign.objects.filter(id=design_id, user=user).first()
-                            if design:
-                                for key, value in design_defaults.items():
-                                    setattr(design, key, value)
-                                design.save()
-                                created = False
-                            else:
-                                # If design not found, create new
-                                design = UserDesign.objects.create(user=user, **design_defaults)
-                                created = True
+                        if existing_design:
+                            saved_designs.append({
+                                'id': existing_design.id,
+                                'name': existing_design.design_name,
+                                'created': False
+                            })
+                            print(f"♻️ BulkSave: Reusing existing design (ID: {existing_design.id})")
                         else:
-                            # NORMAL MODE: Check for duplicate design before creating
-                            # Build query filter for checking duplicates
-                            duplicate_filter = {'user': user}
-                            if category:
-                                duplicate_filter['initial_size_selected'] = category
-                            if fabric_color:
-                                duplicate_filter['main_body_fabric_color'] = fabric_color
-                            if collar:
-                                duplicate_filter['selected_coller_type'] = collar
-                            if sleeve_left:
-                                duplicate_filter['selected_sleeve_left_type'] = sleeve_left
-                            if sleeve_right:
-                                duplicate_filter['selected_sleeve_right_type'] = sleeve_right
-                            if pocket:
-                                duplicate_filter['selected_pocket_type'] = pocket
-                            if button:
-                                duplicate_filter['selected_button_type'] = button
-                            if button_strip:
-                                duplicate_filter['selected_button_strip_type'] = button_strip
-                            if body_type:
-                                duplicate_filter['selected_body_type'] = body_type
-
-                            # Check for existing identical design
-                            existing_design = UserDesign.objects.filter(**duplicate_filter).first()
-
-                            if existing_design:
-                                # Use existing design if all selections match
-                                design = existing_design
-                                # Update design name and total if they changed
-                                design.design_name = design_defaults.get('design_name', design.design_name)
-                                design.design_Total = design_defaults.get('design_Total', design.design_Total)
-                                design.save()
-                                created = False
-                            else:
-                                # Create new design
-                                design = UserDesign.objects.create(user=user, **design_defaults)
-                                created = True
-
-                        saved_designs.append({
-                            'id': design.id,
-                            'design_name': design.design_name,
-                            'total_price': str(total_price),
-                            'created': created
-                        })
-
+                            # Create new design
+                            new_design = UserDesign.objects.create(
+                                user=user,
+                                design_name=item_data.get('design_name', ''),
+                                initial_size_selected=initial_category,
+                                main_body_fabric_color=fabric_color,
+                                selected_coller_type=collar,
+                                selected_sleeve_left_type=sleeve_left,
+                                selected_sleeve_right_type=sleeve_right,
+                                selected_pocket_type=pocket,
+                                selected_button_type=button,
+                                selected_button_strip_type=button_strip,
+                                selected_body_type=body,
+                                design_Total=0.0  # Will be calculated later
+                            )
+                            saved_designs.append({
+                                'id': new_design.id,
+                                'name': new_design.design_name,
+                                'created': True
+                            })
+                            print(f"✅ BulkSave: Created new design (ID: {new_design.id})")
                     except Exception as e:
-                        saved_designs.append({
-                            'error': f'Failed to save design: {str(e)}',
-                            'item': item
-                        })
+                        print(f"⚠️ BulkSave: Error saving design '{item_data.get('design_name')}': {e}")
+                        continue
 
-                response_data['saved_items']['designs'] = saved_designs
+                response_data['saved_items']['designs'] = {
+                    'count': len(saved_designs),
+                    'saved': saved_designs,
+                    'message': f'Saved {len(saved_designs)} design(s) to backend'
+                }
 
             return Response(response_data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
 

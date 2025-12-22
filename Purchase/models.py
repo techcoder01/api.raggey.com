@@ -3,6 +3,7 @@ from decimal import *
 from django.contrib.auth.models import User
 from Design.models import UserDesign
 from Sizes.models import Sizes
+from User.models import Address
 import random
 import string
 # Create your models here.
@@ -25,6 +26,17 @@ def generate_invoice_number():
 
 class Purchase(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='purchases', null=True, blank=True)
+
+    # Link to user's saved address - admin can select from user's addresses
+    selected_address = models.ForeignKey(
+        Address,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='orders',
+        help_text="Select from user's saved addresses (Home/Work/etc.)"
+    )
+
     invoice_number = models.CharField(
         max_length=100, unique=True, default=generate_invoice_number)
     full_name = models.CharField(max_length=200, default='')

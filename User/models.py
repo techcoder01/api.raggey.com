@@ -81,7 +81,14 @@ class Address(models.Model):
         ordering = ['-isDefault', '-created_at']
 
     def __str__(self):
-        return f"{self.full_name} - {self.get_address_type_display()}"
+        # Show more details for admin dropdown: Type - Area (Block X, Street Y)
+        location = f"{self.area}" if self.area else "No area"
+        if self.block:
+            location += f" (Block {self.block}"
+            if self.street:
+                location += f", Street {self.street}"
+            location += ")"
+        return f"{self.get_address_type_display()} - {location}"
 
 
 @receiver(post_save, sender=User)

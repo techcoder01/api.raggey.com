@@ -1,7 +1,41 @@
 from django.contrib import admin, messages
 from django.utils.html import format_html
 from django.utils import timezone
+from django import forms
 from .models import Purchase, Item, DeliverySettings, Payment, CancellationRequest
+from User.models import Address
+
+
+class PurchaseAdminForm(forms.ModelForm):
+    """Custom form for Purchase admin to filter addresses by user"""
+
+    class Meta:
+        model = Purchase
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Filter addresses by the order's user (only for existing orders with a user)
+        if self.instance and self.instance.pk and self.instance.user:
+            queryset = Address.objects.filter(
+                user=self.instance.user
+            ).order_by('-isDefault', '-created_at')
+
+            self.fields['selected_address'].queryset = queryset
+
+            # Show helpful info in dropdown if no addresses
+            if not queryset.exists():
+                self.fields['selected_address'].help_text = f"User '{self.instance.user.username}' has no saved addresses. They need to add an address first."
+            else:
+                self.fields['selected_address'].help_text = f"Select from {self.instance.user.username}'s saved addresses"
+        else:
+            # For new orders or orders without user
+            self.fields['selected_address'].queryset = Address.objects.none()
+            if not self.instance.pk:
+                self.fields['selected_address'].help_text = "Save the order first, then you can select an address"
+            elif not self.instance.user:
+                self.fields['selected_address'].help_text = "No user assigned to this order"
 
 
 class ItemInline(admin.TabularInline):
@@ -18,6 +52,8 @@ class ItemInline(admin.TabularInline):
 @admin.register(Purchase)
 class PurchaseAdmin(admin.ModelAdmin):
     """Admin configuration for Purchase (Order) model"""
+    form = PurchaseAdminForm
+
     list_display = [
         'invoice_number',
         'user',
@@ -32,7 +68,25 @@ class PurchaseAdmin(admin.ModelAdmin):
     ]
     list_filter = ['status', 'payment_option', 'is_cash', 'is_pick_up', 'timestamp']
     search_fields = ['invoice_number', 'full_name', 'email', 'phone_number', 'user__username']
-    readonly_fields = ['invoice_number', 'timestamp', 'user']
+    readonly_fields = [
+        'invoice_number',
+        'timestamp',
+        'user',
+        'selected_address_display',
+        # Address fields are readonly - admin selects from user's saved addresses
+        'address_name',
+        'Area',
+        'block',
+        'street',
+        'house',
+        'apartment',
+        'floor',
+        'longitude',
+        'latitude',
+        'coupon_code',
+        'discount_amount',
+        'delivery_fee',
+    ]
     ordering = ['-timestamp']
 
     inlines = [ItemInline]
@@ -46,6 +100,13 @@ class PurchaseAdmin(admin.ModelAdmin):
         }),
         ('Shipping Address', {
             'fields': (
+                'selected_address',
+                'selected_address_display',
+            ),
+            'description': '<strong>Select from user\'s saved addresses (Home/Work/etc.).</strong><br>After selecting, save the order to auto-populate address fields. The selected address details will be shown below.'
+        }),
+        ('Address Details (Auto-populated)', {
+            'fields': (
                 'address_name',
                 'Area',
                 'block',
@@ -55,16 +116,89 @@ class PurchaseAdmin(admin.ModelAdmin):
                 'floor',
                 'longitude',
                 'latitude'
-            )
+            ),
+            'classes': ('collapse',),
+            'description': 'These fields are automatically populated from the selected address above. They are readonly.'
         }),
         ('Payment & Delivery', {
-            'fields': ('payment_option', 'total_price', 'is_cash', 'is_pick_up')
+            'fields': ('payment_option', 'total_price', 'coupon_code', 'discount_amount', 'delivery_fee', 'is_cash', 'is_pick_up')
         }),
         ('External Integration', {
             'fields': ('asap_order_id',),
             'classes': ('collapse',)
         }),
     )
+
+    def selected_address_display(self, obj):
+        """Display selected address details in a formatted way"""
+        if not obj.selected_address:
+            return "No address selected"
+
+        address = obj.selected_address
+        html = f"""
+        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #28a745;">
+            <p style="margin: 0 0 10px 0;"><strong style="color: #28a745;">Selected Address:</strong> {address.get_address_type_display()}</p>
+            <p style="margin: 5px 0;"><strong>Area:</strong> {address.area or 'N/A'}</p>
+            <p style="margin: 5px 0;"><strong>Block:</strong> {address.block or 'N/A'}, <strong>Street:</strong> {address.street or 'N/A'}</p>
+            <p style="margin: 5px 0;"><strong>Building:</strong> {address.building or 'N/A'}, <strong>Apartment:</strong> {address.apartment or 'N/A'}, <strong>Floor:</strong> {address.floor or 'N/A'}</p>
+            <p style="margin: 5px 0;"><strong>Contact:</strong> {address.full_name} - {address.phone_number}</p>
+        </div>
+        """
+        return format_html(html)
+    selected_address_display.short_description = 'Currently Selected Address'
+
+    def get_form(self, request, obj=None, **kwargs):
+        """Auto-match address from existing order fields if not set"""
+        if obj and obj.user and not obj.selected_address and obj.Area:
+            # Try to find matching address from user's saved addresses
+            matching_address = Address.objects.filter(
+                user=obj.user,
+                area=obj.Area,
+                block=obj.block,
+                street=obj.street,
+                building=obj.house
+            ).first()
+
+            if matching_address:
+                # Auto-set the selected_address
+                obj.selected_address = matching_address
+                obj.save(update_fields=['selected_address'])
+                messages.info(request, f'Automatically matched address: {matching_address}')
+
+        return super().get_form(request, obj, **kwargs)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """Customize the address dropdown to show formatted labels"""
+        if db_field.name == "selected_address":
+            # Get the object being edited
+            obj_id = request.resolver_match.kwargs.get('object_id')
+            if obj_id:
+                try:
+                    purchase = Purchase.objects.get(pk=obj_id)
+                    if purchase.user:
+                        kwargs["queryset"] = Address.objects.filter(
+                            user=purchase.user
+                        ).order_by('-isDefault', '-created_at')
+                except Purchase.DoesNotExist:
+                    pass
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def save_model(self, request, obj, form, change):
+        """Auto-populate address fields when admin selects an address"""
+        if obj.selected_address:
+            # Copy address details from selected_address to order fields
+            address = obj.selected_address
+            obj.address_name = address.get_address_type_display()
+            obj.Area = address.area
+            obj.block = address.block
+            obj.street = address.street
+            obj.house = address.building
+            obj.apartment = address.apartment
+            obj.floor = address.floor
+            obj.longitude = str(address.longitude) if address.longitude else ''
+            obj.latitude = str(address.latitude) if address.latitude else ''
+
+        super().save_model(request, obj, form, change)
 
     def has_delete_permission(self, request, obj=None):
         # Prevent deletion of completed orders
