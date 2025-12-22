@@ -118,6 +118,7 @@ class GholaType(models.Model):
     initial_price = models.DecimalField(max_digits=9, decimal_places=3)
     cover = CloudinaryField('image', blank=True, null=True, folder="GholaType", help_text="Image shown on dishdasha preview")
     cover_option = CloudinaryField('image', blank=True, null=True, folder="GholaType/Options", help_text="Image shown in selection cards/options")
+    is_button_hidden = models.BooleanField(default=False, help_text="If True, button will be rendered below collar (hidden)")
 
     def __str__(self):
         color_name = self.fabric_color.color_name_eng if self.fabric_color else "No Color"
@@ -260,12 +261,12 @@ class UserDesign(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='designs')
     design_name = models.CharField(max_length=200, blank=True, null=True, help_text="Custom name for this design")
     timestamp = models.DateTimeField(auto_now_add=True)
-    initial_size_selected = models.ForeignKey(HomePageSelectionCategory, on_delete=models.CASCADE)
+    initial_size_selected = models.ForeignKey(HomePageSelectionCategory, on_delete=models.CASCADE, null=True, blank=True, related_name="user_designs_category")
 
-    # FK to FabricColor
+    # FK to FabricColor - all design components are nullable to allow incomplete designs
     main_body_fabric_color = models.ForeignKey(FabricColor, on_delete=models.CASCADE, null=True, blank=True, related_name="user_designs")
 
-    selected_coller_type = models.ForeignKey(GholaType, on_delete=models.CASCADE)
+    selected_coller_type = models.ForeignKey(GholaType, on_delete=models.CASCADE, null=True, blank=True, related_name="selected_collar_designs")
     selected_sleeve_left_type = models.ForeignKey(SleevesType, on_delete=models.CASCADE, null=True, blank=True, related_name="selected_sleeve_left_type")
     selected_sleeve_right_type = models.ForeignKey(SleevesType, on_delete=models.CASCADE, null=True, blank=True)
 

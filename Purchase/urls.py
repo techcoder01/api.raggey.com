@@ -5,6 +5,7 @@ from .views import (
     OrderHistoryAPIView,
     OrderDetailAPIView,
     CancelOrderAPIView,
+    UpdateOrderAddressAPIView,
     DeliverySettingsAPIView,
 
     # Admin-side views
@@ -36,6 +37,9 @@ urlpatterns = [
 
     # Order Cancellation
     path('order/<int:pk>/cancel/', CancelOrderAPIView.as_view(), name='cancel-order'),
+
+    # Order Address Update
+    path('update-address/', UpdateOrderAddressAPIView.as_view(), name='update-order-address'),
 
     # Delivery Settings
     path('delivery-settings/', DeliverySettingsAPIView.as_view(), name='delivery-settings'),

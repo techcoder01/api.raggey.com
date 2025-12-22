@@ -2,7 +2,7 @@ from django.urls import path, include
 from .views import (
     AddressAPIView, DefaultAddressAPIView, UserInfoAPIView,
     SelectedAddressAPIView, UserProfileAPIView, UpdateFCMTokenAPIView,
-    BulkSaveCartDataAPIView
+    BulkSaveCartDataAPIView, SaveDesignAPIView, SaveMeasurementAPIView
 )
 from .auth_views import UserSignupAPIView, UserLoginAPIView
 
@@ -29,6 +29,8 @@ urlpatterns = [
 
     # ================ CART DATA ================
     path('bulk-save-cart-data/', BulkSaveCartDataAPIView.as_view()),
+    path('save-design/', SaveDesignAPIView.as_view()),
+    path('save-measurement/', SaveMeasurementAPIView.as_view()),
 ]
 
 app_name = 'User-api'

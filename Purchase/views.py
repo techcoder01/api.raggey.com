@@ -8,6 +8,19 @@ from decimal import Decimal
 
 from .models import Purchase, Item, DeliverySettings
 from Sizes.models import Sizes
+from Coupon.models import Coupon, CouponUsage
+from Design.models import (
+    UserDesign,
+    HomePageSelectionCategory,
+    FabricColor,
+    GholaType,
+    SleevesType,
+    PocketType,
+    ButtonType,
+    ButtonStripType,
+    BodyType,
+    InventoryTransaction
+)
 from .serializers import (
     PurchaseSerializer,
     PurchaseCreateSerializer,
@@ -55,6 +68,10 @@ class CreateOrderAPIView(APIView):
             delivery_fee = Decimal(str(request.data.get('delivery_fee', '0.000')))
             cart_items = request.data.get('cart_items', [])
 
+            # Extract coupon data
+            coupon_code = request.data.get('coupon_code', None)
+            discount_amount = Decimal(str(request.data.get('discount_amount', '0.000')))
+
             if not cart_items:
                 return Response({
                     'error': 'Empty cart',
@@ -71,9 +88,27 @@ class CreateOrderAPIView(APIView):
             # Add delivery fee
             total_price += delivery_fee
 
+            # Try to find matching address from user's saved addresses
+            from User.models import Address
+            selected_address = None
+            if area:  # Only search if we have address data
+                selected_address = Address.objects.filter(
+                    user=user,
+                    area=area,
+                    block=block,
+                    street=street,
+                    building=house
+                ).first()
+
+                if selected_address:
+                    print(f"✅ Found matching saved address: {selected_address}")
+                else:
+                    print(f"ℹ️ No matching saved address found for area={area}, block={block}, street={street}")
+
             # Create Purchase (Order)
             purchase = Purchase.objects.create(
                 user=user,
+                selected_address=selected_address,  # Link to saved address if found
                 full_name=full_name,
                 email=email,
                 phone_number=phone_number,
@@ -91,6 +126,8 @@ class CreateOrderAPIView(APIView):
                 is_cash=True,  # Direct order is always cash for now
                 total_price=total_price,
                 delivery_fee=delivery_fee,
+                coupon_code=coupon_code,
+                discount_amount=discount_amount,
                 status='Pending'
             )
 
@@ -113,48 +150,17 @@ class CreateOrderAPIView(APIView):
                 design_details = cart_item.get('design_details')
                 size_details = cart_item.get('size_details')
 
-                # Check if custom measurements exist and create Sizes entry
-                selected_size = None
-                if size_details and size_details.get('measurement_type') == 'custom':
-                    # Helper function to safely convert measurement to int
-                    def safe_int(value):
-                        if not value:
-                            return 0
-                        try:
-                            # Convert to string, strip whitespace and any brackets
-                            cleaned = str(value).strip().strip('[]{}()')
-                            return int(float(cleaned)) if cleaned else 0
-                        except (ValueError, TypeError):
-                            return 0
+                # NOTE: Sizes and UserDesign entries are created via BulkSaveCartData API (from cart screen)
+                # Order creation only stores data in JSON fields (design_details, size_details)
+                print(f"📦 Order Item: {product_name} - Storing in JSON only (no UserDesign/Sizes tables)")
 
-                    # Create Sizes entry for custom measurements
-                    selected_size = Sizes.objects.create(
-                        user=user,
-                        size_name=f"{product_name} - Order {purchase.invoice_number}",
-                        front_hight=safe_int(size_details.get('custom_front_height')),
-                        back_hight=safe_int(size_details.get('custom_back_height')),
-                        around_neck=safe_int(size_details.get('custom_neck')),
-                        around_legs=safe_int(size_details.get('custom_around_legs')),
-                        full_chest=safe_int(size_details.get('custom_full_chest')),
-                        half_chest=safe_int(size_details.get('custom_half_chest')),
-                        full_belly=safe_int(size_details.get('custom_full_belly')),
-                        half_belly=safe_int(size_details.get('custom_half_belly')),
-                        neck_to_center_belly=safe_int(size_details.get('custom_neck_to_belly')),
-                        neck_to_chest=safe_int(size_details.get('custom_neck_to_pocket')),
-                        shoulders_width=safe_int(size_details.get('custom_shoulder_width')),
-                        arm_tall=safe_int(size_details.get('custom_arm_tall')),
-                        arm_width_one=safe_int(size_details.get('custom_arm_width_1')),
-                        arm_width_two=safe_int(size_details.get('custom_arm_width_2')),
-                        arm_width_three=safe_int(size_details.get('custom_arm_width_3')),
-                        arm_width_four=safe_int(size_details.get('custom_arm_width_4')),
-                    )
-
-                # Create Item with JSON fields AND Sizes table entry
+                # Create Item with JSON fields only (no separate table entries)
                 Item.objects.create(
                     invoice=purchase,
                     product_code=product_code,
                     product_id=product_id,
-                    selected_size=selected_size,  # Link to Sizes table
+                    user_design=None,  # Not creating UserDesign during order (done via BulkSaveCartData)
+                    selected_size=None,  # Not creating Sizes during order (done via BulkSaveCartData)
                     product_name=product_name,
                     category=category,
                     unit_price=unit_price,
@@ -164,9 +170,61 @@ class CreateOrderAPIView(APIView):
                     quantity=quantity,
                     product_size=product_size,
                     cover=image_url,
-                    design_details=design_details,  # Store design as JSON
-                    size_details=size_details,  # Store measurements as JSON
+                    design_details=design_details,  # All design data stored as JSON
+                    size_details=size_details,  # All measurement data stored as JSON
                 )
+
+                # Create InventoryTransaction to deduct fabric stock
+                if design_details and design_details.get('design_color_id'):
+                    try:
+                        fabric_color_id = design_details.get('design_color_id')
+                        fabric_color = FabricColor.objects.filter(id=fabric_color_id).first()
+
+                        if fabric_color:
+                            # Record current quantity
+                            quantity_before = fabric_color.quantity
+
+                            # Deduct 1 unit of fabric per order item
+                            quantity_change = -1 * quantity  # Negative for deduction
+                            fabric_color.quantity += quantity_change
+                            fabric_color.save()
+
+                            # Create transaction record
+                            InventoryTransaction.objects.create(
+                                fabric_color=fabric_color,
+                                transaction_type='ORDER',
+                                quantity_change=quantity_change,
+                                quantity_before=quantity_before,
+                                quantity_after=fabric_color.quantity,
+                                reference_order=purchase.invoice_number,
+                                notes=f"Order placed: {product_name}",
+                                created_by=user
+                            )
+                            print(f"📦 Inventory: Deducted {abs(quantity_change)} unit(s) of {fabric_color.color_name_eng} (Stock: {quantity_before} → {fabric_color.quantity})")
+                        else:
+                            print(f"⚠️ Warning: Fabric color ID {fabric_color_id} not found")
+                    except Exception as e:
+                        print(f"⚠️ Warning: Could not create inventory transaction: {e}")
+                        # Don't fail order if inventory tracking fails
+
+            # Create CouponUsage entry if coupon was applied
+            if purchase.coupon_code and purchase.discount_amount > 0:
+                try:
+                    coupon = Coupon.objects.filter(code=purchase.coupon_code).first()
+                    if coupon:
+                        CouponUsage.objects.create(
+                            coupon=coupon,
+                            user_id=str(user.id),
+                            order_id=purchase.invoice_number,
+                            discount_amount=purchase.discount_amount,
+                            order_amount=purchase.total_price + purchase.discount_amount  # Total before discount
+                        )
+                        print(f"🎫 CouponUsage created: {purchase.coupon_code} - Discount: {purchase.discount_amount} KWD")
+                    else:
+                        print(f"⚠️ Warning: Coupon '{purchase.coupon_code}' not found in database")
+                except Exception as e:
+                    print(f"⚠️ Warning: Could not create coupon usage: {e}")
+                    # Don't fail order if coupon tracking fails
 
             # Return created order
             response_serializer = PurchaseSerializer(purchase)
@@ -263,10 +321,46 @@ class CancelOrderAPIView(APIView):
                     'message': f'Orders with status "{order.status}" cannot be cancelled'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-            # Restore inventory
+            # Restore inventory by creating reverse transactions
             for item in order.items.all():
-                if item.user_design:
-                    restore_inventory(item.user_design, order.invoice_number)
+                design_details = item.design_details
+                if design_details and design_details.get('design_color_id'):
+                    try:
+                        fabric_color_id = design_details.get('design_color_id')
+                        fabric_color = FabricColor.objects.filter(id=fabric_color_id).first()
+
+                        if fabric_color:
+                            quantity_before = fabric_color.quantity
+                            quantity_change = item.quantity  # Positive to add back
+
+                            fabric_color.quantity += quantity_change
+                            fabric_color.save()
+
+                            # Create CANCEL transaction
+                            InventoryTransaction.objects.create(
+                                fabric_color=fabric_color,
+                                transaction_type='CANCEL',
+                                quantity_change=quantity_change,
+                                quantity_before=quantity_before,
+                                quantity_after=fabric_color.quantity,
+                                reference_order=order.invoice_number,
+                                notes=f"Order cancelled: {item.product_name}",
+                                created_by=user
+                            )
+                            print(f"♻️ Inventory restored: +{quantity_change} unit(s) of {fabric_color.color_name_eng} (Stock: {quantity_before} → {fabric_color.quantity})")
+                    except Exception as e:
+                        print(f"⚠️ Warning: Could not restore inventory for item {item.id}: {e}")
+
+            # Delete CouponUsage entry if coupon was used
+            if order.coupon_code:
+                try:
+                    deleted_count = CouponUsage.objects.filter(order_id=order.invoice_number).delete()[0]
+                    if deleted_count > 0:
+                        print(f"🎫 CouponUsage deleted: {order.coupon_code} for order {order.invoice_number}")
+                    else:
+                        print(f"⚠️ No CouponUsage found for order {order.invoice_number}")
+                except Exception as e:
+                    print(f"⚠️ Warning: Could not delete coupon usage: {e}")
 
             # Update order status
             order.status = 'Cancelled'
@@ -449,10 +543,46 @@ class AdminCancelOrderAPIView(APIView):
                     'message': 'This order is already cancelled'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-            # Restore inventory
+            # Restore inventory by creating reverse transactions
             for item in order.items.all():
-                if item.user_design:
-                    restore_inventory(item.user_design, order.invoice_number)
+                design_details = item.design_details
+                if design_details and design_details.get('design_color_id'):
+                    try:
+                        fabric_color_id = design_details.get('design_color_id')
+                        fabric_color = FabricColor.objects.filter(id=fabric_color_id).first()
+
+                        if fabric_color:
+                            quantity_before = fabric_color.quantity
+                            quantity_change = item.quantity  # Positive to add back
+
+                            fabric_color.quantity += quantity_change
+                            fabric_color.save()
+
+                            # Create CANCEL transaction
+                            InventoryTransaction.objects.create(
+                                fabric_color=fabric_color,
+                                transaction_type='CANCEL',
+                                quantity_change=quantity_change,
+                                quantity_before=quantity_before,
+                                quantity_after=fabric_color.quantity,
+                                reference_order=order.invoice_number,
+                                notes=f"Order cancelled: {item.product_name}",
+                                created_by=user
+                            )
+                            print(f"♻️ Inventory restored: +{quantity_change} unit(s) of {fabric_color.color_name_eng} (Stock: {quantity_before} → {fabric_color.quantity})")
+                    except Exception as e:
+                        print(f"⚠️ Warning: Could not restore inventory for item {item.id}: {e}")
+
+            # Delete CouponUsage entry if coupon was used
+            if order.coupon_code:
+                try:
+                    deleted_count = CouponUsage.objects.filter(order_id=order.invoice_number).delete()[0]
+                    if deleted_count > 0:
+                        print(f"🎫 CouponUsage deleted: {order.coupon_code} for order {order.invoice_number}")
+                    else:
+                        print(f"⚠️ No CouponUsage found for order {order.invoice_number}")
+                except Exception as e:
+                    print(f"⚠️ Warning: Could not delete coupon usage: {e}")
 
             # Update order status
             order.status = 'Cancelled'
@@ -467,5 +597,86 @@ class AdminCancelOrderAPIView(APIView):
         except Exception as e:
             return Response({
                 'error': 'Failed to cancel order',
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class UpdateOrderAddressAPIView(APIView):
+    """
+    POST: Update order delivery address
+    Endpoint: /purchase/update-address/
+    Body: {
+        "invoice_number": "INV-20250121-1234",
+        "address_id": "address_id_from_saved_addresses"
+    }
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            from User.models import Address
+
+            user = request.user
+            invoice_number = request.data.get('invoice_number')
+            address_id = request.data.get('address_id')
+
+            # Validate inputs
+            if not invoice_number:
+                return Response({
+                    'error': 'Invoice number is required'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            if not address_id:
+                return Response({
+                    'error': 'Address ID is required'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Get the order
+            try:
+                order = Purchase.objects.get(invoice_number=invoice_number, user=user)
+            except Purchase.DoesNotExist:
+                return Response({
+                    'error': 'Order not found'
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            # Check if order can be updated (only Pending and Confirmed orders)
+            if order.status not in ['Pending', 'Confirmed']:
+                return Response({
+                    'error': f'Cannot update address for {order.status} orders'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Get the selected address
+            try:
+                address = Address.objects.get(id=address_id, user=user)
+            except Address.DoesNotExist:
+                return Response({
+                    'error': 'Address not found'
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            # Update order with selected address
+            order.selected_address = address
+            order.address_name = address.get_address_type_display()
+            order.Area = address.area
+            order.block = address.block
+            order.street = address.street
+            order.house = address.building
+            order.apartment = address.apartment
+            order.floor = address.floor
+            order.longitude = str(address.longitude) if address.longitude else ''
+            order.latitude = str(address.latitude) if address.latitude else ''
+            order.save()
+
+            print(f"✅ Order {invoice_number} address updated to: {address}")
+
+            serializer = PurchaseSerializer(order)
+            return Response({
+                'message': 'Order address updated successfully',
+                'order': serializer.data
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            print(f"❌ Error updating order address: {e}")
+            return Response({
+                'error': 'Failed to update order address',
                 'message': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
