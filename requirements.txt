@@ -100,6 +100,7 @@ postfix-mta-sts-resolver==1.1.2
 proto-plus==1.27.0
 protobuf==6.33.2
 psutil==5.9.8
+psycopg2-binary==2.9.11
 ptyprocess==0.7.0
 pyasn1==0.6.1
 pyasn1_modules==0.4.2

@@ -1,5 +1,6 @@
 from django.contrib import admin, messages
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from django.utils import timezone
 from django import forms
 from .models import Purchase, Item, DeliverySettings, Payment, CancellationRequest
@@ -144,7 +145,7 @@ class PurchaseAdmin(admin.ModelAdmin):
             <p style="margin: 5px 0;"><strong>Contact:</strong> {address.full_name} - {address.phone_number}</p>
         </div>
         """
-        return format_html(html)
+        return mark_safe(html)
     selected_address_display.short_description = 'Currently Selected Address'
 
     def get_form(self, request, obj=None, **kwargs):
@@ -256,7 +257,7 @@ class ItemAdmin(admin.ModelAdmin):
         html += f"<tr style='background-color: #e8f4f8; font-weight: bold;'><td style='padding: 8px; border: 1px solid #ddd;'>Total</td><td style='padding: 8px; border: 1px solid #ddd;'>{total}</td></tr>"
         html += "</table>"
 
-        return format_html(html)
+        return mark_safe(html)
     design_details_display.short_description = 'Design Details'
 
     def size_details_display(self, obj):
@@ -303,7 +304,7 @@ class ItemAdmin(admin.ModelAdmin):
             size_name = details.get('size_name', 'N/A')
             html += f"<p><strong>Size:</strong> {size_name}</p>"
 
-        return format_html(html)
+        return mark_safe(html)
     size_details_display.short_description = 'Size/Measurement Details'
 
     fieldsets = (
@@ -532,7 +533,7 @@ class CancellationRequestAdmin(admin.ModelAdmin):
     def needs_action(self, obj):
         """Show warning if approved request hasn't cancelled the order"""
         if obj.status == 'approved' and obj.order.status != 'Cancelled':
-            return format_html(
+            return mark_safe(
                 '<span style="color: #dc3545; font-weight: bold;">⚠️ ACTION NEEDED</span>'
             )
         return '✓'

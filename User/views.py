@@ -631,6 +631,9 @@ class BulkSaveCartDataAPIView(APIView):
                             print(f"♻️ BulkSave: Reusing existing design (ID: {existing_design.id})")
                         else:
                             # Create new design
+                            design_total = item_data.get('design_total', 0.0)
+                            print(f"💰 BulkSave: Saving design with design_total: {design_total}")
+
                             new_design = UserDesign.objects.create(
                                 user=user,
                                 design_name=item_data.get('design_name', ''),
@@ -643,7 +646,7 @@ class BulkSaveCartDataAPIView(APIView):
                                 selected_button_type=button,
                                 selected_button_strip_type=button_strip,
                                 selected_body_type=body,
-                                design_Total=0.0  # Will be calculated later
+                                design_Total=design_total  # Read from Flutter request
                             )
                             saved_designs.append({
                                 'id': new_design.id,

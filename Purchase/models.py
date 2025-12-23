@@ -50,7 +50,7 @@ class Purchase(models.Model):
     house = models.CharField(max_length=100,blank=True, null=True)
     apartment = models.CharField(max_length=10, null=True, blank=True)
     floor = models.CharField(max_length=100, null=True, blank=True)
-    phone_number = models.CharField(max_length=13)
+    phone_number = models.CharField(max_length=20)
     payment_option = models.CharField(max_length=30)
     total_price = models.DecimalField(max_digits=9, decimal_places=3)
     delivery_fee = models.DecimalField(max_digits=9, decimal_places=3, default=Decimal('0.000'))
@@ -107,7 +107,7 @@ class Item(models.Model):
     discount_percentage = models.IntegerField(null=True, blank=True, help_text="Discount percentage (15, 10, or 5)")
     quantity = models.IntegerField(default=1)
     created_date = models.DateTimeField(auto_now_add=True)
-    product_size = models.CharField(max_length=10, null=True, blank=True)
+    product_size = models.TextField(null=True, blank=True)
     cover = models.URLField(max_length=600, null=True, blank=True)
 
     # Store design details as JSON (fabric, collar, buttons, etc.)
