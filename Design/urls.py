@@ -8,7 +8,8 @@ from .views import (
     FetchFabricAPIView, FetchFabricDetailAPIView, FetchFabricColorsAPIView_New, FetchCollerAPIView, UserDesignAPIView, FetchSleevesRightAPIView,
     FetchSleevesLeftAPIView, FetchPocketAPIView, FetchButtonAPIView, FetchButtonStripAPIView, FetchBodyAPIView,
     CalculateDesignPriceAPIView, DesignSummaryPreviewAPIView,
-    LowStockAlertAPIView, BulkUpdateInventoryAPIView, InventoryHistoryAPIView
+    LowStockAlertAPIView, BulkUpdateInventoryAPIView, InventoryHistoryAPIView,
+    UploadDesignScreenshotAPIView
 )
 urlpatterns = [
     path('', views.all_design_view, name='all-designs'),
@@ -37,6 +38,7 @@ urlpatterns = [
     path('preview/summary/', DesignSummaryPreviewAPIView.as_view()),
     path('create/design/', UserDesignAPIView.as_view()),
     path('edit/design/<int:pk>/', UserDesignAPIView.as_view()),
+    path('upload/screenshot/', UploadDesignScreenshotAPIView.as_view()),
     #============ MAIN CATEGORY ADMIN SIDE =======================================
     path('detail/main/category/<int:pk>/', MainCatogeryAdminSideAPIView.as_view()),
     path('create/main/category/', MainCatogeryAdminSideAPIView.as_view()),

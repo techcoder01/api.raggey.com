@@ -1594,5 +1594,65 @@ class InventoryHistoryAPIView(APIView):
                 'error': 'Failed to fetch inventory history',
                 'message': str(e)
             }, status=HTTP_400_BAD_REQUEST)
+
+
+class UploadDesignScreenshotAPIView(APIView):
+    """
+    Upload design screenshot to Cloudinary
+    Receives base64 image from Flutter app
+    """
+    def post(self, request):
+        import base64
+        import cloudinary.uploader
+        from io import BytesIO
+
+        try:
+            # Get base64 image data from request
+            image_data = request.data.get('image')
+            if not image_data:
+                return Response({
+                    'error': 'No image data provided'
+                }, status=HTTP_400_BAD_REQUEST)
+
+            # Decode base64 image
+            try:
+                # Remove data URL prefix if present (data:image/png;base64,...)
+                if ',' in image_data:
+                    image_data = image_data.split(',')[1]
+
+                image_bytes = base64.b64decode(image_data)
+            except Exception as e:
+                return Response({
+                    'error': 'Invalid image data',
+                    'message': str(e)
+                }, status=HTTP_400_BAD_REQUEST)
+
+            # Upload to Cloudinary
+            try:
+                result = cloudinary.uploader.upload(
+                    image_bytes,
+                    folder='user_designs',
+                    resource_type='image'
+                )
+
+                return Response({
+                    'success': True,
+                    'url': result['secure_url'],
+                    'public_id': result['public_id']
+                }, status=HTTP_200_OK)
+
+            except Exception as e:
+                return Response({
+                    'error': 'Failed to upload to Cloudinary',
+                    'message': str(e)
+                }, status=HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({
+                'error': 'Upload failed',
+                'message': str(e)
+            }, status=HTTP_400_BAD_REQUEST)
+
+
 def all_design_view(request):
     return render(request, 'Design/all_design.html')
