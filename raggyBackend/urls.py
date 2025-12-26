@@ -39,5 +39,6 @@ urlpatterns = [
     # Removed: path("basket/", include('Basket.urls',  namespace='Basket-api')),  # Not used in frontend
     path("purchase/", include('Purchase.urls',  namespace='Purchase-api')),
     path("api/", include('Coupon.urls')),
+    path("banners/", include('Banner.urls')),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

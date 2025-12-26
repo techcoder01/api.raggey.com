@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'Sizes',
     'AdminDashboard',
     'Coupon',
+    'Banner',
 ]
 
 MIDDLEWARE = [
