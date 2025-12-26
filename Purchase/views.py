@@ -177,32 +177,33 @@ class CreateOrderAPIView(APIView):
                 # Create InventoryTransaction to deduct fabric stock
                 if design_details and design_details.get('design_color_id'):
                     try:
-                        fabric_color_id = design_details.get('design_color_id')
-                        fabric_color = FabricColor.objects.filter(id=fabric_color_id).first()
+                        with transaction.atomic():
+                            fabric_color_id = design_details.get('design_color_id')
+                            fabric_color = FabricColor.objects.filter(id=fabric_color_id).first()
 
-                        if fabric_color:
-                            # Record current quantity
-                            quantity_before = fabric_color.quantity
+                            if fabric_color:
+                                # Record current quantity
+                                quantity_before = fabric_color.quantity
 
-                            # Deduct 1 unit of fabric per order item
-                            quantity_change = -1 * quantity  # Negative for deduction
-                            fabric_color.quantity += quantity_change
-                            fabric_color.save()
+                                # Deduct 1 unit of fabric per order item
+                                quantity_change = -1 * quantity  # Negative for deduction
+                                fabric_color.quantity += quantity_change
+                                fabric_color.save()
 
-                            # Create transaction record
-                            InventoryTransaction.objects.create(
-                                fabric_color=fabric_color,
-                                transaction_type='ORDER',
-                                quantity_change=quantity_change,
-                                quantity_before=quantity_before,
-                                quantity_after=fabric_color.quantity,
-                                reference_order=purchase.invoice_number,
-                                notes=f"Order placed: {product_name}",
-                                created_by=user
-                            )
-                            print(f"📦 Inventory: Deducted {abs(quantity_change)} unit(s) of {fabric_color.color_name_eng} (Stock: {quantity_before} → {fabric_color.quantity})")
-                        else:
-                            print(f"⚠️ Warning: Fabric color ID {fabric_color_id} not found")
+                                # Create transaction record
+                                InventoryTransaction.objects.create(
+                                    fabric_color=fabric_color,
+                                    transaction_type='ORDER',
+                                    quantity_change=quantity_change,
+                                    quantity_before=quantity_before,
+                                    quantity_after=fabric_color.quantity,
+                                    reference_order=purchase.invoice_number,
+                                    notes=f"Order placed: {product_name}",
+                                    created_by=user
+                                )
+                                print(f"📦 Inventory: Deducted {abs(quantity_change)} unit(s) of {fabric_color.color_name_eng} (Stock: {quantity_before} → {fabric_color.quantity})")
+                            else:
+                                print(f"⚠️ Warning: Fabric color ID {fabric_color_id} not found")
                     except Exception as e:
                         print(f"⚠️ Warning: Could not create inventory transaction: {e}")
                         # Don't fail order if inventory tracking fails
@@ -210,18 +211,19 @@ class CreateOrderAPIView(APIView):
             # Create CouponUsage entry if coupon was applied
             if purchase.coupon_code and purchase.discount_amount > 0:
                 try:
-                    coupon = Coupon.objects.filter(code=purchase.coupon_code).first()
-                    if coupon:
-                        CouponUsage.objects.create(
-                            coupon=coupon,
-                            user_id=str(user.id),
-                            order_id=purchase.invoice_number,
-                            discount_amount=purchase.discount_amount,
-                            order_amount=purchase.total_price + purchase.discount_amount  # Total before discount
-                        )
-                        print(f"🎫 CouponUsage created: {purchase.coupon_code} - Discount: {purchase.discount_amount} KWD")
-                    else:
-                        print(f"⚠️ Warning: Coupon '{purchase.coupon_code}' not found in database")
+                    with transaction.atomic():
+                        coupon = Coupon.objects.filter(code=purchase.coupon_code).first()
+                        if coupon:
+                            CouponUsage.objects.create(
+                                coupon=coupon,
+                                user_id=str(user.id),
+                                order_id=purchase.invoice_number,
+                                discount_amount=purchase.discount_amount,
+                                order_amount=purchase.total_price + purchase.discount_amount  # Total before discount
+                            )
+                            print(f"🎫 CouponUsage created: {purchase.coupon_code} - Discount: {purchase.discount_amount} KWD")
+                        else:
+                            print(f"⚠️ Warning: Coupon '{purchase.coupon_code}' not found in database")
                 except Exception as e:
                     print(f"⚠️ Warning: Could not create coupon usage: {e}")
                     # Don't fail order if coupon tracking fails
