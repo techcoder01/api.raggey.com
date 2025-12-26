@@ -320,3 +320,54 @@ class InventoryTransaction(models.Model):
         ordering = ['-timestamp']
         verbose_name = "Inventory Transaction"
         verbose_name_plural = "Inventory Transactions"
+
+
+#======================= DESIGN SCREENSHOT MODEL ========================
+class DesignScreenshot(models.Model):
+    """
+    Store screenshots for design configurations to avoid regenerating identical designs.
+    Uses a hash of component IDs to identify unique designs.
+    """
+
+    design_hash = models.CharField(
+        max_length=64,
+        unique=True,
+        db_index=True,
+        help_text="MD5 hash of all component IDs to uniquely identify design configuration"
+    )
+    screenshot_url = models.URLField(
+        max_length=500,
+        help_text="Cloudinary URL of the design screenshot"
+    )
+    cloudinary_public_id = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        help_text="Cloudinary public ID for managing the image"
+    )
+
+    # Store individual component IDs for reference and debugging
+    fabric_color_id = models.IntegerField(null=True, blank=True)
+    collar_id = models.IntegerField(null=True, blank=True)
+    sleeve_left_id = models.IntegerField(null=True, blank=True)
+    sleeve_right_id = models.IntegerField(null=True, blank=True)
+    pocket_id = models.IntegerField(null=True, blank=True)
+    button_id = models.IntegerField(null=True, blank=True)
+    button_strip_id = models.IntegerField(null=True, blank=True)
+    body_id = models.IntegerField(null=True, blank=True)
+
+    # Metadata
+    times_reused = models.IntegerField(
+        default=0,
+        help_text="Number of times this screenshot was reused instead of regenerating"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_accessed = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Design Screenshot {self.design_hash[:8]}... (reused {self.times_reused} times)"
+
+    class Meta:
+        verbose_name = "Design Screenshot"
+        verbose_name_plural = "Design Screenshots"
+        ordering = ['-created_at']

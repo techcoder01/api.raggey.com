@@ -4,7 +4,7 @@ from .models import (
     HomePageSelectionCategory,
     FabricType, FabricColor,
     GholaType, SleevesType, PocketType, ButtonType, ButtonStripType, BodyType,
-    UserDesign, InventoryTransaction
+    UserDesign, InventoryTransaction, DesignScreenshot
 )
 
 # Register your models here.
@@ -165,3 +165,23 @@ class InventoryTransactionAdmin(admin.ModelAdmin):
             return f"{obj.fabric_color.fabric_type.fabric_name_eng} - {obj.fabric_color.color_name_eng}"
         return "No Fabric Color"
     get_fabric_color.short_description = 'Fabric Color'
+
+
+# Design Screenshot caching
+@admin.register(DesignScreenshot)
+class DesignScreenshotAdmin(admin.ModelAdmin):
+    list_display = ('design_hash_short', 'screenshot_url_preview', 'times_reused', 'created_at', 'last_accessed')
+    list_filter = ('created_at', 'last_accessed')
+    search_fields = ('design_hash', 'fabric_color_id', 'collar_id')
+    readonly_fields = ('design_hash', 'times_reused', 'created_at', 'last_accessed')
+
+    def design_hash_short(self, obj):
+        return f"{obj.design_hash[:16]}..."
+    design_hash_short.short_description = 'Design Hash'
+
+    def screenshot_url_preview(self, obj):
+        from django.utils.html import format_html
+        if obj.screenshot_url:
+            return format_html('<a href="{}" target="_blank">View Screenshot</a>', obj.screenshot_url)
+        return "No URL"
+    screenshot_url_preview.short_description = 'Screenshot'

@@ -1598,15 +1598,65 @@ class InventoryHistoryAPIView(APIView):
 
 class UploadDesignScreenshotAPIView(APIView):
     """
-    Upload design screenshot to Cloudinary
-    Receives base64 image from Flutter app
+    Upload design screenshot to Cloudinary with duplicate detection
+    Receives base64 image and design component IDs from Flutter app
+    If same design configuration exists, returns existing screenshot URL instead of uploading
     """
     def post(self, request):
         import base64
+        import hashlib
         import cloudinary.uploader
         from io import BytesIO
+        from .models import DesignScreenshot
 
         try:
+            # Get design component IDs (all optional)
+            fabric_color_id = request.data.get('fabric_color_id')
+            collar_id = request.data.get('collar_id')
+            sleeve_left_id = request.data.get('sleeve_left_id')
+            sleeve_right_id = request.data.get('sleeve_right_id')
+            pocket_id = request.data.get('pocket_id')
+            button_id = request.data.get('button_id')
+            button_strip_id = request.data.get('button_strip_id')
+            body_id = request.data.get('body_id')
+
+            # Create hash from component IDs to identify unique design configurations
+            # Use sorted list to ensure consistent hash for same components
+            component_ids = [
+                str(fabric_color_id) if fabric_color_id else 'none',
+                str(collar_id) if collar_id else 'none',
+                str(sleeve_left_id) if sleeve_left_id else 'none',
+                str(sleeve_right_id) if sleeve_right_id else 'none',
+                str(pocket_id) if pocket_id else 'none',
+                str(button_id) if button_id else 'none',
+                str(button_strip_id) if button_strip_id else 'none',
+                str(body_id) if body_id else 'none',
+            ]
+
+            # Create MD5 hash of component IDs
+            design_hash = hashlib.md5('|'.join(component_ids).encode()).hexdigest()
+
+            # Check if screenshot for this exact design configuration already exists
+            try:
+                existing_screenshot = DesignScreenshot.objects.get(design_hash=design_hash)
+
+                # Increment reuse counter
+                existing_screenshot.times_reused += 1
+                existing_screenshot.save()
+
+                # Return existing screenshot URL without uploading
+                return Response({
+                    'success': True,
+                    'url': existing_screenshot.screenshot_url,
+                    'public_id': existing_screenshot.cloudinary_public_id,
+                    'reused': True,
+                    'message': 'Existing screenshot returned for identical design'
+                }, status=HTTP_200_OK)
+
+            except DesignScreenshot.DoesNotExist:
+                # No existing screenshot - proceed with upload
+                pass
+
             # Get base64 image data from request
             image_data = request.data.get('image')
             if not image_data:
@@ -1635,10 +1685,28 @@ class UploadDesignScreenshotAPIView(APIView):
                     resource_type='image'
                 )
 
+                # Save screenshot information to database for future reuse
+                DesignScreenshot.objects.create(
+                    design_hash=design_hash,
+                    screenshot_url=result['secure_url'],
+                    cloudinary_public_id=result['public_id'],
+                    fabric_color_id=fabric_color_id,
+                    collar_id=collar_id,
+                    sleeve_left_id=sleeve_left_id,
+                    sleeve_right_id=sleeve_right_id,
+                    pocket_id=pocket_id,
+                    button_id=button_id,
+                    button_strip_id=button_strip_id,
+                    body_id=body_id,
+                    times_reused=0
+                )
+
                 return Response({
                     'success': True,
                     'url': result['secure_url'],
-                    'public_id': result['public_id']
+                    'public_id': result['public_id'],
+                    'reused': False,
+                    'message': 'New screenshot uploaded and saved'
                 }, status=HTTP_200_OK)
 
             except Exception as e:
