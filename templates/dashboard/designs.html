@@ -103,6 +103,8 @@
                     {% elif component_type == 'fabric_types' %}
                     <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Base Price</th>
                     {% else %}
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Fabric Type</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Fabric Color</th>
                     <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Price</th>
                     {% endif %}
                     <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Status</th>
@@ -119,9 +121,23 @@
                         {% if component_type not in 'fabric_colors,fabric_types' %}
                         <td class="px-6 py-4">
                             {% if item.cover %}
-                            <a href="{{ item.cover.url }}" target="_blank" class="block">
-                                <img src="{{ item.cover.url }}" alt="Cover" class="w-16 h-16 object-contain rounded-lg border border-[#E6E8E7] hover:shadow-lg transition-shadow bg-white">
-                            </a>
+                            <div class="relative group">
+                                <a href="{{ item.cover.url }}" target="_blank" class="block">
+                                    <img src="{{ item.cover.url }}" alt="Cover" class="w-16 h-16 object-contain rounded-lg border border-[#E6E8E7] hover:shadow-lg transition-shadow bg-white">
+                                </a>
+                                <div class="absolute inset-0 bg-black bg-opacity-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+                                    <button onclick="openImageEditModal({{ item.id }}, 'cover')" class="p-1.5 bg-white text-[#0B5D35] rounded hover:bg-[#E9F9EF] transition-colors" title="Edit">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                                        </svg>
+                                    </button>
+                                    <button onclick="confirmImageDelete({{ item.id }}, 'cover')" class="p-1.5 bg-white text-[#BF3636] rounded hover:bg-[#FDECEC] transition-colors" title="Delete">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
                             {% else %}
                             <div class="w-16 h-16 bg-[#F5F6F6] rounded-lg border border-[#E6E8E7] flex items-center justify-center">
                                 <svg class="w-6 h-6 text-[#ADB2B0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -132,9 +148,23 @@
                         </td>
                         <td class="px-6 py-4">
                             {% if item.cover_option %}
-                            <a href="{{ item.cover_option.url }}" target="_blank" class="block">
-                                <img src="{{ item.cover_option.url }}" alt="Cover Option" class="w-16 h-16 object-contain rounded-lg border border-[#E6E8E7] hover:shadow-lg transition-shadow bg-white">
-                            </a>
+                            <div class="relative group">
+                                <a href="{{ item.cover_option.url }}" target="_blank" class="block">
+                                    <img src="{{ item.cover_option.url }}" alt="Cover Option" class="w-16 h-16 object-contain rounded-lg border border-[#E6E8E7] hover:shadow-lg transition-shadow bg-white">
+                                </a>
+                                <div class="absolute inset-0 bg-black bg-opacity-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+                                    <button onclick="openImageEditModal({{ item.id }}, 'cover_option')" class="p-1.5 bg-white text-[#0B5D35] rounded hover:bg-[#E9F9EF] transition-colors" title="Edit">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                                        </svg>
+                                    </button>
+                                    <button onclick="confirmImageDelete({{ item.id }}, 'cover_option')" class="p-1.5 bg-white text-[#BF3636] rounded hover:bg-[#FDECEC] transition-colors" title="Delete">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
                             {% else %}
                             <div class="w-16 h-16 bg-[#F5F6F6] rounded-lg border border-[#E6E8E7] flex items-center justify-center">
                                 <svg class="w-6 h-6 text-[#ADB2B0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -194,6 +224,36 @@
                         </td>
                         {% else %}
                         <td class="px-6 py-4">
+                            <form method="POST" action="/dashboard/designs/update-fabric-relation/" class="inline-block">
+                                {% csrf_token %}
+                                <input type="hidden" name="component_type" value="{{ component_type }}">
+                                <input type="hidden" name="item_id" value="{{ item.id }}">
+                                <input type="hidden" name="field" value="fabric_type">
+                                <select name="value" onchange="this.form.submit()" class="text-xs px-2 py-1.5 bg-[#F5F6F6] border border-[#E6E8E7] rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0D1210]/20 hover:border-[#0D1210]/40 transition-colors">
+                                    <option value="">-- None --</option>
+                                    {% for fabric_type in all_fabric_types %}
+                                    <option value="{{ fabric_type.id }}" {% if item.fabric_type and item.fabric_type.id == fabric_type.id %}selected{% endif %}>
+                                        {{ fabric_type.fabric_name_eng }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </form>
+                        </td>
+                        <td class="px-6 py-4">
+                            <form method="POST" action="/dashboard/designs/update-fabric-relation/" class="inline-block fabric-color-form" data-item-id="{{ item.id }}">
+                                {% csrf_token %}
+                                <input type="hidden" name="component_type" value="{{ component_type }}">
+                                <input type="hidden" name="item_id" value="{{ item.id }}">
+                                <input type="hidden" name="field" value="fabric_color">
+                                <select name="value" onchange="this.form.submit()" class="text-xs px-2 py-1.5 bg-[#F5F6F6] border border-[#E6E8E7] rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0D1210]/20 hover:border-[#0D1210]/40 transition-colors fabric-color-select" data-current-color="{{ item.fabric_color.id|default:'' }}">
+                                    <option value="">-- None --</option>
+                                    {% if item.fabric_color %}
+                                    <option value="{{ item.fabric_color.id }}" selected>{{ item.fabric_color.color_name_eng }}</option>
+                                    {% endif %}
+                                </select>
+                            </form>
+                        </td>
+                        <td class="px-6 py-4">
                             <p class="text-sm font-bold text-[#5D0B33]">{{ item.initial_price|floatformat:3 }} KD</p>
                         </td>
                         {% endif %}
@@ -247,7 +307,7 @@
                     {% endfor %}
                 {% else %}
                     <tr>
-                        <td colspan="{% if component_type == 'fabric_colors' %}9{% elif component_type == 'fabric_types' %}6{% else %}8{% endif %}" class="px-6 py-12 text-center">
+                        <td colspan="{% if component_type == 'fabric_colors' %}9{% elif component_type == 'fabric_types' %}6{% else %}10{% endif %}" class="px-6 py-12 text-center">
                             <p class="text-[#6A736E]">No {{ component_label|lower }} found</p>
                         </td>
                     </tr>
@@ -289,6 +349,25 @@
             <div class="mb-4" id="price_field">
                 <label class="block text-sm font-medium text-[#0D1210] mb-2" id="price_label">Price (KD)</label>
                 <input type="number" step="0.001" name="price" id="edit_price" class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+            </div>
+
+            <!-- Fabric Type and Color fields for design components -->
+            <div id="design_fabric_fields" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Fabric Type (Optional)</label>
+                    <select name="fabric_type_id" id="edit_fabric_type_id" class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                        <option value="">-- None --</option>
+                        {% for fabric_type in all_fabric_types %}
+                        <option value="{{ fabric_type.id }}">{{ fabric_type.fabric_name_eng }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Fabric Color (Optional)</label>
+                    <select name="fabric_color_id" id="edit_fabric_color_id" class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                        <option value="">-- None --</option>
+                    </select>
+                </div>
             </div>
 
             <!-- Fabric Color specific fields -->
@@ -386,6 +465,25 @@
             <div class="mb-4" id="add_price_field">
                 <label class="block text-sm font-medium text-[#0D1210] mb-2" id="add_price_label">Price (KD) *</label>
                 <input type="number" step="0.001" name="price" id="add_price" required class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+            </div>
+
+            <!-- Fabric Type and Color fields for design components -->
+            <div id="add_design_fabric_fields" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Fabric Type (Optional)</label>
+                    <select name="fabric_type_id" id="add_fabric_type_id" class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                        <option value="">-- None --</option>
+                        {% for fabric_type in all_fabric_types %}
+                        <option value="{{ fabric_type.id }}">{{ fabric_type.fabric_name_eng }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Fabric Color (Optional)</label>
+                    <select name="fabric_color_id" id="add_fabric_color_id" class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                        <option value="">-- None --</option>
+                    </select>
+                </div>
             </div>
 
             <!-- Fabric Color specific fields -->
@@ -487,6 +585,71 @@
     </div>
 </div>
 
+<!-- Image Edit Modal -->
+<div id="imageEditModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold text-[#0D1210]">Update Image</h2>
+            <button onclick="closeImageEditModal()" class="text-[#6A736E] hover:text-[#0D1210]">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <form id="imageEditForm" method="POST" action="/dashboard/designs/update-image/" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="component_type" value="{{ component_type }}">
+            <input type="hidden" name="item_id" id="image_edit_item_id">
+            <input type="hidden" name="image_field" id="image_edit_field">
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-[#0D1210] mb-2" id="image_edit_label">Select Image</label>
+                <input type="file" name="image" id="image_edit_input" accept="image/*" required class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                <p class="text-xs text-[#6A736E] mt-2">Supported formats: JPG, PNG, GIF</p>
+            </div>
+
+            <div class="flex gap-3 mt-6">
+                <button type="submit" class="flex-1 px-6 py-3 bg-[#5D0B33] text-white rounded-xl font-medium hover:bg-[#4a0829] transition-colors">
+                    Upload Image
+                </button>
+                <button type="button" onclick="closeImageEditModal()" class="px-6 py-3 bg-[#F5F6F6] text-[#0D1210] rounded-xl font-medium hover:bg-[#E6E8E7] transition-colors">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Image Delete Confirmation Modal -->
+<div id="imageDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+        <div class="flex items-center justify-center w-16 h-16 bg-[#FDECEC] rounded-full mb-4 mx-auto">
+            <svg class="w-8 h-8 text-[#BF3636]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+        </div>
+        <h2 class="text-2xl font-bold text-[#0D1210] text-center mb-2">Delete Image?</h2>
+        <p class="text-center text-[#6A736E] mb-6">Are you sure you want to delete this image? This action cannot be undone.</p>
+
+        <form id="imageDeleteForm" method="POST" action="/dashboard/designs/delete-image/">
+            {% csrf_token %}
+            <input type="hidden" name="component_type" value="{{ component_type }}">
+            <input type="hidden" name="item_id" id="image_delete_item_id">
+            <input type="hidden" name="image_field" id="image_delete_field">
+
+            <div class="flex gap-3">
+                <button type="button" onclick="closeImageDeleteModal()" class="flex-1 px-6 py-3 bg-[#F5F6F6] text-[#0D1210] rounded-xl font-medium hover:bg-[#E6E8E7] transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" class="flex-1 px-6 py-3 bg-[#BF3636] text-white rounded-xl font-medium hover:bg-[#8B2828] transition-colors">
+                    Delete
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
     const componentType = '{{ component_type }}';
 
@@ -508,6 +671,7 @@
                 document.getElementById('button_fields').classList.add('hidden');
                 document.getElementById('image_fields').classList.add('hidden');
                 document.getElementById('cover_option_field').classList.add('hidden');
+                document.getElementById('design_fabric_fields').classList.add('hidden');
 
                 // Set price field label and value
                 const priceLabel = document.getElementById('price_label');
@@ -528,17 +692,35 @@
                     document.getElementById('edit_isHidden').checked = data.isHidden || false;
                     // No images for fabric types
                 } else if (componentType === 'buttons') {
+                    document.getElementById('design_fabric_fields').classList.remove('hidden');
                     document.getElementById('image_fields').classList.remove('hidden');
                     document.getElementById('button_fields').classList.remove('hidden');
                     document.getElementById('cover_option_field').classList.remove('hidden');
                     priceLabel.textContent = 'Price (KD)';
                     priceField.value = data.initial_price || 0;
                     document.getElementById('edit_inStock_button').checked = data.inStock || false;
+                    document.getElementById('edit_fabric_type_id').value = data.fabric_type_id || '';
+
+                    // Load fabric colors if fabric type is set
+                    if (data.fabric_type_id) {
+                        fetchFabricColors(data.fabric_type_id, 'edit_fabric_color_id').then(() => {
+                            document.getElementById('edit_fabric_color_id').value = data.fabric_color_id || '';
+                        });
+                    }
                 } else {
+                    document.getElementById('design_fabric_fields').classList.remove('hidden');
                     document.getElementById('image_fields').classList.remove('hidden');
                     document.getElementById('cover_option_field').classList.remove('hidden');
                     priceLabel.textContent = 'Price (KD)';
                     priceField.value = data.initial_price || 0;
+                    document.getElementById('edit_fabric_type_id').value = data.fabric_type_id || '';
+
+                    // Load fabric colors if fabric type is set
+                    if (data.fabric_type_id) {
+                        fetchFabricColors(data.fabric_type_id, 'edit_fabric_color_id').then(() => {
+                            document.getElementById('edit_fabric_color_id').value = data.fabric_color_id || '';
+                        });
+                    }
                 }
 
                 // Show current images
@@ -577,6 +759,7 @@
         document.getElementById('add_button_fields').classList.add('hidden');
         document.getElementById('add_image_fields').classList.add('hidden');
         document.getElementById('add_cover_option_field').classList.add('hidden');
+        document.getElementById('add_design_fabric_fields').classList.add('hidden');
 
         const priceLabel = document.getElementById('add_price_label');
         const priceField = document.getElementById('add_price');
@@ -593,6 +776,7 @@
             priceField.value = '0';
             coverField.removeAttribute('required');
         } else if (componentType === 'buttons') {
+            document.getElementById('add_design_fabric_fields').classList.remove('hidden');
             document.getElementById('add_image_fields').classList.remove('hidden');
             document.getElementById('add_button_fields').classList.remove('hidden');
             document.getElementById('add_cover_option_field').classList.remove('hidden');
@@ -600,6 +784,7 @@
             priceField.value = '0';
             coverField.setAttribute('required', 'required');
         } else {
+            document.getElementById('add_design_fabric_fields').classList.remove('hidden');
             document.getElementById('add_image_fields').classList.remove('hidden');
             document.getElementById('add_cover_option_field').classList.remove('hidden');
             priceLabel.textContent = 'Price (KD) *';
@@ -632,13 +817,187 @@
         document.getElementById('deleteModal').classList.remove('flex');
     }
 
+    function openImageEditModal(itemId, imageField) {
+        // Set the item ID and field
+        document.getElementById('image_edit_item_id').value = itemId;
+        document.getElementById('image_edit_field').value = imageField;
+
+        // Update label based on field
+        const label = imageField === 'cover' ? 'Cover Image' : 'Cover Option Image';
+        document.getElementById('image_edit_label').textContent = label;
+
+        // Show modal
+        document.getElementById('imageEditModal').classList.remove('hidden');
+        document.getElementById('imageEditModal').classList.add('flex');
+    }
+
+    function closeImageEditModal() {
+        document.getElementById('imageEditModal').classList.add('hidden');
+        document.getElementById('imageEditModal').classList.remove('flex');
+        document.getElementById('imageEditForm').reset();
+    }
+
+    function confirmImageDelete(itemId, imageField) {
+        // Set the item ID and field
+        document.getElementById('image_delete_item_id').value = itemId;
+        document.getElementById('image_delete_field').value = imageField;
+
+        // Show modal
+        document.getElementById('imageDeleteModal').classList.remove('hidden');
+        document.getElementById('imageDeleteModal').classList.add('flex');
+    }
+
+    function closeImageDeleteModal() {
+        document.getElementById('imageDeleteModal').classList.add('hidden');
+        document.getElementById('imageDeleteModal').classList.remove('flex');
+    }
+
     // Close modals on escape key
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape') {
             closeEditModal();
             closeAddModal();
             closeDeleteModal();
+            closeImageEditModal();
+            closeImageDeleteModal();
         }
+    });
+
+    // Function to fetch and populate fabric colors
+    function fetchFabricColors(fabricTypeId, targetSelectId) {
+        const selectElement = document.getElementById(targetSelectId);
+
+        // Clear existing options except the first one
+        selectElement.innerHTML = '<option value="">-- None --</option>';
+
+        if (!fabricTypeId) {
+            return Promise.resolve();
+        }
+
+        // Fetch fabric colors
+        return fetch(`/dashboard/designs/get-fabric-colors/${fabricTypeId}/`)
+            .then(response => response.json())
+            .then(colors => {
+                colors.forEach(color => {
+                    const option = document.createElement('option');
+                    option.value = color.id;
+                    option.textContent = color.color_name_eng;
+                    selectElement.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching fabric colors:', error);
+            });
+    }
+
+    // Add event listener for Edit Modal fabric type dropdown
+    const editFabricTypeSelect = document.getElementById('edit_fabric_type_id');
+    if (editFabricTypeSelect) {
+        editFabricTypeSelect.addEventListener('change', function() {
+            fetchFabricColors(this.value, 'edit_fabric_color_id');
+        });
+    }
+
+    // Add event listener for Add Modal fabric type dropdown
+    const addFabricTypeSelect = document.getElementById('add_fabric_type_id');
+    if (addFabricTypeSelect) {
+        addFabricTypeSelect.addEventListener('change', function() {
+            fetchFabricColors(this.value, 'add_fabric_color_id');
+        });
+    }
+
+    // Handle fabric type changes in the table to populate fabric color dropdowns
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get all fabric type selects in the table
+        const fabricTypeSelects = document.querySelectorAll('select[name="value"][onchange*="submit"]');
+
+        fabricTypeSelects.forEach(select => {
+            // Check if this is a fabric_type select
+            const fieldInput = select.parentElement.querySelector('input[name="field"]');
+            if (fieldInput && fieldInput.value === 'fabric_type') {
+                select.addEventListener('change', function(e) {
+                    // Prevent immediate form submission
+                    e.preventDefault();
+
+                    const fabricTypeId = this.value;
+                    const itemId = this.parentElement.querySelector('input[name="item_id"]').value;
+
+                    // Find the corresponding fabric color select in the same row
+                    const row = this.closest('tr');
+                    const fabricColorForm = row.querySelector('.fabric-color-form[data-item-id="' + itemId + '"]');
+
+                    if (fabricColorForm) {
+                        const fabricColorSelect = fabricColorForm.querySelector('.fabric-color-select');
+
+                        // Clear and populate fabric color dropdown
+                        fabricColorSelect.innerHTML = '<option value="">-- None --</option>';
+
+                        if (fabricTypeId) {
+                            // Fetch fabric colors for the selected fabric type
+                            fetch(`/dashboard/designs/get-fabric-colors/${fabricTypeId}/`)
+                                .then(response => response.json())
+                                .then(colors => {
+                                    colors.forEach(color => {
+                                        const option = document.createElement('option');
+                                        option.value = color.id;
+                                        option.textContent = color.color_name_eng;
+                                        fabricColorSelect.appendChild(option);
+                                    });
+
+                                    // Now submit the fabric type form
+                                    this.form.submit();
+                                })
+                                .catch(error => {
+                                    console.error('Error fetching fabric colors:', error);
+                                    // Submit anyway even if fetching colors fails
+                                    this.form.submit();
+                                });
+                        } else {
+                            // No fabric type selected, just submit
+                            this.form.submit();
+                        }
+                    } else {
+                        // No fabric color form found, just submit
+                        this.form.submit();
+                    }
+                });
+            }
+        });
+
+        // Load initial fabric colors for existing fabric types in the table
+        const fabricColorForms = document.querySelectorAll('.fabric-color-form');
+        fabricColorForms.forEach(form => {
+            const itemId = form.dataset.itemId;
+            const row = form.closest('tr');
+            const fabricTypeSelect = row.querySelector('input[name="field"][value="fabric_type"]')?.parentElement.querySelector('select[name="value"]');
+
+            if (fabricTypeSelect && fabricTypeSelect.value) {
+                const fabricTypeId = fabricTypeSelect.value;
+                const fabricColorSelect = form.querySelector('.fabric-color-select');
+                const currentColorId = fabricColorSelect.dataset.currentColor;
+
+                // Fetch and populate fabric colors
+                fetch(`/dashboard/designs/get-fabric-colors/${fabricTypeId}/`)
+                    .then(response => response.json())
+                    .then(colors => {
+                        // Clear except None option
+                        fabricColorSelect.innerHTML = '<option value="">-- None --</option>';
+
+                        colors.forEach(color => {
+                            const option = document.createElement('option');
+                            option.value = color.id;
+                            option.textContent = color.color_name_eng;
+                            if (color.id == currentColorId) {
+                                option.selected = true;
+                            }
+                            fabricColorSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error fetching fabric colors:', error);
+                    });
+            }
+        });
     });
 </script>
 {% endblock %}

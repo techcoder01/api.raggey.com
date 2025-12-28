@@ -437,6 +437,19 @@ def designs_view(request):
 
 @login_required(login_url='/dashboard/login/')
 @user_passes_test(is_staff_user, login_url='/dashboard/login/')
+def get_fabric_colors(request, fabric_type_id):
+    """Get fabric colors for a specific fabric type"""
+    try:
+        colors = FabricColor.objects.filter(
+            fabric_type_id=fabric_type_id
+        ).order_by('color_name_eng').values('id', 'color_name_eng', 'color_name_arb')
+        return JsonResponse(list(colors), safe=False)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
+@login_required(login_url='/dashboard/login/')
+@user_passes_test(is_staff_user, login_url='/dashboard/login/')
 def get_design_item(request, component_type, item_id):
     """Get item data for editing"""
     try:
@@ -467,6 +480,8 @@ def get_design_item(request, component_type, item_id):
                 'name_eng': item.ghola_type_name_eng,
                 'name_arb': item.ghola_type_name_arb,
                 'initial_price': float(item.initial_price),
+                'fabric_type_id': item.fabric_type.id if item.fabric_type else None,
+                'fabric_color_id': item.fabric_color.id if item.fabric_color else None,
                 'cover_url': item.cover.url if item.cover else None,
                 'cover_option_url': item.cover_option.url if item.cover_option else None,
             }
@@ -476,6 +491,8 @@ def get_design_item(request, component_type, item_id):
                 'name_eng': item.sleeves_type_name_eng,
                 'name_arb': item.sleeves_type_name_arb,
                 'initial_price': float(item.initial_price),
+                'fabric_type_id': item.fabric_type.id if item.fabric_type else None,
+                'fabric_color_id': item.fabric_color.id if item.fabric_color else None,
                 'cover_url': item.cover.url if item.cover else None,
                 'cover_option_url': item.cover_option.url if item.cover_option else None,
             }
@@ -485,6 +502,8 @@ def get_design_item(request, component_type, item_id):
                 'name_eng': item.pocket_type_name_eng,
                 'name_arb': item.pocket_type_name_arb,
                 'initial_price': float(item.initial_price),
+                'fabric_type_id': item.fabric_type.id if item.fabric_type else None,
+                'fabric_color_id': item.fabric_color.id if item.fabric_color else None,
                 'cover_url': item.cover.url if item.cover else None,
                 'cover_option_url': item.cover_option.url if item.cover_option else None,
             }
@@ -495,6 +514,8 @@ def get_design_item(request, component_type, item_id):
                 'name_arb': item.button_type_name_arb,
                 'initial_price': float(item.initial_price),
                 'inStock': item.inStock,
+                'fabric_type_id': item.fabric_type.id if item.fabric_type else None,
+                'fabric_color_id': item.fabric_color.id if item.fabric_color else None,
                 'cover_url': item.cover.url if item.cover else None,
                 'cover_option_url': item.cover_option.url if item.cover_option else None,
             }
@@ -504,6 +525,8 @@ def get_design_item(request, component_type, item_id):
                 'name_eng': item.button_strip_type_name_eng,
                 'name_arb': item.button_strip_type_name_arb,
                 'initial_price': float(item.initial_price),
+                'fabric_type_id': item.fabric_type.id if item.fabric_type else None,
+                'fabric_color_id': item.fabric_color.id if item.fabric_color else None,
                 'cover_url': item.cover.url if item.cover else None,
                 'cover_option_url': item.cover_option.url if item.cover_option else None,
             }
@@ -513,6 +536,8 @@ def get_design_item(request, component_type, item_id):
                 'name_eng': item.body_type_name_eng,
                 'name_arb': item.body_type_name_arb,
                 'initial_price': float(item.initial_price),
+                'fabric_type_id': item.fabric_type.id if item.fabric_type else None,
+                'fabric_color_id': item.fabric_color.id if item.fabric_color else None,
                 'cover_url': item.cover.url if item.cover else None,
                 'cover_option_url': item.cover_option.url if item.cover_option else None,
             }
@@ -557,32 +582,62 @@ def update_design_item(request):
             item.ghola_type_name_eng = name_eng
             item.ghola_type_name_arb = name_arb
             item.initial_price = price
+            # Handle fabric type and color
+            fabric_type_id = request.POST.get('fabric_type_id')
+            fabric_color_id = request.POST.get('fabric_color_id')
+            item.fabric_type = FabricType.objects.get(id=fabric_type_id) if fabric_type_id else None
+            item.fabric_color = FabricColor.objects.get(id=fabric_color_id) if fabric_color_id else None
         elif component_type == 'sleeves':
             item = SleevesType.objects.get(id=item_id)
             item.sleeves_type_name_eng = name_eng
             item.sleeves_type_name_arb = name_arb
             item.initial_price = price
+            # Handle fabric type and color
+            fabric_type_id = request.POST.get('fabric_type_id')
+            fabric_color_id = request.POST.get('fabric_color_id')
+            item.fabric_type = FabricType.objects.get(id=fabric_type_id) if fabric_type_id else None
+            item.fabric_color = FabricColor.objects.get(id=fabric_color_id) if fabric_color_id else None
         elif component_type == 'pockets':
             item = PocketType.objects.get(id=item_id)
             item.pocket_type_name_eng = name_eng
             item.pocket_type_name_arb = name_arb
             item.initial_price = price
+            # Handle fabric type and color
+            fabric_type_id = request.POST.get('fabric_type_id')
+            fabric_color_id = request.POST.get('fabric_color_id')
+            item.fabric_type = FabricType.objects.get(id=fabric_type_id) if fabric_type_id else None
+            item.fabric_color = FabricColor.objects.get(id=fabric_color_id) if fabric_color_id else None
         elif component_type == 'buttons':
             item = ButtonType.objects.get(id=item_id)
             item.button_type_name_eng = name_eng
             item.button_type_name_arb = name_arb
             item.initial_price = price
             item.inStock = 'inStock_button' in request.POST
+            # Handle fabric type and color
+            fabric_type_id = request.POST.get('fabric_type_id')
+            fabric_color_id = request.POST.get('fabric_color_id')
+            item.fabric_type = FabricType.objects.get(id=fabric_type_id) if fabric_type_id else None
+            item.fabric_color = FabricColor.objects.get(id=fabric_color_id) if fabric_color_id else None
         elif component_type == 'button_strips':
             item = ButtonStripType.objects.get(id=item_id)
             item.button_strip_type_name_eng = name_eng
             item.button_strip_type_name_arb = name_arb
             item.initial_price = price
+            # Handle fabric type and color
+            fabric_type_id = request.POST.get('fabric_type_id')
+            fabric_color_id = request.POST.get('fabric_color_id')
+            item.fabric_type = FabricType.objects.get(id=fabric_type_id) if fabric_type_id else None
+            item.fabric_color = FabricColor.objects.get(id=fabric_color_id) if fabric_color_id else None
         elif component_type == 'body':
             item = BodyType.objects.get(id=item_id)
             item.body_type_name_eng = name_eng
             item.body_type_name_arb = name_arb
             item.initial_price = price
+            # Handle fabric type and color
+            fabric_type_id = request.POST.get('fabric_type_id')
+            fabric_color_id = request.POST.get('fabric_color_id')
+            item.fabric_type = FabricType.objects.get(id=fabric_type_id) if fabric_type_id else None
+            item.fabric_color = FabricColor.objects.get(id=fabric_color_id) if fabric_color_id else None
         else:
             messages.error(request, 'Invalid component type')
             return redirect(f'/dashboard/designs/?type={component_type}')
@@ -674,10 +729,14 @@ def create_design_item(request):
                 isHidden='isHidden' in request.POST
             )
         elif component_type == 'collars':
+            fabric_type_id = request.POST.get('fabric_type_id')
+            fabric_color_id = request.POST.get('fabric_color_id')
             item = GholaType.objects.create(
                 ghola_type_name_eng=name_eng,
                 ghola_type_name_arb=name_arb,
-                initial_price=price
+                initial_price=price,
+                fabric_type=FabricType.objects.get(id=fabric_type_id) if fabric_type_id else None,
+                fabric_color=FabricColor.objects.get(id=fabric_color_id) if fabric_color_id else None
             )
             if 'cover' in request.FILES:
                 item.cover = request.FILES['cover']
@@ -685,10 +744,14 @@ def create_design_item(request):
                 item.cover_option = request.FILES['cover_option']
             item.save()
         elif component_type == 'sleeves':
+            fabric_type_id = request.POST.get('fabric_type_id')
+            fabric_color_id = request.POST.get('fabric_color_id')
             item = SleevesType.objects.create(
                 sleeves_type_name_eng=name_eng,
                 sleeves_type_name_arb=name_arb,
-                initial_price=price
+                initial_price=price,
+                fabric_type=FabricType.objects.get(id=fabric_type_id) if fabric_type_id else None,
+                fabric_color=FabricColor.objects.get(id=fabric_color_id) if fabric_color_id else None
             )
             if 'cover' in request.FILES:
                 item.cover = request.FILES['cover']
@@ -696,10 +759,14 @@ def create_design_item(request):
                 item.cover_option = request.FILES['cover_option']
             item.save()
         elif component_type == 'pockets':
+            fabric_type_id = request.POST.get('fabric_type_id')
+            fabric_color_id = request.POST.get('fabric_color_id')
             item = PocketType.objects.create(
                 pocket_type_name_eng=name_eng,
                 pocket_type_name_arb=name_arb,
-                initial_price=price
+                initial_price=price,
+                fabric_type=FabricType.objects.get(id=fabric_type_id) if fabric_type_id else None,
+                fabric_color=FabricColor.objects.get(id=fabric_color_id) if fabric_color_id else None
             )
             if 'cover' in request.FILES:
                 item.cover = request.FILES['cover']
@@ -707,11 +774,15 @@ def create_design_item(request):
                 item.cover_option = request.FILES['cover_option']
             item.save()
         elif component_type == 'buttons':
+            fabric_type_id = request.POST.get('fabric_type_id')
+            fabric_color_id = request.POST.get('fabric_color_id')
             item = ButtonType.objects.create(
                 button_type_name_eng=name_eng,
                 button_type_name_arb=name_arb,
                 initial_price=price,
-                inStock='inStock_button' in request.POST
+                inStock='inStock_button' in request.POST,
+                fabric_type=FabricType.objects.get(id=fabric_type_id) if fabric_type_id else None,
+                fabric_color=FabricColor.objects.get(id=fabric_color_id) if fabric_color_id else None
             )
             if 'cover' in request.FILES:
                 item.cover = request.FILES['cover']
@@ -719,10 +790,14 @@ def create_design_item(request):
                 item.cover_option = request.FILES['cover_option']
             item.save()
         elif component_type == 'button_strips':
+            fabric_type_id = request.POST.get('fabric_type_id')
+            fabric_color_id = request.POST.get('fabric_color_id')
             item = ButtonStripType.objects.create(
                 button_strip_type_name_eng=name_eng,
                 button_strip_type_name_arb=name_arb,
-                initial_price=price
+                initial_price=price,
+                fabric_type=FabricType.objects.get(id=fabric_type_id) if fabric_type_id else None,
+                fabric_color=FabricColor.objects.get(id=fabric_color_id) if fabric_color_id else None
             )
             if 'cover' in request.FILES:
                 item.cover = request.FILES['cover']
@@ -730,10 +805,14 @@ def create_design_item(request):
                 item.cover_option = request.FILES['cover_option']
             item.save()
         elif component_type == 'body':
+            fabric_type_id = request.POST.get('fabric_type_id')
+            fabric_color_id = request.POST.get('fabric_color_id')
             item = BodyType.objects.create(
                 body_type_name_eng=name_eng,
                 body_type_name_arb=name_arb,
-                initial_price=price
+                initial_price=price,
+                fabric_type=FabricType.objects.get(id=fabric_type_id) if fabric_type_id else None,
+                fabric_color=FabricColor.objects.get(id=fabric_color_id) if fabric_color_id else None
             )
             if 'cover' in request.FILES:
                 item.cover = request.FILES['cover']
@@ -788,5 +867,185 @@ def update_design_status(request):
 
     except Exception as e:
         messages.error(request, f'Error updating status: {str(e)}')
+
+    return redirect(f'/dashboard/designs/?type={component_type}')
+
+
+@login_required(login_url='/dashboard/login/')
+@user_passes_test(is_staff_user, login_url='/dashboard/login/')
+@require_http_methods(["POST"])
+def update_fabric_relation(request):
+    """Update fabric type or fabric color for design items"""
+    try:
+        component_type = request.POST.get('component_type')
+        item_id = request.POST.get('item_id')
+        field = request.POST.get('field')  # 'fabric_type' or 'fabric_color'
+        value = request.POST.get('value')  # ID of the fabric type or color
+
+        # Get the appropriate model
+        if component_type == 'collars':
+            item = GholaType.objects.get(id=item_id)
+            item_name = item.ghola_type_name_eng
+        elif component_type == 'sleeves':
+            item = SleevesType.objects.get(id=item_id)
+            item_name = item.sleeves_type_name_eng
+        elif component_type == 'pockets':
+            item = PocketType.objects.get(id=item_id)
+            item_name = item.pocket_type_name_eng
+        elif component_type == 'buttons':
+            item = ButtonType.objects.get(id=item_id)
+            item_name = item.button_type_name_eng
+        elif component_type == 'button_strips':
+            item = ButtonStripType.objects.get(id=item_id)
+            item_name = item.button_strip_type_name_eng
+        elif component_type == 'body':
+            item = BodyType.objects.get(id=item_id)
+            item_name = item.body_type_name_eng
+        else:
+            messages.error(request, 'Invalid component type')
+            return redirect(f'/dashboard/designs/?type={component_type}')
+
+        # Update the field
+        if field == 'fabric_type':
+            if value:
+                fabric_type = FabricType.objects.get(id=value)
+                item.fabric_type = fabric_type
+                messages.success(request, f'{item_name} fabric type updated to {fabric_type.fabric_name_eng}')
+            else:
+                item.fabric_type = None
+                messages.success(request, f'{item_name} fabric type cleared')
+        elif field == 'fabric_color':
+            if value:
+                fabric_color = FabricColor.objects.get(id=value)
+                item.fabric_color = fabric_color
+                messages.success(request, f'{item_name} fabric color updated to {fabric_color.color_name_eng}')
+            else:
+                item.fabric_color = None
+                messages.success(request, f'{item_name} fabric color cleared')
+        else:
+            messages.error(request, 'Invalid field')
+            return redirect(f'/dashboard/designs/?type={component_type}')
+
+        item.save()
+
+    except Exception as e:
+        messages.error(request, f'Error updating: {str(e)}')
+
+    return redirect(f'/dashboard/designs/?type={component_type}')
+
+
+@login_required(login_url='/dashboard/login/')
+@user_passes_test(is_staff_user, login_url='/dashboard/login/')
+@require_http_methods(["POST"])
+def update_image(request):
+    """Update cover or cover_option image for design items"""
+    try:
+        component_type = request.POST.get('component_type')
+        item_id = request.POST.get('item_id')
+        image_field = request.POST.get('image_field')  # 'cover' or 'cover_option'
+        image_file = request.FILES.get('image')
+
+        if not image_file:
+            messages.error(request, 'No image file provided')
+            return redirect(f'/dashboard/designs/?type={component_type}')
+
+        # Get the appropriate model
+        if component_type == 'collars':
+            item = GholaType.objects.get(id=item_id)
+            item_name = item.ghola_type_name_eng
+        elif component_type == 'sleeves':
+            item = SleevesType.objects.get(id=item_id)
+            item_name = item.sleeves_type_name_eng
+        elif component_type == 'pockets':
+            item = PocketType.objects.get(id=item_id)
+            item_name = item.pocket_type_name_eng
+        elif component_type == 'buttons':
+            item = ButtonType.objects.get(id=item_id)
+            item_name = item.button_type_name_eng
+        elif component_type == 'button_strips':
+            item = ButtonStripType.objects.get(id=item_id)
+            item_name = item.button_strip_type_name_eng
+        elif component_type == 'body':
+            item = BodyType.objects.get(id=item_id)
+            item_name = item.body_type_name_eng
+        else:
+            messages.error(request, 'Invalid component type')
+            return redirect(f'/dashboard/designs/?type={component_type}')
+
+        # Update the image field
+        if image_field == 'cover':
+            item.cover = image_file
+            messages.success(request, f'{item_name} cover image updated successfully')
+        elif image_field == 'cover_option':
+            item.cover_option = image_file
+            messages.success(request, f'{item_name} cover option image updated successfully')
+        else:
+            messages.error(request, 'Invalid image field')
+            return redirect(f'/dashboard/designs/?type={component_type}')
+
+        item.save()
+
+    except Exception as e:
+        messages.error(request, f'Error updating image: {str(e)}')
+
+    return redirect(f'/dashboard/designs/?type={component_type}')
+
+
+@login_required(login_url='/dashboard/login/')
+@user_passes_test(is_staff_user, login_url='/dashboard/login/')
+@require_http_methods(["POST"])
+def delete_image(request):
+    """Delete cover or cover_option image for design items"""
+    try:
+        component_type = request.POST.get('component_type')
+        item_id = request.POST.get('item_id')
+        image_field = request.POST.get('image_field')  # 'cover' or 'cover_option'
+
+        # Get the appropriate model
+        if component_type == 'collars':
+            item = GholaType.objects.get(id=item_id)
+            item_name = item.ghola_type_name_eng
+        elif component_type == 'sleeves':
+            item = SleevesType.objects.get(id=item_id)
+            item_name = item.sleeves_type_name_eng
+        elif component_type == 'pockets':
+            item = PocketType.objects.get(id=item_id)
+            item_name = item.pocket_type_name_eng
+        elif component_type == 'buttons':
+            item = ButtonType.objects.get(id=item_id)
+            item_name = item.button_type_name_eng
+        elif component_type == 'button_strips':
+            item = ButtonStripType.objects.get(id=item_id)
+            item_name = item.button_strip_type_name_eng
+        elif component_type == 'body':
+            item = BodyType.objects.get(id=item_id)
+            item_name = item.body_type_name_eng
+        else:
+            messages.error(request, 'Invalid component type')
+            return redirect(f'/dashboard/designs/?type={component_type}')
+
+        # Delete the image field
+        if image_field == 'cover':
+            if item.cover:
+                item.cover.delete(save=False)
+                item.cover = None
+                item.save()
+                messages.success(request, f'{item_name} cover image deleted successfully')
+            else:
+                messages.warning(request, f'{item_name} has no cover image to delete')
+        elif image_field == 'cover_option':
+            if item.cover_option:
+                item.cover_option.delete(save=False)
+                item.cover_option = None
+                item.save()
+                messages.success(request, f'{item_name} cover option image deleted successfully')
+            else:
+                messages.warning(request, f'{item_name} has no cover option image to delete')
+        else:
+            messages.error(request, 'Invalid image field')
+            return redirect(f'/dashboard/designs/?type={component_type}')
+
+    except Exception as e:
+        messages.error(request, f'Error deleting image: {str(e)}')
 
     return redirect(f'/dashboard/designs/?type={component_type}')
