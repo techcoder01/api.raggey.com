@@ -125,15 +125,12 @@ def orders_view(request):
     date_from = request.GET.get('date_from', '')
     date_to = request.GET.get('date_to', '')
 
-    # Base queryset (exclude cancelled by default for "All" view)
+    # Base queryset
     orders = Purchase.objects.select_related('user', 'selected_address').order_by('-timestamp')
 
     # Apply status filter
     if status_filter:
         orders = orders.filter(status=status_filter)
-    else:
-        # When no status is selected (All), exclude cancelled orders
-        orders = orders.exclude(status='Cancelled')
 
     # Apply user filter
     if user_filter:
@@ -153,13 +150,13 @@ def orders_view(request):
     if date_to:
         orders = orders.filter(timestamp__date__lte=date_to)
 
-    # Get statistics for the current filter
-    total_orders = orders.count()
-    total_amount = orders.aggregate(total=Sum('total_price'))['total'] or 0
+    # Get statistics for the current filter (with search, user, date applied)
+    current_orders = orders.count()
+    current_amount = orders.aggregate(total=Sum('total_price'))['total'] or 0
 
-    # Status counts for quick filters (exclude cancelled from 'all')
+    # Status counts for quick filters (include all for 'all' tab)
     status_counts = {
-        'all': Purchase.objects.exclude(status='Cancelled').count(),
+        'all': Purchase.objects.count(),
         'pending': Purchase.objects.filter(status='Pending').count(),
         'confirmed': Purchase.objects.filter(status='Confirmed').count(),
         'working': Purchase.objects.filter(status='Working').count(),
@@ -168,10 +165,16 @@ def orders_view(request):
         'cancelled': Purchase.objects.filter(status='Cancelled').count(),
     }
 
-    # Total amount excluding cancelled orders for statistics card
-    total_amount_excluding_cancelled = Purchase.objects.exclude(status='Cancelled').aggregate(
-        total=Sum('total_price')
-    )['total'] or 0
+    # Statistics for the selected tab (without search/user/date filters)
+    if status_filter:
+        # Specific status selected
+        tab_orders = Purchase.objects.filter(status=status_filter)
+    else:
+        # "All" tab - include all orders
+        tab_orders = Purchase.objects.all()
+
+    total_orders_for_tab = tab_orders.count()
+    total_amount_for_tab = tab_orders.aggregate(total=Sum('total_price'))['total'] or 0
 
     # Get list of users who have placed orders
     users_with_orders = User.objects.filter(
@@ -180,9 +183,10 @@ def orders_view(request):
 
     context = {
         'orders': orders,
-        'total_orders': total_orders,
-        'total_amount': total_amount,
-        'total_amount_excluding_cancelled': total_amount_excluding_cancelled,
+        'total_orders_for_tab': total_orders_for_tab,
+        'current_orders': current_orders,
+        'total_amount_for_tab': total_amount_for_tab,
+        'current_amount': current_amount,
         'status_counts': status_counts,
         'current_status': status_filter,
         'search_query': search_query,
