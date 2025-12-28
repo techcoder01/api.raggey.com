@@ -1,0 +1,468 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Order {{ order.invoice_number }}{% endblock %}
+
+{% block content %}
+<!-- Back Button -->
+<div class="mb-6">
+    <a href="/dashboard/orders/" class="inline-flex items-center text-sm text-[#6A736E] hover:text-[#0D1210] transition-colors">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        Back to Orders
+    </a>
+</div>
+
+<!-- Order Header -->
+<div class="bg-white border border-[#E6E8E7] rounded-2xl p-8 mb-6">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
+        <div>
+            <h1 class="text-3xl font-bold text-[#0D1210] mb-2">{{ order.invoice_number }}</h1>
+            <p class="text-sm text-[#6A736E]">Placed on {{ order.timestamp|date:"F d, Y \a\t g:i A" }}</p>
+        </div>
+
+        <div class="mt-4 lg:mt-0">
+            <form method="POST" action="/dashboard/orders/{{ order.id }}/update-status/" class="status-form">
+                {% csrf_token %}
+                <div class="relative inline-block min-w-[140px]">
+                    <select name="status" class="status-select w-full appearance-none pl-3.5 pr-8 py-2.5 text-sm font-medium rounded-lg cursor-pointer transition-all border
+                        {% if order.status == 'Pending' %}bg-[#FDF7E6] text-[#BB8F06] border-[#BB8F06]/20 hover:border-[#BB8F06]/40
+                        {% elif order.status == 'Confirmed' %}bg-[#E9F9EF] text-[#1B9E4B] border-[#1B9E4B]/20 hover:border-[#1B9E4B]/40
+                        {% elif order.status == 'Working' %}bg-[#E7EFEB] text-[#0B5D35] border-[#0B5D35]/20 hover:border-[#0B5D35]/40
+                        {% elif order.status == 'Shipping' %}bg-[#E9F9EF] text-[#1B9E4B] border-[#1B9E4B]/20 hover:border-[#1B9E4B]/40
+                        {% elif order.status == 'Delivered' %}bg-[#E9F9EF] text-[#1B9E4B] border-[#1B9E4B]/20 hover:border-[#1B9E4B]/40
+                        {% elif order.status == 'Cancelled' %}bg-[#FDECEC] text-[#BF3636] border-[#BF3636]/20 hover:border-[#BF3636]/40
+                        {% endif %} focus:outline-none focus:ring-2 focus:ring-[#0D1210]/20">
+                        <option value="Pending" {% if order.status == 'Pending' %}selected{% endif %}>Pending</option>
+                        <option value="Confirmed" {% if order.status == 'Confirmed' %}selected{% endif %}>Confirmed</option>
+                        <option value="Working" {% if order.status == 'Working' %}selected{% endif %}>Working</option>
+                        <option value="Shipping" {% if order.status == 'Shipping' %}selected{% endif %}>Shipping</option>
+                        <option value="Delivered" {% if order.status == 'Delivered' %}selected{% endif %}>Delivered</option>
+                        <option value="Cancelled" {% if order.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                    <div class="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <svg class="w-3.5 h-3.5 transition-colors" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Order Summary Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-[#F5F6F6] rounded-xl p-4">
+            <p class="text-xs text-[#6A736E] font-medium mb-1">Customer</p>
+            <p class="text-sm font-semibold text-[#0D1210]">{{ order.full_name }}</p>
+            {% if order.user %}
+                <p class="text-xs text-[#6A736E] mt-1">{{ order.user.email }}</p>
+            {% endif %}
+        </div>
+
+        <div class="bg-[#F5F6F6] rounded-xl p-4">
+            <p class="text-xs text-[#6A736E] font-medium mb-1">Total Amount</p>
+            <p class="text-lg font-bold text-[#5D0B33]">{{ order.total_price|floatformat:3 }} KD</p>
+        </div>
+
+        <div class="bg-[#F5F6F6] rounded-xl p-4">
+            <p class="text-xs text-[#6A736E] font-medium mb-1">Payment Method</p>
+            <p class="text-sm font-semibold text-[#0D1210]">
+                {% if order.is_cash %}
+                    Cash on Delivery
+                {% else %}
+                    {{ order.payment_option }}
+                {% endif %}
+            </p>
+        </div>
+
+        <div class="bg-[#F5F6F6] rounded-xl p-4">
+            <p class="text-xs text-[#6A736E] font-medium mb-1">Delivery</p>
+            <p class="text-sm font-semibold text-[#0D1210]">
+                {% if order.is_pick_up %}
+                    Pick Up
+                {% else %}
+                    Home Delivery
+                {% endif %}
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Left Column: Order Items & Details -->
+    <div class="lg:col-span-2 space-y-6">
+        <!-- Order Items -->
+        <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
+            <h2 class="text-xl font-bold text-[#0D1210] mb-6">Order Items</h2>
+            <div class="space-y-4">
+                {% for item in items %}
+                <div class="border border-[#E6E8E7] rounded-xl p-4 hover:border-[#0D1210]/20 transition-colors">
+                    <div class="flex gap-4">
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-sm font-semibold text-[#0D1210] mb-1">{{ item.product_name }}</h3>
+                            <p class="text-xs text-[#6A736E] mb-2">{{ item.category }}</p>
+
+                            {% if item.design_details %}
+                            <div class="bg-[#F5F6F6] rounded-lg p-3 mb-3">
+                                <!-- Design Screenshot if available -->
+                                {% if item.cover and 'http' in item.cover %}
+                                <div class="mb-3">
+                                    <div class="relative inline-block">
+                                        <img src="{{ item.cover }}" alt="" class="w-full max-w-xs rounded-lg border border-[#E6E8E7]">
+                                        <a href="{{ item.cover }}" target="_blank" class="absolute top-2 right-2 bg-white/90 hover:bg-white text-[#0D1210] px-3 py-1.5 rounded-lg text-xs font-medium shadow-lg transition-all flex items-center gap-1">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            </svg>
+                                            View
+                                        </a>
+                                    </div>
+                                </div>
+                                {% elif item.design_details.screenshot_url %}
+                                <div class="mb-3">
+                                    <div class="relative inline-block">
+                                        <img src="{{ item.design_details.screenshot_url }}" alt="" class="w-full max-w-xs rounded-lg border border-[#E6E8E7]">
+                                        <a href="{{ item.design_details.screenshot_url }}" target="_blank" class="absolute top-2 right-2 bg-white/90 hover:bg-white text-[#0D1210] px-3 py-1.5 rounded-lg text-xs font-medium shadow-lg transition-all flex items-center gap-1">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            </svg>
+                                            View
+                                        </a>
+                                    </div>
+                                </div>
+                                {% elif item.design_details.Screenshot_Url %}
+                                <div class="mb-3">
+                                    <div class="relative inline-block">
+                                        <img src="{{ item.design_details.Screenshot_Url }}" alt="" class="w-full max-w-xs rounded-lg border border-[#E6E8E7]">
+                                        <a href="{{ item.design_details.Screenshot_Url }}" target="_blank" class="absolute top-2 right-2 bg-white/90 hover:bg-white text-[#0D1210] px-3 py-1.5 rounded-lg text-xs font-medium shadow-lg transition-all flex items-center gap-1">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            </svg>
+                                            View
+                                        </a>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <!-- Left Column: Pricing Details -->
+                                    <div class="bg-white rounded-lg p-2">
+                                        <p class="text-xs font-semibold text-[#5D0B33] mb-2 pb-1 border-b border-[#5D0B33]/20">Component Prices</p>
+                                        <div class="space-y-1">
+                                            {% for key, value in item.design_details.items %}
+                                            {% if 'price' in key|lower and 'total' not in key|lower %}
+                                            <div class="flex items-center justify-between py-1">
+                                                <span class="text-xs text-[#6A736E]">{{ key|cut:"_"|cut:"Price"|cut:"price"|title }}</span>
+                                                <span class="text-xs font-bold text-[#5D0B33]">{{ value }} KD</span>
+                                            </div>
+                                            {% endif %}
+                                            {% endfor %}
+
+                                            <!-- Total Price -->
+                                            {% for key, value in item.design_details.items %}
+                                            {% if 'total' in key|lower and 'price' in key|lower %}
+                                            <div class="flex items-center justify-between pt-2 mt-1 border-t-2 border-[#5D0B33]">
+                                                <span class="text-xs font-bold text-[#0D1210]">Total</span>
+                                                <span class="text-sm font-bold text-[#5D0B33]">{{ value }} KD</span>
+                                            </div>
+                                            {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+
+                                    <!-- Right Column: Component IDs -->
+                                    <div class="bg-white rounded-lg p-2">
+                                        <p class="text-xs font-semibold text-[#0D1210] mb-2 pb-1 border-b border-[#0D1210]/20">Component IDs</p>
+                                        <div class="space-y-1">
+                                            {% for key, value in item.design_details.items %}
+                                            {% if 'id' in key|lower %}
+                                            <div class="flex items-center justify-between py-1">
+                                                <span class="text-xs text-[#6A736E]">{{ key|cut:"_"|cut:"Id"|cut:"id"|title }}</span>
+                                                <span class="text-xs font-mono text-[#0D1210] bg-[#F5F6F6] px-2 py-0.5 rounded">{{ value }}</span>
+                                            </div>
+                                            {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Other Details (Design Type, etc.) -->
+                                {% for key, value in item.design_details.items %}
+                                {% if 'price' not in key|lower and 'id' not in key|lower %}
+                                <div class="mt-2 flex items-center justify-between py-1 bg-white rounded px-2">
+                                    <span class="text-xs font-medium text-[#6A736E]">{{ key|cut:"_"|title }}</span>
+                                    <span class="text-xs font-semibold text-[#0D1210]">{{ value }}</span>
+                                </div>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+
+                            {% if item.size_details %}
+                            <div class="bg-[#E9F9EF] rounded-lg p-3 mb-3">
+                                <p class="text-xs font-semibold text-[#0D1210] mb-2">Size Information</p>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    {% for key, value in item.size_details.items %}
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs text-[#6A736E]">{{ key|cut:"_"|title }}:</span>
+                                        <span class="text-xs font-semibold text-[#0B5D35]">{{ value }}</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-3">
+                                <div class="flex flex-wrap gap-x-4 gap-y-2 text-xs">
+                                    <div>
+                                        <span class="text-[#6A736E]">Quantity:</span>
+                                        <span class="text-[#0D1210] font-semibold">{{ item.quantity }}</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-[#6A736E]">Unit Price:</span>
+                                        <span class="text-[#0D1210] font-semibold">{{ item.unit_price|floatformat:3 }} KD</span>
+                                    </div>
+                                    {% if item.discount > 0 %}
+                                    <div>
+                                        <span class="text-[#6A736E]">Discount:</span>
+                                        <span class="text-red-600 font-semibold">-{{ item.discount|floatformat:3 }} KD</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="sm:text-right">
+                                    <p class="text-xs text-[#6A736E]">Subtotal</p>
+                                    <p class="text-sm font-bold text-[#5D0B33]">{{ item.net_amount|floatformat:3 }} KD</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Order Totals -->
+            <div class="border-t border-[#E6E8E7] mt-6 pt-6">
+                <div class="space-y-2 max-w-xs ml-auto">
+                    {% if order.discount_amount > 0 %}
+                    <div class="flex justify-between text-sm">
+                        <span class="text-[#6A736E]">Discount</span>
+                        <span class="text-red-600 font-semibold">-{{ order.discount_amount|floatformat:3 }} KD</span>
+                    </div>
+                    {% endif %}
+
+                    {% if order.coupon_code %}
+                    <div class="flex justify-between text-sm">
+                        <span class="text-[#6A736E]">Coupon</span>
+                        <span class="text-[#0D1210] font-medium">{{ order.coupon_code }}</span>
+                    </div>
+                    {% endif %}
+
+                    {% if not order.is_pick_up %}
+                    <div class="flex justify-between text-sm">
+                        <span class="text-[#6A736E]">Delivery Fee</span>
+                        <span class="text-[#0D1210] font-semibold">{{ order.delivery_fee|floatformat:3 }} KD</span>
+                    </div>
+                    {% endif %}
+
+                    <div class="flex justify-between text-lg border-t border-[#E6E8E7] pt-2">
+                        <span class="text-[#0D1210] font-bold">Total</span>
+                        <span class="text-[#5D0B33] font-bold">{{ order.total_price|floatformat:3 }} KD</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delivery Address -->
+        {% if not order.is_pick_up %}
+        <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
+            <h2 class="text-xl font-bold text-[#0D1210] mb-4">Delivery Address</h2>
+            <div class="bg-[#F5F6F6] rounded-xl p-4">
+                {% if order.selected_address %}
+                    <p class="text-sm font-semibold text-[#0D1210] mb-1">{{ order.selected_address.address_name }}</p>
+                    <p class="text-sm text-[#6A736E]">
+                        {{ order.selected_address.Area }}, Block {{ order.selected_address.block }}<br>
+                        Street {{ order.selected_address.street }}, House {{ order.selected_address.house }}
+                        {% if order.selected_address.apartment %}, Apartment {{ order.selected_address.apartment }}{% endif %}
+                        {% if order.selected_address.floor %}, Floor {{ order.selected_address.floor }}{% endif %}
+                    </p>
+                {% else %}
+                    {% if order.address_name %}
+                        <p class="text-sm font-semibold text-[#0D1210] mb-1">{{ order.address_name }}</p>
+                    {% endif %}
+                    <p class="text-sm text-[#6A736E]">
+                        {{ order.Area }}, Block {{ order.block }}<br>
+                        Street {{ order.street }}, House {{ order.house }}
+                        {% if order.apartment %}, Apartment {{ order.apartment }}{% endif %}
+                        {% if order.floor %}, Floor {{ order.floor }}{% endif %}
+                    </p>
+                {% endif %}
+                <p class="text-sm text-[#0D1210] font-medium mt-2">{{ order.phone_number }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Right Column: Status & Payment Info -->
+    <div class="space-y-6">
+        <!-- Status Timeline -->
+        {% if status_timeline %}
+        <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
+            <h2 class="text-xl font-bold text-[#0D1210] mb-6">Status Timeline</h2>
+            <div class="space-y-4">
+                {% for item in status_timeline %}
+                <div class="flex gap-3">
+                    <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center
+                        {% if item.status == 'Pending' %}bg-[#FDF7E6]
+                        {% elif item.status == 'Confirmed' %}bg-[#E9F9EF]
+                        {% elif item.status == 'Working' %}bg-[#E7EFEB]
+                        {% elif item.status == 'Shipping' %}bg-[#E9F9EF]
+                        {% elif item.status == 'Delivered' %}bg-[#E9F9EF]
+                        {% elif item.status == 'Cancelled' %}bg-[#FDECEC]
+                        {% endif %}">
+                        <svg class="w-4 h-4
+                            {% if item.status == 'Pending' %}text-[#BB8F06]
+                            {% elif item.status == 'Confirmed' %}text-[#1B9E4B]
+                            {% elif item.status == 'Working' %}text-[#0B5D35]
+                            {% elif item.status == 'Shipping' %}text-[#1B9E4B]
+                            {% elif item.status == 'Delivered' %}text-[#1B9E4B]
+                            {% elif item.status == 'Cancelled' %}text-[#BF3636]
+                            {% endif %}" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-semibold text-[#0D1210]">{{ item.status }}</p>
+                        <p class="text-xs text-[#6A736E]">{{ item.timestamp|date:"F d, Y \a\t g:i A" }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Payment Information -->
+        {% if payment %}
+        <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
+            <h2 class="text-xl font-bold text-[#0D1210] mb-4">Payment Information</h2>
+            <div class="space-y-3">
+                <div>
+                    <p class="text-xs text-[#6A736E]">Status</p>
+                    <span class="inline-block mt-1 px-3 py-1 text-xs font-medium rounded-full
+                        {% if payment.status == 'captured' %}bg-[#E9F9EF] text-[#1B9E4B]
+                        {% elif payment.status == 'pending' %}bg-[#FDF7E6] text-[#BB8F06]
+                        {% elif payment.status == 'failed' %}bg-[#FDECEC] text-[#BF3636]
+                        {% elif payment.status == 'refunded' %}bg-[#E7EFEB] text-[#0B5D35]
+                        {% endif %}">
+                        {{ payment.status|title }}
+                    </span>
+                </div>
+
+                <div>
+                    <p class="text-xs text-[#6A736E]">Track ID</p>
+                    <p class="text-sm font-mono text-[#0D1210] mt-1">{{ payment.track_id }}</p>
+                </div>
+
+                {% if payment.payzah_payment_id %}
+                <div>
+                    <p class="text-xs text-[#6A736E]">Payment ID</p>
+                    <p class="text-sm font-mono text-[#0D1210] mt-1">{{ payment.payzah_payment_id }}</p>
+                </div>
+                {% endif %}
+
+                {% if payment.transaction_number %}
+                <div>
+                    <p class="text-xs text-[#6A736E]">Transaction Number</p>
+                    <p class="text-sm font-mono text-[#0D1210] mt-1">{{ payment.transaction_number }}</p>
+                </div>
+                {% endif %}
+
+                <div>
+                    <p class="text-xs text-[#6A736E]">Amount</p>
+                    <p class="text-lg font-bold text-[#5D0B33] mt-1">{{ payment.amount|floatformat:3 }} {{ payment.currency }}</p>
+                </div>
+
+                {% if payment.completed_at %}
+                <div>
+                    <p class="text-xs text-[#6A736E]">Completed At</p>
+                    <p class="text-sm text-[#0D1210] mt-1">{{ payment.completed_at|date:"F d, Y \a\t g:i A" }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Cancellation Information -->
+        {% if order.status == 'Cancelled' %}
+        <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
+            <h2 class="text-xl font-bold text-[#0D1210] mb-4">Cancellation Details</h2>
+            <div class="space-y-3">
+                {% if order.cancelled_by %}
+                <div>
+                    <p class="text-xs text-[#6A736E]">Cancelled By</p>
+                    <p class="text-sm text-[#0D1210] mt-1">{{ order.cancelled_by|title }}</p>
+                </div>
+                {% endif %}
+
+                {% if order.cancellation_reason %}
+                <div>
+                    <p class="text-xs text-[#6A736E]">Reason</p>
+                    <p class="text-sm text-[#0D1210] mt-1">{{ order.cancellation_reason }}</p>
+                </div>
+                {% endif %}
+
+                {% if order.cancelled_at %}
+                <div>
+                    <p class="text-xs text-[#6A736E]">Cancelled At</p>
+                    <p class="text-sm text-[#0D1210] mt-1">{{ order.cancelled_at|date:"F d, Y \a\t g:i A" }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Cancellation Requests -->
+        {% if cancellation_requests %}
+        <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
+            <h2 class="text-xl font-bold text-[#0D1210] mb-4">Cancellation Requests</h2>
+            <div class="space-y-4">
+                {% for request in cancellation_requests %}
+                <div class="border border-[#E6E8E7] rounded-lg p-3">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-medium
+                            {% if request.status == 'pending' %}text-[#BB8F06]
+                            {% elif request.status == 'approved' %}text-[#1B9E4B]
+                            {% elif request.status == 'rejected' %}text-[#BF3636]
+                            {% endif %}">
+                            {{ request.status|title }}
+                        </span>
+                        <span class="text-xs text-[#6A736E]">{{ request.created_at|date:"M d, Y" }}</span>
+                    </div>
+                    <p class="text-sm text-[#0D1210] mb-2">{{ request.reason }}</p>
+                    {% if request.admin_notes %}
+                    <div class="bg-[#F5F6F6] rounded p-2 mt-2">
+                        <p class="text-xs text-[#6A736E]">Admin Notes:</p>
+                        <p class="text-xs text-[#0D1210]">{{ request.admin_notes }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // Auto-submit status change
+    const statusSelect = document.querySelector('.status-select');
+    if (statusSelect) {
+        statusSelect.addEventListener('change', function() {
+            this.closest('.status-form').submit();
+        });
+    }
+</script>
+{% endblock %}

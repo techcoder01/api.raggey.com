@@ -1,0 +1,285 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Orders - Raggey Admin{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-[#0D1210] mb-2">Orders Management</h1>
+    <p class="text-sm text-[#6A736E]">View and manage all customer orders</p>
+</div>
+
+<!-- Statistics Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
+        <p class="text-sm text-[#6A736E] font-medium mb-2">Total Orders</p>
+        <p class="text-3xl font-bold text-[#0D1210]">{{ status_counts.all }}</p>
+    </div>
+    <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
+        <p class="text-sm text-[#6A736E] font-medium mb-2">Current Orders</p>
+        <p class="text-3xl font-bold text-[#0D1210]">{{ total_orders }}</p>
+    </div>
+    <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
+        <p class="text-sm text-[#6A736E] font-medium mb-2">Total Amount</p>
+        <p class="text-3xl font-bold text-[#5D0B33]">{{ total_amount|floatformat:3 }} KD</p>
+    </div>
+</div>
+
+<!-- Filters Section -->
+<div class="bg-white border border-[#E6E8E7] rounded-2xl p-6 mb-6">
+    <h2 class="text-xl font-semibold text-[#0D1210] mb-4">Filters</h2>
+
+    <!-- Status Filter Tabs -->
+    <div class="flex flex-wrap gap-2 mb-6">
+        <a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if user_filter %}user={{ user_filter }}&{% endif %}{% if date_from %}date_from={{ date_from }}&{% endif %}{% if date_to %}date_to={{ date_to }}{% endif %}"
+           class="px-4 py-2 rounded-lg font-medium transition-colors {% if not current_status %}bg-[#0D1210] text-white{% else %}bg-[#F5F6F6] text-[#6A736E] hover:bg-[#E6E8E7]{% endif %}">
+            All ({{ status_counts.all }})
+        </a>
+        <a href="?status=Pending{% if search_query %}&search={{ search_query }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}"
+           class="px-4 py-2 rounded-lg font-medium transition-colors {% if current_status == 'Pending' %}bg-[#BB8F06] text-white{% else %}bg-[#FDF7E6] text-[#BB8F06] hover:bg-[#F8EDCE]{% endif %}">
+            Pending ({{ status_counts.pending }})
+        </a>
+        <a href="?status=Confirmed{% if search_query %}&search={{ search_query }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}"
+           class="px-4 py-2 rounded-lg font-medium transition-colors {% if current_status == 'Confirmed' %}bg-[#1B9E4B] text-white{% else %}bg-[#E9F9EF] text-[#1B9E4B] hover:bg-[#D4F4E0]{% endif %}">
+            Confirmed ({{ status_counts.confirmed }})
+        </a>
+        <a href="?status=Working{% if search_query %}&search={{ search_query }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}"
+           class="px-4 py-2 rounded-lg font-medium transition-colors {% if current_status == 'Working' %}bg-[#0B5D35] text-white{% else %}bg-[#E7EFEB] text-[#0B5D35] hover:bg-[#D2E5DC]{% endif %}">
+            Working ({{ status_counts.working }})
+        </a>
+        <a href="?status=Shipping{% if search_query %}&search={{ search_query }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}"
+           class="px-4 py-2 rounded-lg font-medium transition-colors {% if current_status == 'Shipping' %}bg-[#1B9E4B] text-white{% else %}bg-[#E9F9EF] text-[#1B9E4B] hover:bg-[#D4F4E0]{% endif %}">
+            Shipping ({{ status_counts.shipping }})
+        </a>
+        <a href="?status=Delivered{% if search_query %}&search={{ search_query }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}"
+           class="px-4 py-2 rounded-lg font-medium transition-colors {% if current_status == 'Delivered' %}bg-[#1B9E4B] text-white{% else %}bg-[#E9F9EF] text-[#1B9E4B] hover:bg-[#D4F4E0]{% endif %}">
+            Delivered ({{ status_counts.delivered }})
+        </a>
+        <a href="?status=Cancelled{% if search_query %}&search={{ search_query }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}"
+           class="px-4 py-2 rounded-lg font-medium transition-colors {% if current_status == 'Cancelled' %}bg-[#BF3636] text-white{% else %}bg-[#FDECEC] text-[#BF3636] hover:bg-[#FBD8D8]{% endif %}">
+            Cancelled ({{ status_counts.cancelled }})
+        </a>
+    </div>
+
+    <!-- Search and Date Filters -->
+    <form method="GET" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Search Input -->
+        <div>
+            <label class="block text-sm font-medium text-[#0D1210] mb-2">Search</label>
+            <input type="text" name="search" value="{{ search_query }}" placeholder="Invoice, name, or email..."
+                   class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210] text-[#0D1210] placeholder-[#ADB2B0]">
+        </div>
+
+        <!-- User Filter -->
+        <div>
+            <label class="block text-sm font-medium text-[#0D1210] mb-2">Filter by User</label>
+            <select name="user" class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210] text-[#0D1210]">
+                <option value="">All Users</option>
+                {% for user in users_with_orders %}
+                <option value="{{ user.id }}" {% if user_filter == user.id|stringformat:"s" %}selected{% endif %}>
+                    {{ user.email }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Date From -->
+        <div>
+            <label class="block text-sm font-medium text-[#0D1210] mb-2">From Date</label>
+            <input type="date" name="date_from" value="{{ date_from }}"
+                   class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210] text-[#0D1210]">
+        </div>
+
+        <!-- Date To -->
+        <div>
+            <label class="block text-sm font-medium text-[#0D1210] mb-2">To Date</label>
+            <input type="date" name="date_to" value="{{ date_to }}"
+                   class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210] text-[#0D1210]">
+        </div>
+
+        <!-- Hidden status field to preserve filter -->
+        {% if current_status %}
+        <input type="hidden" name="status" value="{{ current_status }}">
+        {% endif %}
+
+        <!-- Action Buttons -->
+        <div class="md:col-span-2 lg:col-span-4 flex gap-3">
+            <button type="submit" class="px-6 py-3 bg-[#0D1210] text-white rounded-xl font-medium hover:bg-[#1a1f1d] transition-colors">
+                Apply Filters
+            </button>
+            <a href="/dashboard/orders/" class="px-6 py-3 bg-[#F5F6F6] text-[#0D1210] rounded-xl font-medium hover:bg-[#E6E8E7] transition-colors">
+                Clear Filters
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Orders Table -->
+<div class="bg-white border border-[#E6E8E7] rounded-2xl overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-[#F5F6F6]">
+                <tr>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Invoice #</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Customer</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Date</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Amount</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-[#E6E8E7]">
+                {% if orders %}
+                    {% for order in orders %}
+                    <tr class="hover:bg-[#F5F6F6] transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <a href="/dashboard/orders/{{ order.id }}/" class="text-sm font-semibold text-[#5D0B33] hover:text-[#0D1210] hover:underline transition-colors">
+                                {{ order.invoice_number }}
+                            </a>
+                        </td>
+                        <td class="px-6 py-4">
+                            <p class="text-sm font-medium text-[#0D1210]">{{ order.full_name }}</p>
+                            <p class="text-xs text-[#6A736E]">{{ order.user.email }}</p>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <p class="text-sm text-[#0D1210]">{{ order.timestamp|date:"M d, Y" }}</p>
+                            <p class="text-xs text-[#6A736E]">{{ order.timestamp|date:"h:i A" }}</p>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <p class="text-sm font-bold text-[#5D0B33]">{{ order.total_price|floatformat:3 }} KD</p>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <form method="POST" action="/dashboard/orders/{{ order.id }}/update-status/" class="status-form">
+                                {% csrf_token %}
+                                <div class="relative inline-block min-w-[130px]">
+                                    <select name="status" class="status-select w-full appearance-none pl-3.5 pr-8 py-2 text-xs font-medium rounded-lg cursor-pointer transition-all border
+                                        {% if order.status == 'Pending' %}bg-[#FDF7E6] text-[#BB8F06] border-[#BB8F06]/20 hover:border-[#BB8F06]/40
+                                        {% elif order.status == 'Confirmed' %}bg-[#E9F9EF] text-[#1B9E4B] border-[#1B9E4B]/20 hover:border-[#1B9E4B]/40
+                                        {% elif order.status == 'Working' %}bg-[#E7EFEB] text-[#0B5D35] border-[#0B5D35]/20 hover:border-[#0B5D35]/40
+                                        {% elif order.status == 'Shipping' %}bg-[#E9F9EF] text-[#1B9E4B] border-[#1B9E4B]/20 hover:border-[#1B9E4B]/40
+                                        {% elif order.status == 'Delivered' %}bg-[#E9F9EF] text-[#1B9E4B] border-[#1B9E4B]/20 hover:border-[#1B9E4B]/40
+                                        {% elif order.status == 'Cancelled' %}bg-[#FDECEC] text-[#BF3636] border-[#BF3636]/20 hover:border-[#BF3636]/40
+                                        {% endif %} focus:outline-none focus:ring-2 focus:ring-[#0D1210]/20">
+                                        <option value="Pending" {% if order.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                        <option value="Confirmed" {% if order.status == 'Confirmed' %}selected{% endif %}>Confirmed</option>
+                                        <option value="Working" {% if order.status == 'Working' %}selected{% endif %}>Working</option>
+                                        <option value="Shipping" {% if order.status == 'Shipping' %}selected{% endif %}>Shipping</option>
+                                        <option value="Delivered" {% if order.status == 'Delivered' %}selected{% endif %}>Delivered</option>
+                                        <option value="Cancelled" {% if order.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                                    </select>
+                                    <!-- Dropdown Icon -->
+                                    <div class="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                                        <svg class="w-3.5 h-3.5 transition-colors {% if order.status == 'Pending' %}text-[#BB8F06]{% elif order.status == 'Confirmed' %}text-[#1B9E4B]{% elif order.status == 'Working' %}text-[#0B5D35]{% elif order.status == 'Shipping' %}text-[#1B9E4B]{% elif order.status == 'Delivered' %}text-[#1B9E4B]{% elif order.status == 'Cancelled' %}text-[#BF3636]{% endif %}" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </form>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <a href="/dashboard/orders/{{ order.id }}/" class="text-[#0B5D35] hover:text-[#0D1210] font-medium text-sm">
+                                View Details →
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-12 text-center">
+                            <svg class="w-16 h-16 mx-auto text-[#ADB2B0] mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                            </svg>
+                            <p class="text-[#6A736E] font-medium">No orders found</p>
+                            <p class="text-sm text-[#ADB2B0] mt-1">Try adjusting your filters</p>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Debouncing Script for Filters -->
+<script>
+    // Debounce function to limit how often a function can fire
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    // Get form and inputs
+    const filterForm = document.querySelector('form[method="GET"]');
+    const searchInput = document.querySelector('input[name="search"]');
+    const userSelect = document.querySelector('select[name="user"]');
+    const dateFromInput = document.querySelector('input[name="date_from"]');
+    const dateToInput = document.querySelector('input[name="date_to"]');
+
+    // Debounced form submission (500ms delay)
+    const debouncedSubmit = debounce(() => {
+        filterForm.submit();
+    }, 500);
+
+    // Auto-submit on search input with debouncing (waits 500ms after user stops typing)
+    if (searchInput) {
+        searchInput.addEventListener('input', debouncedSubmit);
+    }
+
+    // Auto-submit on user filter change with debouncing
+    if (userSelect) {
+        userSelect.addEventListener('change', debouncedSubmit);
+    }
+
+    // Auto-submit on date filter changes with debouncing
+    if (dateFromInput) {
+        dateFromInput.addEventListener('change', debouncedSubmit);
+    }
+
+    if (dateToInput) {
+        dateToInput.addEventListener('change', debouncedSubmit);
+    }
+
+    // Auto-submit status change forms
+    const statusSelects = document.querySelectorAll('.status-select');
+    statusSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            // Update the background color and arrow immediately based on selection
+            const selectedValue = this.value;
+            const arrow = this.parentElement.querySelector('svg');
+
+            // Reset base classes
+            this.className = 'status-select appearance-none pl-3 pr-8 py-1.5 text-xs font-semibold rounded-full cursor-pointer transition-all hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2';
+
+            // Apply color based on status
+            if (selectedValue === 'Pending') {
+                this.className += ' bg-[#FDF7E6] text-[#BB8F06] focus:ring-[#BB8F06]';
+                arrow.className = 'w-3 h-3 text-[#BB8F06]';
+            } else if (selectedValue === 'Confirmed') {
+                this.className += ' bg-[#E9F9EF] text-[#1B9E4B] focus:ring-[#1B9E4B]';
+                arrow.className = 'w-3 h-3 text-[#1B9E4B]';
+            } else if (selectedValue === 'Working') {
+                this.className += ' bg-[#E7EFEB] text-[#0B5D35] focus:ring-[#0B5D35]';
+                arrow.className = 'w-3 h-3 text-[#0B5D35]';
+            } else if (selectedValue === 'Shipping') {
+                this.className += ' bg-[#E9F9EF] text-[#1B9E4B] focus:ring-[#1B9E4B]';
+                arrow.className = 'w-3 h-3 text-[#1B9E4B]';
+            } else if (selectedValue === 'Delivered') {
+                this.className += ' bg-[#E9F9EF] text-[#1B9E4B] focus:ring-[#1B9E4B]';
+                arrow.className = 'w-3 h-3 text-[#1B9E4B]';
+            } else if (selectedValue === 'Cancelled') {
+                this.className += ' bg-[#FDECEC] text-[#BF3636] focus:ring-[#BF3636]';
+                arrow.className = 'w-3 h-3 text-[#BF3636]';
+            }
+
+            // Submit the form
+            this.closest('.status-form').submit();
+        });
+    });
+</script>
+{% endblock %}

@@ -31,6 +31,7 @@ urlpatterns = [
     path('', home),
     path('admin/', admin.site.urls),
     path('admin-dashboard/', include('AdminDashboard.urls', namespace='admin_dashboard')),
+    path('dashboard/', include('Dashboard.urls', namespace='dashboard')),
     # Removed: path('auth/', include('Auth.urls', namespace='Auth-api')),  # Empty app
     path('user/', include('User.urls', namespace="User-api")),
     path("fee/", include('Fee.urls',  namespace='Fee-api')),
@@ -41,4 +42,7 @@ urlpatterns = [
     path("api/", include('Coupon.urls')),
     path("banners/", include('Banner.urls')),
 ]
+
+# Serve media files in development
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Static files are automatically served by django.contrib.staticfiles when DEBUG=True
