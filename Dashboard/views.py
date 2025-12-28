@@ -125,12 +125,15 @@ def orders_view(request):
     date_from = request.GET.get('date_from', '')
     date_to = request.GET.get('date_to', '')
 
-    # Base queryset
+    # Base queryset (exclude cancelled by default for "All" view)
     orders = Purchase.objects.select_related('user', 'selected_address').order_by('-timestamp')
 
     # Apply status filter
     if status_filter:
         orders = orders.filter(status=status_filter)
+    else:
+        # When no status is selected (All), exclude cancelled orders
+        orders = orders.exclude(status='Cancelled')
 
     # Apply user filter
     if user_filter:
