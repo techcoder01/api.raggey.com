@@ -314,21 +314,35 @@
             {% if low_stock_items %}
                 {% for item in low_stock_items %}
                 <div class="flex items-center justify-between p-4
-                    {% if item.quantity < 10 %}bg-[#FDECEC]{% elif item.quantity < 30 %}bg-[#FDF7E6]{% else %}bg-[#F5F6F6]{% endif %}
+                    {% if item.color_name_eng %}
+                        {% if item.quantity < 10 %}bg-[#FDECEC]{% elif item.quantity < 30 %}bg-[#FDF7E6]{% else %}bg-[#F5F6F6]{% endif %}
+                    {% else %}
+                        bg-[#FDECEC]
+                    {% endif %}
                     rounded-xl">
                     <div>
-                        <p class="font-semibold text-[#0D1210]">{{ item.fabric_type.fabric_name_eng }}</p>
-                        <p class="text-sm text-[#6A736E]">{{ item.color_name_eng }}</p>
+                        {% if item.color_name_eng %}
+                            <p class="font-semibold text-[#0D1210]">{{ item.fabric_type.fabric_name_eng }}</p>
+                            <p class="text-sm text-[#6A736E]">{{ item.color_name_eng }}</p>
+                        {% else %}
+                            <p class="font-semibold text-[#0D1210]">{{ item.button_type_name_eng }}</p>
+                            <p class="text-sm text-[#6A736E]">Button - Out of Stock</p>
+                        {% endif %}
                     </div>
                     <div class="text-right">
-                        <p class="text-2xl font-bold
-                            {% if item.quantity < 10 %}text-[#BF3636]
-                            {% elif item.quantity < 30 %}text-[#BB8F06]
-                            {% else %}text-[#6A736E]
-                            {% endif %}">
-                            {{ item.quantity }}
-                        </p>
-                        <p class="text-xs text-[#6A736E]">units left</p>
+                        {% if item.color_name_eng %}
+                            <p class="text-2xl font-bold
+                                {% if item.quantity < 10 %}text-[#BF3636]
+                                {% elif item.quantity < 30 %}text-[#BB8F06]
+                                {% else %}text-[#6A736E]
+                                {% endif %}">
+                                {{ item.quantity }}
+                            </p>
+                            <p class="text-xs text-[#6A736E]">units left</p>
+                        {% else %}
+                            <p class="text-2xl font-bold text-[#BF3636]">0</p>
+                            <p class="text-xs text-[#6A736E]">out of stock</p>
+                        {% endif %}
                     </div>
                 </div>
                 {% endfor %}

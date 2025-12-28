@@ -1,0 +1,265 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Designs - Raggey Admin{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-[#0D1210] mb-2">Design Components</h1>
+    <p class="text-sm text-[#6A736E]">Manage fabric types, colors, collars, sleeves, and more</p>
+</div>
+
+<!-- Statistics Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+    <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
+        <p class="text-sm text-[#6A736E] font-medium mb-2">Total {{ component_label }}</p>
+        <p class="text-3xl font-bold text-[#0D1210]">{{ total_items }}</p>
+    </div>
+    <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
+        <p class="text-sm text-[#6A736E] font-medium mb-2">Showing</p>
+        <p class="text-3xl font-bold text-[#5D0B33]">{{ current_count }}</p>
+    </div>
+</div>
+
+<!-- Component Type Tabs -->
+<div class="bg-white border border-[#E6E8E7] rounded-2xl p-6 mb-6">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold text-[#0D1210]">Component Type</h2>
+        <button onclick="openAddModal()" class="px-4 py-2 bg-[#5D0B33] text-white rounded-lg font-medium hover:bg-[#4a0829] transition-colors flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Add New
+        </button>
+    </div>
+
+    <div class="flex flex-wrap gap-2 mb-6">
+        <a href="?type=fabric_colors{% if search_query %}&search={{ search_query }}{% endif %}"
+           class="px-4 py-2 rounded-lg font-medium transition-colors {% if component_type == 'fabric_colors' %}bg-[#5D0B33] text-white{% else %}bg-[#F5F6F6] text-[#6A736E] hover:bg-[#E6E8E7]{% endif %}">
+            Fabric Colors ({{ component_counts.fabric_colors }})
+        </a>
+        <a href="?type=fabric_types{% if search_query %}&search={{ search_query }}{% endif %}"
+           class="px-4 py-2 rounded-lg font-medium transition-colors {% if component_type == 'fabric_types' %}bg-[#5D0B33] text-white{% else %}bg-[#F5F6F6] text-[#6A736E] hover:bg-[#E6E8E7]{% endif %}">
+            Fabric Types ({{ component_counts.fabric_types }})
+        </a>
+        <a href="?type=collars{% if search_query %}&search={{ search_query }}{% endif %}"
+           class="px-4 py-2 rounded-lg font-medium transition-colors {% if component_type == 'collars' %}bg-[#5D0B33] text-white{% else %}bg-[#F5F6F6] text-[#6A736E] hover:bg-[#E6E8E7]{% endif %}">
+            Collars ({{ component_counts.collars }})
+        </a>
+        <a href="?type=sleeves{% if search_query %}&search={{ search_query }}{% endif %}"
+           class="px-4 py-2 rounded-lg font-medium transition-colors {% if component_type == 'sleeves' %}bg-[#5D0B33] text-white{% else %}bg-[#F5F6F6] text-[#6A736E] hover:bg-[#E6E8E7]{% endif %}">
+            Sleeves ({{ component_counts.sleeves }})
+        </a>
+        <a href="?type=pockets{% if search_query %}&search={{ search_query }}{% endif %}"
+           class="px-4 py-2 rounded-lg font-medium transition-colors {% if component_type == 'pockets' %}bg-[#5D0B33] text-white{% else %}bg-[#F5F6F6] text-[#6A736E] hover:bg-[#E6E8E7]{% endif %}">
+            Pockets ({{ component_counts.pockets }})
+        </a>
+        <a href="?type=buttons{% if search_query %}&search={{ search_query }}{% endif %}"
+           class="px-4 py-2 rounded-lg font-medium transition-colors {% if component_type == 'buttons' %}bg-[#5D0B33] text-white{% else %}bg-[#F5F6F6] text-[#6A736E] hover:bg-[#E6E8E7]{% endif %}">
+            Buttons ({{ component_counts.buttons }})
+        </a>
+        <a href="?type=button_strips{% if search_query %}&search={{ search_query }}{% endif %}"
+           class="px-4 py-2 rounded-lg font-medium transition-colors {% if component_type == 'button_strips' %}bg-[#5D0B33] text-white{% else %}bg-[#F5F6F6] text-[#6A736E] hover:bg-[#E6E8E7]{% endif %}">
+            Button Strips ({{ component_counts.button_strips }})
+        </a>
+        <a href="?type=body{% if search_query %}&search={{ search_query }}{% endif %}"
+           class="px-4 py-2 rounded-lg font-medium transition-colors {% if component_type == 'body' %}bg-[#5D0B33] text-white{% else %}bg-[#F5F6F6] text-[#6A736E] hover:bg-[#E6E8E7]{% endif %}">
+            Body ({{ component_counts.body }})
+        </a>
+    </div>
+
+    <!-- Search -->
+    <form method="GET" class="flex gap-3">
+        <input type="hidden" name="type" value="{{ component_type }}">
+        <input type="text" name="search" value="{{ search_query }}" placeholder="Search..."
+               class="flex-1 px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210] text-[#0D1210] placeholder-[#ADB2B0]">
+        <button type="submit" class="px-6 py-3 bg-[#0D1210] text-white rounded-xl font-medium hover:bg-[#1a1f1d] transition-colors">
+            Search
+        </button>
+        <a href="?type={{ component_type }}" class="px-6 py-3 bg-[#F5F6F6] text-[#0D1210] rounded-xl font-medium hover:bg-[#E6E8E7] transition-colors">
+            Clear
+        </a>
+    </form>
+</div>
+
+<!-- Components Table -->
+<div class="bg-white border border-[#E6E8E7] rounded-2xl overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-[#F5F6F6]">
+                <tr>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">ID</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Name (EN)</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Name (AR)</th>
+                    {% if component_type == 'fabric_colors' %}
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Fabric Type</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Color</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Stock</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Price</th>
+                    {% elif component_type == 'fabric_types' %}
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Base Price</th>
+                    {% else %}
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Price</th>
+                    {% endif %}
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-[#E6E8E7]">
+                {% if items %}
+                    {% for item in items %}
+                    <tr class="hover:bg-[#F5F6F6] transition-colors">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <p class="text-sm font-semibold text-[#0D1210]">{{ item.id }}</p>
+                        </td>
+                        <td class="px-6 py-4">
+                            <p class="text-sm font-medium text-[#0D1210]">
+                                {% if component_type == 'fabric_colors' %}{{ item.color_name_eng }}
+                                {% elif component_type == 'fabric_types' %}{{ item.fabric_name_eng }}
+                                {% elif component_type == 'collars' %}{{ item.ghola_type_name_eng }}
+                                {% elif component_type == 'sleeves' %}{{ item.sleeves_type_name_eng }}
+                                {% elif component_type == 'pockets' %}{{ item.pocket_type_name_eng }}
+                                {% elif component_type == 'buttons' %}{{ item.button_type_name_eng }}
+                                {% elif component_type == 'button_strips' %}{{ item.button_strip_type_name_eng }}
+                                {% elif component_type == 'body' %}{{ item.body_type_name_eng }}
+                                {% endif %}
+                            </p>
+                        </td>
+                        <td class="px-6 py-4">
+                            <p class="text-sm text-[#6A736E]">
+                                {% if component_type == 'fabric_colors' %}{{ item.color_name_arb }}
+                                {% elif component_type == 'fabric_types' %}{{ item.fabric_name_arb }}
+                                {% elif component_type == 'collars' %}{{ item.ghola_type_name_arb }}
+                                {% elif component_type == 'sleeves' %}{{ item.sleeves_type_name_arb }}
+                                {% elif component_type == 'pockets' %}{{ item.pocket_type_name_arb }}
+                                {% elif component_type == 'buttons' %}{{ item.button_type_name_arb }}
+                                {% elif component_type == 'button_strips' %}{{ item.button_strip_type_name_arb }}
+                                {% elif component_type == 'body' %}{{ item.body_type_name_arb }}
+                                {% endif %}
+                            </p>
+                        </td>
+                        {% if component_type == 'fabric_colors' %}
+                        <td class="px-6 py-4">
+                            <p class="text-sm text-[#0D1210]">{{ item.fabric_type.fabric_name_eng }}</p>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded border border-[#E6E8E7]" style="background-color: {{ item.hex_color }}"></div>
+                                <span class="text-xs text-[#6A736E]">{{ item.hex_color }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <p class="text-sm font-semibold {% if item.quantity > 0 %}text-[#1B9E4B]{% else %}text-[#BF3636]{% endif %}">
+                                {{ item.quantity }}
+                            </p>
+                        </td>
+                        <td class="px-6 py-4">
+                            <p class="text-sm font-bold text-[#5D0B33]">{{ item.total_price|floatformat:3 }} KD</p>
+                        </td>
+                        {% elif component_type == 'fabric_types' %}
+                        <td class="px-6 py-4">
+                            <p class="text-sm font-bold text-[#5D0B33]">{{ item.base_price|floatformat:3 }} KD</p>
+                        </td>
+                        {% else %}
+                        <td class="px-6 py-4">
+                            <p class="text-sm font-bold text-[#5D0B33]">{{ item.initial_price|floatformat:3 }} KD</p>
+                        </td>
+                        {% endif %}
+                        <td class="px-6 py-4">
+                            {% if component_type == 'fabric_colors' %}
+                                {% if item.inStock %}
+                                <span class="inline-block px-3 py-1 text-xs font-medium rounded-full bg-[#E9F9EF] text-[#1B9E4B]">In Stock</span>
+                                {% else %}
+                                <span class="inline-block px-3 py-1 text-xs font-medium rounded-full bg-[#FDECEC] text-[#BF3636]">Out of Stock</span>
+                                {% endif %}
+                            {% elif component_type == 'fabric_types' %}
+                                {% if item.isHidden %}
+                                <span class="inline-block px-3 py-1 text-xs font-medium rounded-full bg-[#FDECEC] text-[#BF3636]">Hidden</span>
+                                {% else %}
+                                <span class="inline-block px-3 py-1 text-xs font-medium rounded-full bg-[#E9F9EF] text-[#1B9E4B]">Active</span>
+                                {% endif %}
+                            {% elif component_type == 'buttons' %}
+                                {% if item.inStock %}
+                                <span class="inline-block px-3 py-1 text-xs font-medium rounded-full bg-[#E9F9EF] text-[#1B9E4B]">In Stock</span>
+                                {% else %}
+                                <span class="inline-block px-3 py-1 text-xs font-medium rounded-full bg-[#FDECEC] text-[#BF3636]">Out of Stock</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="inline-block px-3 py-1 text-xs font-medium rounded-full bg-[#E9F9EF] text-[#1B9E4B]">Active</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center gap-2">
+                                <button onclick="openEditModal({{ item.id }})" class="text-[#0B5D35] hover:text-[#0D1210] font-medium text-sm">
+                                    Edit
+                                </button>
+                                <span class="text-[#E6E8E7]">|</span>
+                                <button onclick="confirmDelete({{ item.id }})" class="text-[#BF3636] hover:text-[#8B2828] font-medium text-sm">
+                                    Delete
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="{% if component_type == 'fabric_colors' %}9{% else %}6{% endif %}" class="px-6 py-12 text-center">
+                            <p class="text-[#6A736E]">No {{ component_label|lower }} found</p>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div id="itemModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-6">
+            <h2 id="modalTitle" class="text-2xl font-bold text-[#0D1210]">Add New Item</h2>
+            <button onclick="closeModal()" class="text-[#6A736E] hover:text-[#0D1210]">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <p class="text-sm text-[#6A736E] mb-4">Please use Django Admin panel for full add/edit functionality</p>
+        <a href="/admin-dashboard/Design/" target="_blank" class="inline-block px-6 py-3 bg-[#5D0B33] text-white rounded-xl font-medium hover:bg-[#4a0829] transition-colors">
+            Open Django Admin
+        </a>
+    </div>
+</div>
+
+<script>
+    function openAddModal() {
+        document.getElementById('modalTitle').textContent = 'Add New {{ component_label }}';
+        document.getElementById('itemModal').classList.remove('hidden');
+        document.getElementById('itemModal').classList.add('flex');
+    }
+
+    function openEditModal(id) {
+        document.getElementById('modalTitle').textContent = 'Edit {{ component_label }}';
+        document.getElementById('itemModal').classList.remove('hidden');
+        document.getElementById('itemModal').classList.add('flex');
+    }
+
+    function closeModal() {
+        document.getElementById('itemModal').classList.add('hidden');
+        document.getElementById('itemModal').classList.remove('flex');
+    }
+
+    function confirmDelete(id) {
+        if (confirm('Are you sure you want to delete this item?')) {
+            alert('Please use Django Admin panel to delete items');
+        }
+    }
+
+    // Close modal on escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeModal();
+        }
+    });
+</script>
+{% endblock %}
