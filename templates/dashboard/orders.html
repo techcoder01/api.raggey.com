@@ -21,7 +21,7 @@
     </div>
     <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
         <p class="text-sm text-[#6A736E] font-medium mb-2">Total Amount</p>
-        <p class="text-3xl font-bold text-[#5D0B33]">{{ total_amount|floatformat:3 }} KD</p>
+        <p class="text-3xl font-bold text-[#5D0B33]">{{ total_amount_excluding_cancelled|floatformat:3 }} KD</p>
     </div>
 </div>
 
@@ -30,7 +30,7 @@
     <h2 class="text-xl font-semibold text-[#0D1210] mb-4">Filters</h2>
 
     <!-- Status Filter Tabs -->
-    <div class="flex flex-wrap gap-2 mb-6">
+    <div class="flex flex-wrap gap-2 mb-8">
         <a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if user_filter %}user={{ user_filter }}&{% endif %}{% if date_from %}date_from={{ date_from }}&{% endif %}{% if date_to %}date_to={{ date_to }}{% endif %}"
            class="px-4 py-2 rounded-lg font-medium transition-colors {% if not current_status %}bg-[#0D1210] text-white{% else %}bg-[#F5F6F6] text-[#6A736E] hover:bg-[#E6E8E7]{% endif %}">
             All ({{ status_counts.all }})

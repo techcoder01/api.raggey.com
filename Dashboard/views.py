@@ -154,9 +154,9 @@ def orders_view(request):
     total_orders = orders.count()
     total_amount = orders.aggregate(total=Sum('total_price'))['total'] or 0
 
-    # Status counts for quick filters
+    # Status counts for quick filters (exclude cancelled from 'all')
     status_counts = {
-        'all': Purchase.objects.count(),
+        'all': Purchase.objects.exclude(status='Cancelled').count(),
         'pending': Purchase.objects.filter(status='Pending').count(),
         'confirmed': Purchase.objects.filter(status='Confirmed').count(),
         'working': Purchase.objects.filter(status='Working').count(),
@@ -164,6 +164,11 @@ def orders_view(request):
         'delivered': Purchase.objects.filter(status='Delivered').count(),
         'cancelled': Purchase.objects.filter(status='Cancelled').count(),
     }
+
+    # Total amount excluding cancelled orders for statistics card
+    total_amount_excluding_cancelled = Purchase.objects.exclude(status='Cancelled').aggregate(
+        total=Sum('total_price')
+    )['total'] or 0
 
     # Get list of users who have placed orders
     users_with_orders = User.objects.filter(
@@ -174,6 +179,7 @@ def orders_view(request):
         'orders': orders,
         'total_orders': total_orders,
         'total_amount': total_amount,
+        'total_amount_excluding_cancelled': total_amount_excluding_cancelled,
         'status_counts': status_counts,
         'current_status': status_filter,
         'search_query': search_query,
