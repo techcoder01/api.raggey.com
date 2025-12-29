@@ -71,6 +71,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'django.middleware.gzip.GZipMiddleware',  # Enable GZip compression for faster page loads
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -94,7 +95,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [BASE_DIR / 'templates'],
-        'APP_DIRS': True,
+        'APP_DIRS': DEBUG,  # Only use APP_DIRS in DEBUG mode (can't use with custom loaders)
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -105,6 +106,15 @@ TEMPLATES = [
         },
     },
 ]
+
+# Add cached template loaders for production only
+if not DEBUG:
+    TEMPLATES[0]['OPTIONS']['loaders'] = [
+        ('django.template.loaders.cached.Loader', [
+            'django.template.loaders.filesystem.Loader',
+            'django.template.loaders.app_directories.Loader',
+        ]),
+    ]
 
 WSGI_APPLICATION = 'raggyBackend.wsgi.application'
 
@@ -165,6 +175,17 @@ USE_I18N = True
 
 USE_TZ = True
 
+# Caching Configuration - For faster page loads
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'raggey-cache',
+        'TIMEOUT': 300,  # 5 minutes default
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000
+        }
+    }
+}
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
@@ -253,3 +274,14 @@ if not DEBUG:
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'
+
+# ================== PERFORMANCE OPTIMIZATIONS ==================
+# Database connection pooling - reduces connection overhead
+CONN_MAX_AGE = 60  # Keep database connections alive for 60 seconds
+
+# Session optimization - use cached sessions for faster access
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+
+# Static files caching - browser will cache static files
+if not DEBUG:
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'

@@ -4,12 +4,14 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
-from django.db.models import Sum, Count, Q, F
+from django.db.models import Sum, Count, Q, F, Prefetch
 from django.utils import timezone
 from datetime import timedelta
 from django.http import JsonResponse
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.cache import cache_page
+from django.core.cache import cache
 from Purchase.models import Purchase, Payment
 from Design.models import (
     FabricColor, FabricType, GholaType, SleevesType,
@@ -64,82 +66,96 @@ def dashboard_view(request):
     today_start = today.replace(hour=0, minute=0, second=0, microsecond=0)
     thirty_days_ago = today - timedelta(days=30)
 
-    # Recent orders (last 30 days)
-    recent_orders = Purchase.objects.filter(
-        timestamp__gte=thirty_days_ago
-    ).select_related('user').order_by('-timestamp')[:10]
+    # Try to get cached statistics (cache for 2 minutes)
+    cache_key = f'dashboard_stats_{today_start.date()}'
+    cached_data = cache.get(cache_key)
 
-    # Statistics
-    total_orders = Purchase.objects.count()
-    pending_orders = Purchase.objects.filter(status='Pending').count()
-    total_revenue = Purchase.objects.aggregate(
-        total=Sum('total_price'))['total'] or 0
+    if cached_data:
+        context = cached_data
+    else:
+        # Recent orders (last 30 days) - optimized query
+        recent_orders = Purchase.objects.filter(
+            timestamp__gte=thirty_days_ago
+        ).select_related('user').only(
+            'id', 'invoice_number', 'timestamp', 'status', 'total_price', 'user__username', 'user__email'
+        ).order_by('-timestamp')[:10]
 
-    # Today's statistics
-    todays_orders = Purchase.objects.filter(timestamp__gte=today_start).count()
-    todays_revenue = Purchase.objects.filter(timestamp__gte=today_start).aggregate(
-        total=Sum('total_price'))['total'] or 0
+        # Optimize statistics queries by combining them
+        order_stats = Purchase.objects.aggregate(
+            total_orders=Count('id'),
+            total_revenue=Sum('total_price'),
+            pending_count=Count('id', filter=Q(status='Pending')),
+            confirmed_count=Count('id', filter=Q(status='Confirmed')),
+            working_count=Count('id', filter=Q(status='Working')),
+            shipping_count=Count('id', filter=Q(status='Shipping')),
+            delivered_count=Count('id', filter=Q(status='Delivered')),
+            cancelled_count=Count('id', filter=Q(status='Cancelled')),
+            todays_orders=Count('id', filter=Q(timestamp__gte=today_start)),
+            todays_revenue=Sum('total_price', filter=Q(timestamp__gte=today_start))
+        )
 
-    # Order status breakdown
-    status_breakdown = {
-        'pending': Purchase.objects.filter(status='Pending').count(),
-        'confirmed': Purchase.objects.filter(status='Confirmed').count(),
-        'working': Purchase.objects.filter(status='Working').count(),
-        'shipping': Purchase.objects.filter(status='Shipping').count(),
-        'delivered': Purchase.objects.filter(status='Delivered').count(),
-        'cancelled': Purchase.objects.filter(status='Cancelled').count(),
-    }
+        # Payment status breakdown - optimized
+        payment_stats = Payment.objects.aggregate(
+            captured=Count('id', filter=Q(status='CAPTURED')),
+            pending=Count('id', filter=Q(status='PENDING')),
+            failed=Count('id', filter=Q(status='FAILED')),
+            refunded=Count('id', filter=Q(status='REFUNDED'))
+        )
 
-    # Payment status breakdown
-    payment_breakdown = {
-        'captured': Payment.objects.filter(status='CAPTURED').count(),
-        'pending': Payment.objects.filter(status='PENDING').count(),
-        'failed': Payment.objects.filter(status='FAILED').count(),
-        'refunded': Payment.objects.filter(status='REFUNDED').count(),
-    }
+        # Recent payments - optimized
+        recent_payments = Payment.objects.select_related('purchase').only(
+            'id', 'track_id', 'status', 'amount', 'created_at', 'purchase__invoice_number'
+        ).order_by('-created_at')[:10]
 
-    # Recent payments
-    recent_payments = Payment.objects.select_related(
-        'purchase'
-    ).order_by('-created_at')[:10]
+        # Active coupons
+        active_coupons = Coupon.objects.filter(
+            is_active=True,
+            valid_until__gte=today
+        ).count()
 
-    # Active coupons
-    active_coupons = Coupon.objects.filter(
-        is_active=True,
-        valid_until__gte=today
-    ).count()
+        # Total users
+        total_users = User.objects.count()
 
-    # Total users
-    total_users = User.objects.count()
+        # Low stock items - optimized
+        low_stock_fabrics = FabricColor.objects.filter(
+            quantity__lt=50,
+            inStock=True
+        ).select_related('fabric_type').only(
+            'id', 'color_name_eng', 'color_name_arb', 'quantity', 'fabric_type__fabric_name_eng'
+        ).order_by('quantity')[:10]
 
-    # Low stock items - Fabric Colors with quantity < 50
-    low_stock_fabrics = FabricColor.objects.filter(
-        quantity__lt=50,
-        inStock=True
-    ).select_related('fabric_type').order_by('quantity')[:10]
+        # Out of stock buttons - optimized
+        out_of_stock_buttons = ButtonType.objects.filter(
+            inStock=False
+        ).only('id', 'button_type_name_eng', 'button_type_name_arb').order_by('button_type_name_eng')[:10]
 
-    # Out of stock buttons
-    out_of_stock_buttons = ButtonType.objects.filter(
-        inStock=False
-    ).order_by('button_type_name_eng')[:10]
+        # Combine low stock items
+        low_stock_items = list(low_stock_fabrics) + list(out_of_stock_buttons)
 
-    # Combine low stock items
-    low_stock_items = list(low_stock_fabrics) + list(out_of_stock_buttons)
+        context = {
+            'recent_orders': recent_orders,
+            'total_orders': order_stats['total_orders'] or 0,
+            'pending_orders': order_stats['pending_count'] or 0,
+            'total_revenue': order_stats['total_revenue'] or 0,
+            'todays_orders': order_stats['todays_orders'] or 0,
+            'todays_revenue': order_stats['todays_revenue'] or 0,
+            'status_breakdown': {
+                'pending': order_stats['pending_count'] or 0,
+                'confirmed': order_stats['confirmed_count'] or 0,
+                'working': order_stats['working_count'] or 0,
+                'shipping': order_stats['shipping_count'] or 0,
+                'delivered': order_stats['delivered_count'] or 0,
+                'cancelled': order_stats['cancelled_count'] or 0,
+            },
+            'payment_breakdown': payment_stats,
+            'recent_payments': recent_payments,
+            'active_coupons': active_coupons,
+            'total_users': total_users,
+            'low_stock_items': low_stock_items,
+        }
 
-    context = {
-        'recent_orders': recent_orders,
-        'total_orders': total_orders,
-        'pending_orders': pending_orders,
-        'total_revenue': total_revenue,
-        'todays_orders': todays_orders,
-        'todays_revenue': todays_revenue,
-        'status_breakdown': status_breakdown,
-        'payment_breakdown': payment_breakdown,
-        'recent_payments': recent_payments,
-        'active_coupons': active_coupons,
-        'total_users': total_users,
-        'low_stock_items': low_stock_items,
-    }
+        # Cache for 2 minutes
+        cache.set(cache_key, context, 120)
 
     return render(request, 'dashboard/home.html', context)
 
