@@ -243,6 +243,27 @@ class UserDesignAPIView(APIView):
             # Get optional design name
             design_name = data.get('design_name', None)
 
+            # Check if this exact design configuration already exists (for any user)
+            existing_design = UserDesign.objects.filter(
+                initial_size_selected=initial_size_selected,
+                main_body_fabric_color=main_body_fabric_color,
+                selected_coller_type=selected_coller_type,
+                selected_sleeve_left_type=selected_sleeve_left_type,
+                selected_sleeve_right_type=selected_sleeve_right_type,
+                selected_pocket_type=selected_pocket,
+                selected_button_type=selected_button,
+                selected_button_strip_type=selected_button_strip
+            ).first()
+
+            # If design configuration already exists, return existing design
+            if existing_design:
+                serializer = UserDesignSerializer(existing_design, context={'request': request})
+                return Response({
+                    'already_exists': True,
+                    'message': 'This design configuration already exists',
+                    'design': serializer.data
+                }, status=HTTP_200_OK)
+
             user_design = UserDesign.objects.create(
                 user=user,
                 design_name=design_name,
