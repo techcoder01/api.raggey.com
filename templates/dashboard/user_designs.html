@@ -11,10 +11,20 @@
 </div>
 
 <!-- Statistics Cards -->
-<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
     <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
         <p class="text-sm text-[#6A736E] font-medium mb-2">Total Designs</p>
         <p class="text-3xl font-bold text-[#0D1210]">{{ total_designs }}</p>
+    </div>
+    <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
+        <p class="text-sm text-[#6A736E] font-medium mb-2">Unique Configs</p>
+        <p class="text-3xl font-bold text-[#0B5D35]">{{ unique_configurations }}</p>
+        <p class="text-xs text-[#6A736E] mt-1">Unique design patterns</p>
+    </div>
+    <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
+        <p class="text-sm text-[#6A736E] font-medium mb-2">Duplicate Configs</p>
+        <p class="text-3xl font-bold text-[#F59E0B]">{{ duplicate_count }}</p>
+        <p class="text-xs text-[#6A736E] mt-1">Repeated patterns</p>
     </div>
     <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
         <p class="text-sm text-[#6A736E] font-medium mb-2">Total Users</p>

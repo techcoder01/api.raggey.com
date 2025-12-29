@@ -1774,6 +1774,34 @@ def user_designs_view(request):
     total_users = UserDesign.objects.values('user').distinct().count()
     total_value = UserDesign.objects.aggregate(total=Sum('design_Total'))['total'] or 0
 
+    # Find duplicate design configurations (ignoring user and price)
+    duplicate_configs = UserDesign.objects.values(
+        'initial_size_selected',
+        'main_body_fabric_color',
+        'selected_coller_type',
+        'selected_sleeve_left_type',
+        'selected_sleeve_right_type',
+        'selected_pocket_type',
+        'selected_button_type',
+        'selected_button_strip_type',
+        'selected_body_type'
+    ).annotate(
+        count=Count('id')
+    ).filter(count__gt=1)
+
+    # Calculate total unique configurations
+    unique_configurations = UserDesign.objects.values(
+        'initial_size_selected',
+        'main_body_fabric_color',
+        'selected_coller_type',
+        'selected_sleeve_left_type',
+        'selected_sleeve_right_type',
+        'selected_pocket_type',
+        'selected_button_type',
+        'selected_button_strip_type',
+        'selected_body_type'
+    ).distinct().count()
+
     context = {
         'designs': designs,
         'search_query': search_query,
@@ -1782,6 +1810,8 @@ def user_designs_view(request):
         'total_designs': total_designs,
         'total_users': total_users,
         'total_value': total_value,
+        'unique_configurations': unique_configurations,
+        'duplicate_count': duplicate_configs.count(),
     }
 
     return render(request, 'dashboard/user_designs.html', context)
