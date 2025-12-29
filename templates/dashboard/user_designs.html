@@ -99,7 +99,7 @@
                     </td>
                     <td class="px-3 py-2.5 whitespace-nowrap">
                         <div class="flex gap-1">
-                            <button onclick="viewDesignDetails({{ design.id }}, '{{ design.design_name|default:"Unnamed Design"|escapejs }}', '{{ design.user.username|escapejs }}', '{{ design.user.email|default:"-"|escapejs }}', '{{ design.initial_size_selected.main_category_name_eng|default:"-"|escapejs }}', '{{ design.main_body_fabric_color.color_name_eng|default:"-"|escapejs }}', '{{ design.main_body_fabric_color.color_name_arb|default:"-"|escapejs }}', '{{ design.selected_coller_type.ghola_type_name_eng|default:"-"|escapejs }}', '{{ design.selected_sleeve_left_type.sleeves_type_name_eng|default:"-"|escapejs }}', '{{ design.selected_pocket_type.pocket_type_name_eng|default:"-"|escapejs }}', '{{ design.selected_button_type.button_type_name_eng|default:"-"|escapejs }}', '{{ design.selected_button_strip_type.button_strip_type_name_eng|default:"-"|escapejs }}', '{{ design.selected_body_type.body_type_name_eng|default:"-"|escapejs }}', '{{ design.design_Total|floatformat:3|escapejs }}', '{{ design.timestamp|date:"d M Y H:i"|escapejs }}')" class="inline-flex items-center px-2.5 py-1 bg-[#0B5D35] text-white rounded-lg text-xs font-medium hover:bg-[#0D1210] transition-colors">
+                            <button onclick="viewDesignDetails({{ design.id }}, '{{ design.design_name|default:"Unnamed Design"|escapejs }}', '{{ design.user.username|escapejs }}', '{{ design.user.email|default:"-"|escapejs }}', '{{ design.initial_size_selected.main_category_name_eng|default:"-"|escapejs }}', '{{ design.main_body_fabric_color.color_name_eng|default:"-"|escapejs }}', '{{ design.main_body_fabric_color.color_name_arb|default:"-"|escapejs }}', '{{ design.selected_coller_type.ghola_type_name_eng|default:"-"|escapejs }}', '{{ design.selected_sleeve_left_type.sleeves_type_name_eng|default:"-"|escapejs }}', '{{ design.selected_sleeve_right_type.sleeves_type_name_eng|default:"-"|escapejs }}', '{{ design.selected_pocket_type.pocket_type_name_eng|default:"-"|escapejs }}', '{{ design.selected_button_type.button_type_name_eng|default:"-"|escapejs }}', '{{ design.selected_button_strip_type.button_strip_type_name_eng|default:"-"|escapejs }}', '{{ design.selected_body_type.body_type_name_eng|default:"-"|escapejs }}', '{{ design.design_Total|floatformat:3|escapejs }}', '{{ design.timestamp|date:"d M Y H:i"|escapejs }}')" class="inline-flex items-center px-2.5 py-1 bg-[#0B5D35] text-white rounded-lg text-xs font-medium hover:bg-[#0D1210] transition-colors">
                                 <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -191,8 +191,12 @@
                 <p class="text-sm font-semibold text-[#0D1210]" id="modal_collar"></p>
             </div>
             <div class="border border-[#E6E8E7] rounded-lg p-3">
-                <p class="text-xs text-[#6A736E] mb-1">Sleeve Type</p>
-                <p class="text-sm font-semibold text-[#0D1210]" id="modal_sleeve"></p>
+                <p class="text-xs text-[#6A736E] mb-1">Sleeve Left Type</p>
+                <p class="text-sm font-semibold text-[#0D1210]" id="modal_sleeve_left"></p>
+            </div>
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Sleeve Right Type</p>
+                <p class="text-sm font-semibold text-[#0D1210]" id="modal_sleeve_right"></p>
             </div>
             <div class="border border-[#E6E8E7] rounded-lg p-3">
                 <p class="text-xs text-[#6A736E] mb-1">Pocket Type</p>
@@ -262,7 +266,7 @@
 </div>
 
 <script>
-function viewDesignDetails(id, designName, username, email, initialSize, fabricEn, fabricAr, collar, sleeve, pocket, button, buttonStrip, bodyType, totalPrice, created) {
+function viewDesignDetails(id, designName, username, email, initialSize, fabricEn, fabricAr, collar, sleeveLeft, sleeveRight, pocket, button, buttonStrip, bodyType, totalPrice, created) {
     document.getElementById('modal_design_name').textContent = designName;
     document.getElementById('modal_username').textContent = username;
     document.getElementById('modal_email').textContent = email;
@@ -270,7 +274,8 @@ function viewDesignDetails(id, designName, username, email, initialSize, fabricE
     document.getElementById('modal_fabric_en').textContent = fabricEn;
     document.getElementById('modal_fabric_ar').textContent = fabricAr;
     document.getElementById('modal_collar').textContent = collar;
-    document.getElementById('modal_sleeve').textContent = sleeve;
+    document.getElementById('modal_sleeve_left').textContent = sleeveLeft;
+    document.getElementById('modal_sleeve_right').textContent = sleeveRight;
     document.getElementById('modal_pocket').textContent = pocket;
     document.getElementById('modal_button').textContent = button;
     document.getElementById('modal_button_strip').textContent = buttonStrip;

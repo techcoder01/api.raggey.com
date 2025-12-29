@@ -1746,6 +1746,7 @@ def user_designs_view(request):
         'main_body_fabric_color',
         'selected_coller_type',
         'selected_sleeve_left_type',
+        'selected_sleeve_right_type',
         'selected_pocket_type',
         'selected_button_type',
         'selected_body_type'
