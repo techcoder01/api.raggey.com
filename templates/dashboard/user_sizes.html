@@ -1,0 +1,268 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}User Sizes - Dashboard{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-[#0D1210] mb-2">User Sizes Management</h1>
+    <p class="text-sm text-[#6A736E]">View and manage all custom user measurements</p>
+</div>
+
+<!-- Statistics Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+    <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
+        <p class="text-sm text-[#6A736E] font-medium mb-2">Total Measurements</p>
+        <p class="text-3xl font-bold text-[#0D1210]">{{ total_measurements }}</p>
+    </div>
+    <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
+        <p class="text-sm text-[#6A736E] font-medium mb-2">Showing</p>
+        <p class="text-3xl font-bold text-[#5D0B33]">{{ measurements|length }}</p>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="bg-white border border-[#E6E8E7] rounded-2xl p-6 mb-6">
+    <form method="GET" class="flex flex-col md:flex-row gap-2">
+        <div class="flex-1 relative">
+            <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#ADB2B0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <input type="text" name="search" value="{{ search_query }}" placeholder="Search by size name, username, or email..." class="w-full pl-10 pr-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+        </div>
+        <select name="user" class="px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+            <option value="">All Users</option>
+            {% for user in users %}
+            <option value="{{ user.id }}" {% if user_filter == user.id|stringformat:"s" %}selected{% endif %}>{{ user.username }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="px-5 py-2 bg-[#0D1210] text-white rounded-lg text-sm font-medium hover:bg-[#1a2420] transition-colors">
+            Filter
+        </button>
+        {% if search_query or user_filter %}
+        <a href="/dashboard/sizes/" class="px-5 py-2 bg-[#F5F6F6] text-[#0D1210] rounded-lg text-sm font-medium hover:bg-[#E6E8E7] transition-colors">
+            Clear
+        </a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Sizes Table -->
+<div class="bg-white border border-[#E6E8E7] rounded-2xl overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full table-auto">
+            <thead class="bg-[#F5F6F6]">
+                <tr>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">ID</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Size Name</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">User</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Front Height</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Back Height</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Chest</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Created</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-[#E6E8E7]">
+                {% for measurement in measurements %}
+                <tr class="hover:bg-[#F5F6F6]/50 transition-colors">
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        <p class="text-xs font-mono text-[#6A736E]">{{ measurement.id }}</p>
+                    </td>
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        <p class="text-sm font-semibold text-[#0D1210]">{{ measurement.size_name }}</p>
+                    </td>
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        <a href="/dashboard/users/{{ measurement.user.id }}/" class="text-sm text-[#0B5D35] hover:text-[#0D1210] font-medium">
+                            {{ measurement.user.username }}
+                        </a>
+                        <p class="text-xs text-[#6A736E]">{{ measurement.user.email|default:"-" }}</p>
+                    </td>
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        <p class="text-sm text-[#0D1210]">{{ measurement.front_hight }}</p>
+                    </td>
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        <p class="text-sm text-[#0D1210]">{{ measurement.back_hight }}</p>
+                    </td>
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        <p class="text-sm text-[#0D1210]">{{ measurement.full_chest }}</p>
+                    </td>
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        <p class="text-xs text-[#6A736E]">{{ measurement.timestamp|date:"d M Y" }}</p>
+                        <p class="text-xs text-[#ADB2B0]">{{ measurement.timestamp|date:"H:i" }}</p>
+                    </td>
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        <button onclick="viewMeasurementDetails({{ measurement.id }}, '{{ measurement.size_name|escapejs }}', '{{ measurement.user.username|escapejs }}', '{{ measurement.front_hight|escapejs }}', '{{ measurement.back_hight|escapejs }}', '{{ measurement.around_neck|escapejs }}', '{{ measurement.around_legs|escapejs }}', '{{ measurement.full_chest|escapejs }}', '{{ measurement.half_chest|escapejs }}', '{{ measurement.full_belly|escapejs }}', '{{ measurement.half_belly|escapejs }}', '{{ measurement.neck_to_center_belly|escapejs }}', '{{ measurement.neck_to_chest|escapejs }}', '{{ measurement.shoulders_width|escapejs }}', '{{ measurement.arm_tall|escapejs }}', '{{ measurement.arm_width_one|escapejs }}', '{{ measurement.arm_width_two|escapejs }}', '{{ measurement.arm_width_three|escapejs }}', '{{ measurement.arm_width_four|escapejs }}')" class="inline-flex items-center px-2.5 py-1 bg-[#0B5D35] text-white rounded-lg text-xs font-medium hover:bg-[#0D1210] transition-colors">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                            View Details
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="px-6 py-12 text-center">
+                        <svg class="w-12 h-12 mx-auto text-[#ADB2B0] mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                        </svg>
+                        <p class="text-[#6A736E] text-sm font-medium">No measurements found</p>
+                        {% if search_query or user_filter %}
+                        <p class="text-[#ADB2B0] text-xs mt-1">Try adjusting your filters</p>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Measurement Details Modal -->
+<div id="measurementModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-[#0D1210]">Measurement Details</h2>
+            <button onclick="closeMeasurementModal()" class="text-[#6A736E] hover:text-[#0D1210]">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="mb-4 p-4 bg-[#F5F6F6] rounded-lg">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-xs text-[#6A736E] mb-1">Size Name</p>
+                    <p class="text-sm font-bold text-[#0D1210]" id="modal_size_name"></p>
+                </div>
+                <div>
+                    <p class="text-xs text-[#6A736E] mb-1">User</p>
+                    <p class="text-sm font-bold text-[#0D1210]" id="modal_username"></p>
+                </div>
+            </div>
+        </div>
+
+        <h3 class="text-sm font-semibold text-[#0D1210] mb-3 pb-2 border-b border-[#E6E8E7]">Body Measurements</h3>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Front Height</p>
+                <p class="text-sm font-semibold text-[#0D1210]" id="modal_front_hight"></p>
+            </div>
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Back Height</p>
+                <p class="text-sm font-semibold text-[#0D1210]" id="modal_back_hight"></p>
+            </div>
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Around Neck</p>
+                <p class="text-sm font-semibold text-[#0D1210]" id="modal_around_neck"></p>
+            </div>
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Around Legs</p>
+                <p class="text-sm font-semibold text-[#0D1210]" id="modal_around_legs"></p>
+            </div>
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Full Chest</p>
+                <p class="text-sm font-semibold text-[#0D1210]" id="modal_full_chest"></p>
+            </div>
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Half Chest</p>
+                <p class="text-sm font-semibold text-[#0D1210]" id="modal_half_chest"></p>
+            </div>
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Full Belly</p>
+                <p class="text-sm font-semibold text-[#0D1210]" id="modal_full_belly"></p>
+            </div>
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Half Belly</p>
+                <p class="text-sm font-semibold text-[#0D1210]" id="modal_half_belly"></p>
+            </div>
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Neck to Center Belly</p>
+                <p class="text-sm font-semibold text-[#0D1210]" id="modal_neck_to_center_belly"></p>
+            </div>
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Neck to Chest</p>
+                <p class="text-sm font-semibold text-[#0D1210]" id="modal_neck_to_chest"></p>
+            </div>
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Shoulders Width</p>
+                <p class="text-sm font-semibold text-[#0D1210]" id="modal_shoulders_width"></p>
+            </div>
+        </div>
+
+        <h3 class="text-sm font-semibold text-[#0D1210] mb-3 pb-2 border-b border-[#E6E8E7]">Arm Measurements</h3>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Arm Tall</p>
+                <p class="text-sm font-semibold text-[#0D1210]" id="modal_arm_tall"></p>
+            </div>
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Arm Width 1</p>
+                <p class="text-sm font-semibold text-[#0D1210]" id="modal_arm_width_one"></p>
+            </div>
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Arm Width 2</p>
+                <p class="text-sm font-semibold text-[#0D1210]" id="modal_arm_width_two"></p>
+            </div>
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Arm Width 3</p>
+                <p class="text-sm font-semibold text-[#0D1210]" id="modal_arm_width_three"></p>
+            </div>
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Arm Width 4</p>
+                <p class="text-sm font-semibold text-[#0D1210]" id="modal_arm_width_four"></p>
+            </div>
+        </div>
+
+        <div class="flex justify-end">
+            <button onclick="closeMeasurementModal()" class="px-5 py-2 bg-[#F5F6F6] text-[#0D1210] rounded-lg text-sm font-medium hover:bg-[#E6E8E7] transition-colors">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function viewMeasurementDetails(id, sizeName, username, frontHight, backHight, aroundNeck, aroundLegs, fullChest, halfChest, fullBelly, halfBelly, neckToCenterBelly, neckToChest, shouldersWidth, armTall, armWidthOne, armWidthTwo, armWidthThree, armWidthFour) {
+    document.getElementById('modal_size_name').textContent = sizeName;
+    document.getElementById('modal_username').textContent = username;
+    document.getElementById('modal_front_hight').textContent = frontHight;
+    document.getElementById('modal_back_hight').textContent = backHight;
+    document.getElementById('modal_around_neck').textContent = aroundNeck;
+    document.getElementById('modal_around_legs').textContent = aroundLegs;
+    document.getElementById('modal_full_chest').textContent = fullChest;
+    document.getElementById('modal_half_chest').textContent = halfChest;
+    document.getElementById('modal_full_belly').textContent = fullBelly;
+    document.getElementById('modal_half_belly').textContent = halfBelly;
+    document.getElementById('modal_neck_to_center_belly').textContent = neckToCenterBelly;
+    document.getElementById('modal_neck_to_chest').textContent = neckToChest;
+    document.getElementById('modal_shoulders_width').textContent = shouldersWidth;
+    document.getElementById('modal_arm_tall').textContent = armTall;
+    document.getElementById('modal_arm_width_one').textContent = armWidthOne;
+    document.getElementById('modal_arm_width_two').textContent = armWidthTwo;
+    document.getElementById('modal_arm_width_three').textContent = armWidthThree;
+    document.getElementById('modal_arm_width_four').textContent = armWidthFour;
+
+    document.getElementById('measurementModal').classList.remove('hidden');
+    document.getElementById('measurementModal').classList.add('flex');
+}
+
+function closeMeasurementModal() {
+    document.getElementById('measurementModal').classList.add('hidden');
+    document.getElementById('measurementModal').classList.remove('flex');
+}
+
+// Close modal when clicking outside
+document.getElementById('measurementModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeMeasurementModal();
+    }
+});
+</script>
+
+{% endblock %}

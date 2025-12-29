@@ -1,3 +1,4 @@
+
 {% extends 'dashboard/base.html' %}
 
 {% block title %}Designs - Raggey Admin{% endblock %}
@@ -25,44 +26,54 @@
 <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6 mb-6">
     <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-semibold text-[#0D1210]">Component Type</h2>
-        <button onclick="openAddModal()" class="px-4 py-2 bg-[#5D0B33] text-white rounded-lg font-medium hover:bg-[#4a0829] transition-colors flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-            </svg>
-            Add New
-        </button>
+        <div class="flex items-center gap-3">
+            {% if order_item_id %}
+            <a href="/dashboard/designs/?type={{ component_type }}" class="px-4 py-2 bg-[#BF3636] text-white rounded-lg font-medium hover:bg-[#A02D2D] transition-colors flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+                Reset Filter
+            </a>
+            {% endif %}
+            <button onclick="openAddModal()" class="px-4 py-2 bg-[#5D0B33] text-white rounded-lg font-medium hover:bg-[#4a0829] transition-colors flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Add New
+            </button>
+        </div>
     </div>
 
     <div class="flex flex-wrap gap-2 mb-6">
-        <a href="?type=fabric_colors{% if search_query %}&search={{ search_query }}{% endif %}"
+        <a href="?type=fabric_colors{% if search_query %}&search={{ search_query }}{% endif %}{% if order_item_id %}&order_item={{ order_item_id }}{% endif %}"
            class="px-4 py-2 rounded-lg font-medium transition-colors {% if component_type == 'fabric_colors' %}bg-[#5D0B33] text-white{% else %}bg-[#F5F6F6] text-[#6A736E] hover:bg-[#E6E8E7]{% endif %}">
             Fabric Colors ({{ component_counts.fabric_colors }})
         </a>
-        <a href="?type=fabric_types{% if search_query %}&search={{ search_query }}{% endif %}"
+        <a href="?type=fabric_types{% if search_query %}&search={{ search_query }}{% endif %}{% if order_item_id %}&order_item={{ order_item_id }}{% endif %}"
            class="px-4 py-2 rounded-lg font-medium transition-colors {% if component_type == 'fabric_types' %}bg-[#5D0B33] text-white{% else %}bg-[#F5F6F6] text-[#6A736E] hover:bg-[#E6E8E7]{% endif %}">
             Fabric Types ({{ component_counts.fabric_types }})
         </a>
-        <a href="?type=collars{% if search_query %}&search={{ search_query }}{% endif %}"
+        <a href="?type=collars{% if search_query %}&search={{ search_query }}{% endif %}{% if order_item_id %}&order_item={{ order_item_id }}{% endif %}"
            class="px-4 py-2 rounded-lg font-medium transition-colors {% if component_type == 'collars' %}bg-[#5D0B33] text-white{% else %}bg-[#F5F6F6] text-[#6A736E] hover:bg-[#E6E8E7]{% endif %}">
             Collars ({{ component_counts.collars }})
         </a>
-        <a href="?type=sleeves{% if search_query %}&search={{ search_query }}{% endif %}"
+        <a href="?type=sleeves{% if search_query %}&search={{ search_query }}{% endif %}{% if order_item_id %}&order_item={{ order_item_id }}{% endif %}"
            class="px-4 py-2 rounded-lg font-medium transition-colors {% if component_type == 'sleeves' %}bg-[#5D0B33] text-white{% else %}bg-[#F5F6F6] text-[#6A736E] hover:bg-[#E6E8E7]{% endif %}">
             Sleeves ({{ component_counts.sleeves }})
         </a>
-        <a href="?type=pockets{% if search_query %}&search={{ search_query }}{% endif %}"
+        <a href="?type=pockets{% if search_query %}&search={{ search_query }}{% endif %}{% if order_item_id %}&order_item={{ order_item_id }}{% endif %}"
            class="px-4 py-2 rounded-lg font-medium transition-colors {% if component_type == 'pockets' %}bg-[#5D0B33] text-white{% else %}bg-[#F5F6F6] text-[#6A736E] hover:bg-[#E6E8E7]{% endif %}">
             Pockets ({{ component_counts.pockets }})
         </a>
-        <a href="?type=buttons{% if search_query %}&search={{ search_query }}{% endif %}"
+        <a href="?type=buttons{% if search_query %}&search={{ search_query }}{% endif %}{% if order_item_id %}&order_item={{ order_item_id }}{% endif %}"
            class="px-4 py-2 rounded-lg font-medium transition-colors {% if component_type == 'buttons' %}bg-[#5D0B33] text-white{% else %}bg-[#F5F6F6] text-[#6A736E] hover:bg-[#E6E8E7]{% endif %}">
             Buttons ({{ component_counts.buttons }})
         </a>
-        <a href="?type=button_strips{% if search_query %}&search={{ search_query }}{% endif %}"
+        <a href="?type=button_strips{% if search_query %}&search={{ search_query }}{% endif %}{% if order_item_id %}&order_item={{ order_item_id }}{% endif %}"
            class="px-4 py-2 rounded-lg font-medium transition-colors {% if component_type == 'button_strips' %}bg-[#5D0B33] text-white{% else %}bg-[#F5F6F6] text-[#6A736E] hover:bg-[#E6E8E7]{% endif %}">
             Button Strips ({{ component_counts.button_strips }})
         </a>
-        <a href="?type=body{% if search_query %}&search={{ search_query }}{% endif %}"
+        <a href="?type=body{% if search_query %}&search={{ search_query }}{% endif %}{% if order_item_id %}&order_item={{ order_item_id }}{% endif %}"
            class="px-4 py-2 rounded-lg font-medium transition-colors {% if component_type == 'body' %}bg-[#5D0B33] text-white{% else %}bg-[#F5F6F6] text-[#6A736E] hover:bg-[#E6E8E7]{% endif %}">
             Body ({{ component_counts.body }})
         </a>
@@ -71,12 +82,13 @@
     <!-- Search -->
     <form method="GET" class="flex gap-3">
         <input type="hidden" name="type" value="{{ component_type }}">
+        {% if order_item_id %}<input type="hidden" name="order_item" value="{{ order_item_id }}">{% endif %}
         <input type="text" name="search" value="{{ search_query }}" placeholder="Search..."
                class="flex-1 px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210] text-[#0D1210] placeholder-[#ADB2B0]">
         <button type="submit" class="px-6 py-3 bg-[#0D1210] text-white rounded-xl font-medium hover:bg-[#1a1f1d] transition-colors">
             Search
         </button>
-        <a href="?type={{ component_type }}" class="px-6 py-3 bg-[#F5F6F6] text-[#0D1210] rounded-xl font-medium hover:bg-[#E6E8E7] transition-colors">
+        <a href="?type={{ component_type }}{% if order_item_id %}&order_item={{ order_item_id }}{% endif %}" class="px-6 py-3 bg-[#F5F6F6] text-[#0D1210] rounded-xl font-medium hover:bg-[#E6E8E7] transition-colors">
             Clear
         </a>
     </form>
@@ -126,6 +138,12 @@
                                     <img src="{{ item.cover.url }}" alt="Cover" class="w-16 h-16 object-contain rounded-lg border border-[#E6E8E7] hover:shadow-lg transition-shadow bg-white">
                                 </a>
                                 <div class="absolute inset-0 bg-black bg-opacity-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+                                    <a href="{{ item.cover.url }}" target="_blank" class="p-1.5 bg-white text-[#0D1210] rounded hover:bg-[#F5F6F6] transition-colors" title="View">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                        </svg>
+                                    </a>
                                     <button onclick="openImageEditModal({{ item.id }}, 'cover')" class="p-1.5 bg-white text-[#0B5D35] rounded hover:bg-[#E9F9EF] transition-colors" title="Edit">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
@@ -153,6 +171,12 @@
                                     <img src="{{ item.cover_option.url }}" alt="Cover Option" class="w-16 h-16 object-contain rounded-lg border border-[#E6E8E7] hover:shadow-lg transition-shadow bg-white">
                                 </a>
                                 <div class="absolute inset-0 bg-black bg-opacity-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+                                    <a href="{{ item.cover_option.url }}" target="_blank" class="p-1.5 bg-white text-[#0D1210] rounded hover:bg-[#F5F6F6] transition-colors" title="View">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                        </svg>
+                                    </a>
                                     <button onclick="openImageEditModal({{ item.id }}, 'cover_option')" class="p-1.5 bg-white text-[#0B5D35] rounded hover:bg-[#E9F9EF] transition-colors" title="Edit">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
@@ -390,6 +414,70 @@
 
             <!-- Fabric Type specific fields -->
             <div id="fabric_type_fields" class="hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Originality (English)</label>
+                        <input type="text" name="originality" id="edit_originality" placeholder="e.g., Kuwait, Italy" class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Originality (Arabic)</label>
+                        <input type="text" name="originality_arb" id="edit_originality_arb" placeholder="مثال: الكويت، إيطاليا" class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Season *</label>
+                        <select name="season" id="edit_season" required class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                            {% for value, label in season_choices %}
+                            <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Category Type *</label>
+                        <select name="category_type" id="edit_category_type" required class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                            {% for value, label in category_type_choices %}
+                            <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Weight (English)</label>
+                        <input type="text" name="weight" id="edit_weight" placeholder="e.g., per sq / m" class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Weight (Arabic)</label>
+                        <input type="text" name="weight_arb" id="edit_weight_arb" placeholder="مثال: لكل متر مربع" class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Composition (English)</label>
+                        <input type="text" name="composition" id="edit_composition" placeholder="e.g., 100% Polyester" class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Composition (Arabic)</label>
+                        <input type="text" name="composition_arb" id="edit_composition_arb" placeholder="مثال: 100% بوليستر" class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Softness Grade (1=Soft to 5=Solid) *</label>
+                    <input type="number" name="softness_grade" id="edit_softness_grade" min="1" max="5" value="3" required class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Features (English)</label>
+                        <textarea name="features" id="edit_features" rows="3" placeholder='["Anti-Static", "Anti-Breakable", "Easy Iron"]' class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]"></textarea>
+                        <p class="text-xs text-[#6A736E] mt-1">JSON array format</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Features (Arabic)</label>
+                        <textarea name="features_arb" id="edit_features_arb" rows="3" placeholder='["مضاد للكهرباء الساكنة", "مضاد للكسر", "سهل الكي"]' class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]"></textarea>
+                        <p class="text-xs text-[#6A736E] mt-1">JSON array format</p>
+                    </div>
+                </div>
                 <div class="mb-4">
                     <label class="flex items-center">
                         <input type="checkbox" name="isHidden" id="edit_isHidden" class="rounded border-gray-300 text-[#5D0B33] focus:ring-[#5D0B33]">
@@ -411,12 +499,12 @@
             <!-- Image uploads -->
             <div id="image_fields" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 hidden">
                 <div id="cover_field">
-                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Cover Image</label>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Cover Image (Optional)</label>
                     <div class="mb-2" id="current_cover_preview"></div>
                     <input type="file" name="cover" id="edit_cover" accept="image/*" class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
                 </div>
                 <div id="cover_option_field" class="hidden">
-                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Cover Option Image</label>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Cover Option Image (Optional)</label>
                     <div class="mb-2" id="current_cover_option_preview"></div>
                     <input type="file" name="cover_option" id="edit_cover_option" accept="image/*" class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
                 </div>
@@ -515,6 +603,70 @@
 
             <!-- Fabric Type specific fields -->
             <div id="add_fabric_type_fields" class="hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Originality (English)</label>
+                        <input type="text" name="originality" id="add_originality" placeholder="e.g., Kuwait, Italy" class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Originality (Arabic)</label>
+                        <input type="text" name="originality_arb" id="add_originality_arb" placeholder="مثال: الكويت، إيطاليا" class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Season *</label>
+                        <select name="season" id="add_season" required class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                            {% for value, label in season_choices %}
+                            <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Category Type *</label>
+                        <select name="category_type" id="add_category_type" required class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                            {% for value, label in category_type_choices %}
+                            <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Weight (English)</label>
+                        <input type="text" name="weight" id="add_weight" placeholder="e.g., per sq / m" class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Weight (Arabic)</label>
+                        <input type="text" name="weight_arb" id="add_weight_arb" placeholder="مثال: لكل متر مربع" class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Composition (English)</label>
+                        <input type="text" name="composition" id="add_composition" placeholder="e.g., 100% Polyester" class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Composition (Arabic)</label>
+                        <input type="text" name="composition_arb" id="add_composition_arb" placeholder="مثال: 100% بوليستر" class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Softness Grade (1=Soft to 5=Solid) *</label>
+                    <input type="number" name="softness_grade" id="add_softness_grade" min="1" max="5" value="3" required class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Features (English)</label>
+                        <textarea name="features" id="add_features" rows="3" placeholder='["Anti-Static", "Anti-Breakable", "Easy Iron"]' class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]"></textarea>
+                        <p class="text-xs text-[#6A736E] mt-1">JSON array format</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Features (Arabic)</label>
+                        <textarea name="features_arb" id="add_features_arb" rows="3" placeholder='["مضاد للكهرباء الساكنة", "مضاد للكسر", "سهل الكي"]' class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]"></textarea>
+                        <p class="text-xs text-[#6A736E] mt-1">JSON array format</p>
+                    </div>
+                </div>
                 <div class="mb-4">
                     <label class="flex items-center">
                         <input type="checkbox" name="isHidden" id="add_isHidden" class="rounded border-gray-300 text-[#5D0B33] focus:ring-[#5D0B33]">
@@ -536,11 +688,11 @@
             <!-- Image uploads -->
             <div id="add_image_fields" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 hidden">
                 <div id="add_cover_field">
-                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Cover Image *</label>
-                    <input type="file" name="cover" id="add_cover" accept="image/*" required class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Cover Image (Optional)</label>
+                    <input type="file" name="cover" id="add_cover" accept="image/*" class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
                 </div>
                 <div id="add_cover_option_field" class="hidden">
-                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Cover Option Image</label>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Cover Option Image (Optional)</label>
                     <input type="file" name="cover_option" id="add_cover_option" accept="image/*" class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
                 </div>
             </div>
@@ -999,5 +1151,22 @@
             }
         });
     });
+
+    // Search debouncing
+    const searchInput = document.querySelector('input[name="search"]');
+    const searchForm = searchInput?.closest('form');
+    let searchTimeout;
+
+    if (searchInput && searchForm) {
+        searchInput.addEventListener('input', function() {
+            // Clear the existing timeout
+            clearTimeout(searchTimeout);
+
+            // Set a new timeout to submit the form after 500ms of no typing
+            searchTimeout = setTimeout(function() {
+                searchForm.submit();
+            }, 500);
+        });
+    }
 </script>
 {% endblock %}

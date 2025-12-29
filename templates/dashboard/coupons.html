@@ -1,0 +1,670 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Coupons - Dashboard{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="mb-6 flex items-center justify-between">
+    <div>
+        <h1 class="text-3xl font-bold text-[#0D1210] mb-2">Coupons Management</h1>
+        <p class="text-sm text-[#6A736E]">View and manage all promotional coupons</p>
+    </div>
+    <button onclick="openAddCouponModal()" class="px-5 py-2 bg-[#0B5D35] text-white rounded-lg text-sm font-medium hover:bg-[#0D1210] transition-colors inline-flex items-center">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Add Coupon
+    </button>
+</div>
+
+<!-- Statistics Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
+        <p class="text-sm text-[#6A736E] font-medium mb-2">Total Coupons</p>
+        <p class="text-3xl font-bold text-[#0D1210]">{{ total_coupons }}</p>
+    </div>
+    <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
+        <p class="text-sm text-[#6A736E] font-medium mb-2">Active Coupons</p>
+        <p class="text-3xl font-bold text-[#1B9E4B]">{{ active_coupons }}</p>
+    </div>
+    <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
+        <p class="text-sm text-[#6A736E] font-medium mb-2">Total Uses</p>
+        <p class="text-3xl font-bold text-[#5D0B33]">{{ total_usage }}</p>
+    </div>
+    <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
+        <p class="text-sm text-[#6A736E] font-medium mb-2">Total Discount</p>
+        <p class="text-3xl font-bold text-[#0B5D35]">{{ total_discount_given|floatformat:3 }} KD</p>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="bg-white border border-[#E6E8E7] rounded-2xl p-6 mb-6">
+    <form method="GET" class="flex flex-col md:flex-row gap-2">
+        <div class="flex-1 relative">
+            <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#ADB2B0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <input type="text" name="search" value="{{ search_query }}" placeholder="Search by code or name..." class="w-full pl-10 pr-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+        </div>
+        <select name="type" class="px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+            <option value="">All Types</option>
+            {% for type in type_choices %}
+            <option value="{{ type }}" {% if type_filter == type %}selected{% endif %}>{{ type|title }}</option>
+            {% endfor %}
+        </select>
+        <select name="status" class="px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+            <option value="">All Status</option>
+            <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+            <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+        </select>
+        <button type="submit" class="px-5 py-2 bg-[#0D1210] text-white rounded-lg text-sm font-medium hover:bg-[#1a2420] transition-colors">
+            Filter
+        </button>
+        {% if search_query or type_filter or status_filter %}
+        <a href="/dashboard/coupons/" class="px-5 py-2 bg-[#F5F6F6] text-[#0D1210] rounded-lg text-sm font-medium hover:bg-[#E6E8E7] transition-colors">
+            Clear
+        </a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Coupons Table -->
+<div class="bg-white border border-[#E6E8E7] rounded-2xl overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full table-auto">
+            <thead class="bg-[#F5F6F6]">
+                <tr>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Code</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Name</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Type</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Discount</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Usage</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Valid Until</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Status</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-[#E6E8E7]">
+                {% for coupon in coupons %}
+                <tr class="hover:bg-[#F5F6F6]/50 transition-colors">
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        <p class="text-sm font-mono font-bold text-[#5D0B33]">{{ coupon.code }}</p>
+                    </td>
+                    <td class="px-3 py-2.5">
+                        <p class="text-sm font-semibold text-[#0D1210]">{{ coupon.name_en }}</p>
+                        <p class="text-xs text-[#6A736E]">{{ coupon.name_ar }}</p>
+                    </td>
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        {% if coupon.coupon_type == 'beta' %}
+                            <span class="px-2 py-1 text-xs font-medium bg-[#E8E1F4] text-[#7C3AED] rounded-full">Beta</span>
+                        {% elif coupon.coupon_type == 'card' %}
+                            <span class="px-2 py-1 text-xs font-medium bg-[#E0F2FE] text-[#0EA5E9] rounded-full">Card</span>
+                        {% else %}
+                            <span class="px-2 py-1 text-xs font-medium bg-[#F5F6F6] text-[#6A736E] rounded-full">General</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        {% if coupon.discount_type == 'percentage' %}
+                            <p class="text-sm font-bold text-[#0B5D35]">{{ coupon.discount_value }}%</p>
+                        {% else %}
+                            <p class="text-sm font-bold text-[#0B5D35]">{{ coupon.discount_value|floatformat:3 }} KD</p>
+                        {% endif %}
+                    </td>
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        <p class="text-sm text-[#0D1210]">{{ coupon.current_uses }}{% if coupon.max_uses %} / {{ coupon.max_uses }}{% else %} / ∞{% endif %}</p>
+                    </td>
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        {% if coupon.valid_until %}
+                            <p class="text-xs text-[#6A736E]">{{ coupon.valid_until|date:"d M Y" }}</p>
+                        {% else %}
+                            <p class="text-xs text-[#ADB2B0]">No expiry</p>
+                        {% endif %}
+                    </td>
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        {% if coupon.is_active %}
+                            <span class="px-2 py-1 text-xs font-medium bg-[#E9F9EF] text-[#1B9E4B] rounded-full">Active</span>
+                        {% else %}
+                            <span class="px-2 py-1 text-xs font-medium bg-[#FDECEC] text-[#BF3636] rounded-full">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        <div class="flex gap-1">
+                            <button onclick="viewCouponDetails('{{ coupon.code|escapejs }}', '{{ coupon.name_en|escapejs }}', '{{ coupon.name_ar|escapejs }}', '{{ coupon.description_en|default:"-"|escapejs }}', '{{ coupon.description_ar|default:"-"|escapejs }}', '{{ coupon.coupon_type|escapejs }}', '{{ coupon.discount_type|escapejs }}', '{{ coupon.discount_value|escapejs }}', '{{ coupon.max_uses|default:"Unlimited"|escapejs }}', '{{ coupon.current_uses|escapejs }}', '{{ coupon.max_uses_per_user|escapejs }}', '{{ coupon.min_order_amount|floatformat:3|escapejs }}', '{{ coupon.max_discount_amount|floatformat:3|default:"-"|escapejs }}', '{{ coupon.valid_from|date:"d M Y H:i"|escapejs }}', '{{ coupon.valid_until|date:"d M Y H:i"|default:"No expiry"|escapejs }}', '{{ coupon.is_active|yesno:"Active,Inactive"|escapejs }}', '{{ coupon.total_discount|floatformat:3|escapejs }}')" class="inline-flex items-center px-2.5 py-1 bg-[#0B5D35] text-white rounded-lg text-xs font-medium hover:bg-[#0D1210] transition-colors">
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                                View
+                            </button>
+                            <button onclick="openEditCouponModal({{ coupon.id }}, '{{ coupon.code|escapejs }}', '{{ coupon.name_en|escapejs }}', '{{ coupon.name_ar|escapejs }}', '{{ coupon.description_en|escapejs }}', '{{ coupon.description_ar|escapejs }}', '{{ coupon.coupon_type|escapejs }}', '{{ coupon.discount_type|escapejs }}', '{{ coupon.discount_value|escapejs }}', '{{ coupon.max_uses|default:""|escapejs }}', '{{ coupon.max_uses_per_user|escapejs }}', '{{ coupon.min_order_amount|escapejs }}', '{{ coupon.max_discount_amount|default:""|escapejs }}', '{{ coupon.valid_from|date:"Y-m-d\TH:i"|escapejs }}', '{{ coupon.valid_until|date:"Y-m-d\TH:i"|default:""|escapejs }}', {{ coupon.is_active|yesno:'true,false' }})" class="inline-flex items-center px-2.5 py-1 bg-[#5D0B33] text-white rounded-lg text-xs font-medium hover:bg-[#0D1210] transition-colors">
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                </svg>
+                                Edit
+                            </button>
+                            <button onclick="openDeleteCouponModal({{ coupon.id }}, '{{ coupon.code|escapejs }}')" class="inline-flex items-center px-2.5 py-1 bg-[#BF3636] text-white rounded-lg text-xs font-medium hover:bg-[#0D1210] transition-colors">
+                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                                Delete
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="px-6 py-12 text-center">
+                        <svg class="w-12 h-12 mx-auto text-[#ADB2B0] mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/>
+                        </svg>
+                        <p class="text-[#6A736E] text-sm font-medium">No coupons found</p>
+                        {% if search_query or type_filter or status_filter %}
+                        <p class="text-[#ADB2B0] text-xs mt-1">Try adjusting your filters</p>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Coupon Details Modal -->
+<div id="couponModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-[#0D1210]">Coupon Details</h2>
+            <button onclick="closeCouponModal()" class="text-[#6A736E] hover:text-[#0D1210]">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="mb-4 p-4 bg-[#F5F6F6] rounded-lg">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <p class="text-xs text-[#6A736E] mb-1">Code</p>
+                    <p class="text-lg font-bold font-mono text-[#5D0B33]" id="modal_code"></p>
+                </div>
+                <div>
+                    <p class="text-xs text-[#6A736E] mb-1">Status</p>
+                    <p class="text-sm font-bold text-[#0D1210]" id="modal_status"></p>
+                </div>
+            </div>
+        </div>
+
+        <h3 class="text-sm font-semibold text-[#0D1210] mb-3 pb-2 border-b border-[#E6E8E7]">Basic Information</h3>
+
+        <div class="grid grid-cols-1 gap-4 mb-6">
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Name (English)</p>
+                <p class="text-sm font-semibold text-[#0D1210]" id="modal_name_en"></p>
+            </div>
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Name (Arabic)</p>
+                <p class="text-sm font-semibold text-[#0D1210]" id="modal_name_ar"></p>
+            </div>
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Description (English)</p>
+                <p class="text-sm text-[#0D1210]" id="modal_desc_en"></p>
+            </div>
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Description (Arabic)</p>
+                <p class="text-sm text-[#0D1210]" id="modal_desc_ar"></p>
+            </div>
+        </div>
+
+        <h3 class="text-sm font-semibold text-[#0D1210] mb-3 pb-2 border-b border-[#E6E8E7]">Discount Details</h3>
+
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Coupon Type</p>
+                <p class="text-sm font-semibold text-[#0D1210]" id="modal_type"></p>
+            </div>
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Discount Type</p>
+                <p class="text-sm font-semibold text-[#0D1210]" id="modal_discount_type"></p>
+            </div>
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Discount Value</p>
+                <p class="text-sm font-bold text-[#0B5D35]" id="modal_discount_value"></p>
+            </div>
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Max Discount Amount</p>
+                <p class="text-sm font-semibold text-[#0D1210]" id="modal_max_discount"></p>
+            </div>
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Min Order Amount</p>
+                <p class="text-sm font-semibold text-[#0D1210]" id="modal_min_order"></p>
+            </div>
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Total Discount Given</p>
+                <p class="text-sm font-bold text-[#5D0B33]" id="modal_total_discount"></p>
+            </div>
+        </div>
+
+        <h3 class="text-sm font-semibold text-[#0D1210] mb-3 pb-2 border-b border-[#E6E8E7]">Usage Limits</h3>
+
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Max Uses</p>
+                <p class="text-sm font-semibold text-[#0D1210]" id="modal_max_uses"></p>
+            </div>
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Current Uses</p>
+                <p class="text-sm font-semibold text-[#0D1210]" id="modal_current_uses"></p>
+            </div>
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Max Uses Per User</p>
+                <p class="text-sm font-semibold text-[#0D1210]" id="modal_max_per_user"></p>
+            </div>
+        </div>
+
+        <h3 class="text-sm font-semibold text-[#0D1210] mb-3 pb-2 border-b border-[#E6E8E7]">Validity Period</h3>
+
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Valid From</p>
+                <p class="text-sm font-semibold text-[#0D1210]" id="modal_valid_from"></p>
+            </div>
+            <div class="border border-[#E6E8E7] rounded-lg p-3">
+                <p class="text-xs text-[#6A736E] mb-1">Valid Until</p>
+                <p class="text-sm font-semibold text-[#0D1210]" id="modal_valid_until"></p>
+            </div>
+        </div>
+
+        <div class="flex justify-end">
+            <button onclick="closeCouponModal()" class="px-5 py-2 bg-[#F5F6F6] text-[#0D1210] rounded-lg text-sm font-medium hover:bg-[#E6E8E7] transition-colors">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Coupon Modal -->
+<div id="addCouponModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-[#0D1210]">Add New Coupon</h2>
+            <button onclick="closeAddCouponModal()" class="text-[#6A736E] hover:text-[#0D1210]">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <form id="addCouponForm" method="POST" action="/dashboard/coupons/create/">
+            {% csrf_token %}
+
+            <h3 class="text-sm font-semibold text-[#0D1210] mb-3 pb-2 border-b border-[#E6E8E7]">Basic Information</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Coupon Code *</label>
+                    <input type="text" name="code" required class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]" placeholder="SUMMER50">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Coupon Type *</label>
+                    <select name="coupon_type" required class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                        <option value="general">General</option>
+                        <option value="beta">Beta</option>
+                        <option value="card">Card</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Name (English) *</label>
+                    <input type="text" name="name_en" required class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Name (Arabic) *</label>
+                    <input type="text" name="name_ar" required class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Description (English)</label>
+                    <textarea name="description_en" rows="2" class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]"></textarea>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Description (Arabic)</label>
+                    <textarea name="description_ar" rows="2" class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]"></textarea>
+                </div>
+            </div>
+
+            <h3 class="text-sm font-semibold text-[#0D1210] mb-3 pb-2 border-b border-[#E6E8E7]">Discount Settings</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Discount Type *</label>
+                    <select name="discount_type" required class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                        <option value="percentage">Percentage</option>
+                        <option value="fixed">Fixed Amount</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Discount Value *</label>
+                    <input type="number" name="discount_value" step="0.001" required class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Min Order Amount (KD)</label>
+                    <input type="number" name="min_order_amount" step="0.001" value="0" class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Max Discount Amount (KD)</label>
+                    <input type="number" name="max_discount_amount" step="0.001" class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]" placeholder="Leave empty for no limit">
+                </div>
+            </div>
+
+            <h3 class="text-sm font-semibold text-[#0D1210] mb-3 pb-2 border-b border-[#E6E8E7]">Usage Limits</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Max Uses</label>
+                    <input type="number" name="max_uses" class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]" placeholder="Leave empty for unlimited">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Max Uses Per User *</label>
+                    <input type="number" name="max_uses_per_user" value="1" required class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+            </div>
+
+            <h3 class="text-sm font-semibold text-[#0D1210] mb-3 pb-2 border-b border-[#E6E8E7]">Validity Period</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Valid From *</label>
+                    <input type="datetime-local" name="valid_from" required class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Valid Until</label>
+                    <input type="datetime-local" name="valid_until" class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]" placeholder="Leave empty for no expiry">
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="flex items-center">
+                    <input type="checkbox" name="is_active" checked class="w-4 h-4 text-[#0B5D35] bg-[#F5F6F6] border-none rounded focus:ring-2 focus:ring-[#0D1210]">
+                    <span class="ml-2 text-sm text-[#0D1210]">Active</span>
+                </label>
+            </div>
+
+            <div class="flex gap-2 justify-end">
+                <button type="button" onclick="closeAddCouponModal()" class="px-5 py-2 bg-[#F5F6F6] text-[#0D1210] rounded-lg text-sm font-medium hover:bg-[#E6E8E7] transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" class="px-5 py-2 bg-[#0B5D35] text-white rounded-lg text-sm font-medium hover:bg-[#0D1210] transition-colors">
+                    Create Coupon
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Coupon Modal -->
+<div id="editCouponModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-[#0D1210]">Edit Coupon</h2>
+            <button onclick="closeEditCouponModal()" class="text-[#6A736E] hover:text-[#0D1210]">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <form id="editCouponForm" method="POST">
+            {% csrf_token %}
+
+            <h3 class="text-sm font-semibold text-[#0D1210] mb-3 pb-2 border-b border-[#E6E8E7]">Basic Information</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Coupon Code *</label>
+                    <input type="text" name="code" id="edit_code" required class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Coupon Type *</label>
+                    <select name="coupon_type" id="edit_coupon_type" required class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                        <option value="general">General</option>
+                        <option value="beta">Beta</option>
+                        <option value="card">Card</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Name (English) *</label>
+                    <input type="text" name="name_en" id="edit_name_en" required class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Name (Arabic) *</label>
+                    <input type="text" name="name_ar" id="edit_name_ar" required class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Description (English)</label>
+                    <textarea name="description_en" id="edit_description_en" rows="2" class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]"></textarea>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Description (Arabic)</label>
+                    <textarea name="description_ar" id="edit_description_ar" rows="2" class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]"></textarea>
+                </div>
+            </div>
+
+            <h3 class="text-sm font-semibold text-[#0D1210] mb-3 pb-2 border-b border-[#E6E8E7]">Discount Settings</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Discount Type *</label>
+                    <select name="discount_type" id="edit_discount_type" required class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                        <option value="percentage">Percentage</option>
+                        <option value="fixed">Fixed Amount</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Discount Value *</label>
+                    <input type="number" name="discount_value" id="edit_discount_value" step="0.001" required class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Min Order Amount (KD)</label>
+                    <input type="number" name="min_order_amount" id="edit_min_order_amount" step="0.001" class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Max Discount Amount (KD)</label>
+                    <input type="number" name="max_discount_amount" id="edit_max_discount_amount" step="0.001" class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+            </div>
+
+            <h3 class="text-sm font-semibold text-[#0D1210] mb-3 pb-2 border-b border-[#E6E8E7]">Usage Limits</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Max Uses</label>
+                    <input type="number" name="max_uses" id="edit_max_uses" class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Max Uses Per User *</label>
+                    <input type="number" name="max_uses_per_user" id="edit_max_uses_per_user" required class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+            </div>
+
+            <h3 class="text-sm font-semibold text-[#0D1210] mb-3 pb-2 border-b border-[#E6E8E7]">Validity Period</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Valid From *</label>
+                    <input type="datetime-local" name="valid_from" id="edit_valid_from" required class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Valid Until</label>
+                    <input type="datetime-local" name="valid_until" id="edit_valid_until" class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="flex items-center">
+                    <input type="checkbox" name="is_active" id="edit_is_active" class="w-4 h-4 text-[#0B5D35] bg-[#F5F6F6] border-none rounded focus:ring-2 focus:ring-[#0D1210]">
+                    <span class="ml-2 text-sm text-[#0D1210]">Active</span>
+                </label>
+            </div>
+
+            <div class="flex gap-2 justify-end">
+                <button type="button" onclick="closeEditCouponModal()" class="px-5 py-2 bg-[#F5F6F6] text-[#0D1210] rounded-lg text-sm font-medium hover:bg-[#E6E8E7] transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" class="px-5 py-2 bg-[#0B5D35] text-white rounded-lg text-sm font-medium hover:bg-[#0D1210] transition-colors">
+                    Update Coupon
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Coupon Modal -->
+<div id="deleteCouponModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-[#0D1210]">Delete Coupon</h2>
+            <button onclick="closeDeleteCouponModal()" class="text-[#6A736E] hover:text-[#0D1210]">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="mb-6">
+            <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-[#FDECEC] rounded-full">
+                <svg class="w-6 h-6 text-[#BF3636]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+            </div>
+            <p class="text-center text-[#0D1210] font-semibold mb-2">Are you sure you want to delete this coupon?</p>
+            <p class="text-center text-sm text-[#6A736E]">Coupon: <span id="delete_coupon_code" class="font-mono font-bold text-[#5D0B33]"></span></p>
+            <p class="text-center text-sm text-[#BF3636] mt-2">This action cannot be undone.</p>
+        </div>
+
+        <form id="deleteCouponForm" method="POST">
+            {% csrf_token %}
+            <div class="flex gap-2 justify-end">
+                <button type="button" onclick="closeDeleteCouponModal()" class="px-5 py-2 bg-[#F5F6F6] text-[#0D1210] rounded-lg text-sm font-medium hover:bg-[#E6E8E7] transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" class="px-5 py-2 bg-[#BF3636] text-white rounded-lg text-sm font-medium hover:bg-[#0D1210] transition-colors">
+                    Delete Coupon
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function viewCouponDetails(code, nameEn, nameAr, descEn, descAr, type, discountType, discountValue, maxUses, currentUses, maxPerUser, minOrder, maxDiscount, validFrom, validUntil, status, totalDiscount) {
+    document.getElementById('modal_code').textContent = code;
+    document.getElementById('modal_name_en').textContent = nameEn;
+    document.getElementById('modal_name_ar').textContent = nameAr;
+    document.getElementById('modal_desc_en').textContent = descEn;
+    document.getElementById('modal_desc_ar').textContent = descAr;
+    document.getElementById('modal_type').textContent = type.charAt(0).toUpperCase() + type.slice(1);
+    document.getElementById('modal_discount_type').textContent = discountType.charAt(0).toUpperCase() + discountType.slice(1);
+
+    if (discountType === 'percentage') {
+        document.getElementById('modal_discount_value').textContent = discountValue + '%';
+    } else {
+        document.getElementById('modal_discount_value').textContent = discountValue + ' KD';
+    }
+
+    document.getElementById('modal_max_discount').textContent = maxDiscount === '-' ? 'No limit' : maxDiscount + ' KD';
+    document.getElementById('modal_min_order').textContent = minOrder + ' KD';
+    document.getElementById('modal_max_uses').textContent = maxUses;
+    document.getElementById('modal_current_uses').textContent = currentUses;
+    document.getElementById('modal_max_per_user').textContent = maxPerUser;
+    document.getElementById('modal_valid_from').textContent = validFrom;
+    document.getElementById('modal_valid_until').textContent = validUntil;
+    document.getElementById('modal_status').textContent = status;
+    document.getElementById('modal_total_discount').textContent = totalDiscount + ' KD';
+
+    document.getElementById('couponModal').classList.remove('hidden');
+    document.getElementById('couponModal').classList.add('flex');
+}
+
+function closeCouponModal() {
+    document.getElementById('couponModal').classList.add('hidden');
+    document.getElementById('couponModal').classList.remove('flex');
+}
+
+// Close modal when clicking outside
+document.getElementById('couponModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeCouponModal();
+    }
+});
+
+// Add Coupon Modal Functions
+function openAddCouponModal() {
+    document.getElementById('addCouponModal').classList.remove('hidden');
+    document.getElementById('addCouponModal').classList.add('flex');
+}
+
+function closeAddCouponModal() {
+    document.getElementById('addCouponModal').classList.add('hidden');
+    document.getElementById('addCouponModal').classList.remove('flex');
+}
+
+document.getElementById('addCouponModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeAddCouponModal();
+    }
+});
+
+// Edit Coupon Modal Functions
+function openEditCouponModal(id, code, nameEn, nameAr, descEn, descAr, couponType, discountType, discountValue, maxUses, maxUsesPerUser, minOrder, maxDiscount, validFrom, validUntil, isActive) {
+    document.getElementById('edit_code').value = code;
+    document.getElementById('edit_name_en').value = nameEn;
+    document.getElementById('edit_name_ar').value = nameAr;
+    document.getElementById('edit_description_en').value = descEn;
+    document.getElementById('edit_description_ar').value = descAr;
+    document.getElementById('edit_coupon_type').value = couponType;
+    document.getElementById('edit_discount_type').value = discountType;
+    document.getElementById('edit_discount_value').value = discountValue;
+    document.getElementById('edit_max_uses').value = maxUses;
+    document.getElementById('edit_max_uses_per_user').value = maxUsesPerUser;
+    document.getElementById('edit_min_order_amount').value = minOrder;
+    document.getElementById('edit_max_discount_amount').value = maxDiscount;
+    document.getElementById('edit_valid_from').value = validFrom;
+    document.getElementById('edit_valid_until').value = validUntil;
+    document.getElementById('edit_is_active').checked = isActive;
+
+    document.getElementById('editCouponForm').action = `/dashboard/coupons/${id}/update/`;
+    document.getElementById('editCouponModal').classList.remove('hidden');
+    document.getElementById('editCouponModal').classList.add('flex');
+}
+
+function closeEditCouponModal() {
+    document.getElementById('editCouponModal').classList.add('hidden');
+    document.getElementById('editCouponModal').classList.remove('flex');
+}
+
+document.getElementById('editCouponModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeEditCouponModal();
+    }
+});
+
+// Delete Coupon Modal Functions
+function openDeleteCouponModal(id, code) {
+    document.getElementById('delete_coupon_code').textContent = code;
+    document.getElementById('deleteCouponForm').action = `/dashboard/coupons/${id}/delete/`;
+    document.getElementById('deleteCouponModal').classList.remove('hidden');
+    document.getElementById('deleteCouponModal').classList.add('flex');
+}
+
+function closeDeleteCouponModal() {
+    document.getElementById('deleteCouponModal').classList.add('hidden');
+    document.getElementById('deleteCouponModal').classList.remove('flex');
+}
+
+document.getElementById('deleteCouponModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeDeleteCouponModal();
+    }
+});
+</script>
+
+{% endblock %}

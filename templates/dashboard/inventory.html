@@ -1,0 +1,311 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Inventory Tracking - Dashboard{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="mb-6 flex items-center justify-between">
+    <div>
+        <h1 class="text-3xl font-bold text-[#0D1210] mb-2">Inventory Tracking</h1>
+        <p class="text-sm text-[#6A736E]">Manage fabric stock levels and track inventory changes</p>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
+        <p class="text-sm text-[#6A736E] font-medium mb-2">Total Transactions</p>
+        <p class="text-3xl font-bold text-[#0D1210]">{{ total_transactions }}</p>
+    </div>
+    <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
+        <p class="text-sm text-[#6A736E] font-medium mb-2">Low Stock Items</p>
+        <p class="text-3xl font-bold text-[#F59E0B]">{{ low_stock_count }}</p>
+        <p class="text-xs text-[#6A736E] mt-1">Less than 10 units</p>
+    </div>
+    <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
+        <p class="text-sm text-[#6A736E] font-medium mb-2">Out of Stock</p>
+        <p class="text-3xl font-bold text-[#BF3636]">{{ out_of_stock_count }}</p>
+        <p class="text-xs text-[#6A736E] mt-1">0 units remaining</p>
+    </div>
+</div>
+
+<!-- Stock Levels Section -->
+<div class="bg-white border border-[#E6E8E7] rounded-2xl p-6 mb-6">
+    <h2 class="text-xl font-bold text-[#0D1210] mb-4">Current Stock Levels</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for fabric in fabrics %}
+        <div class="border border-[#E6E8E7] rounded-lg p-4 {% if fabric.quantity == 0 %}bg-red-50{% elif fabric.quantity < 10 %}bg-yellow-50{% endif %}">
+            <div class="flex justify-between items-start mb-2">
+                <div>
+                    <p class="text-sm font-semibold text-[#0D1210]">{{ fabric.color_name_eng }}</p>
+                    <p class="text-xs text-[#6A736E]">{{ fabric.color_name_arb }}</p>
+                    <p class="text-xs text-[#ADB2B0] mt-1">{{ fabric.fabric_type.fabric_name_eng }}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-2xl font-bold {% if fabric.quantity == 0 %}text-[#BF3636]{% elif fabric.quantity < 10 %}text-[#F59E0B]{% else %}text-[#1B9E4B]{% endif %}">
+                        {{ fabric.quantity }}
+                    </p>
+                    <p class="text-xs text-[#6A736E]">units</p>
+                </div>
+            </div>
+            <div class="flex gap-2 mt-3">
+                <button onclick="openAddStockModal({{ fabric.id }}, '{{ fabric.color_name_eng|escapejs }}')" class="flex-1 px-3 py-1.5 bg-[#0B5D35] text-white rounded-lg text-xs font-medium hover:bg-[#0D1210] transition-colors">
+                    + Add Stock
+                </button>
+                <button onclick="openReduceStockModal({{ fabric.id }}, '{{ fabric.color_name_eng|escapejs }}', {{ fabric.quantity }})" class="flex-1 px-3 py-1.5 bg-[#5D0B33] text-white rounded-lg text-xs font-medium hover:bg-[#0D1210] transition-colors">
+                    - Reduce
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Transaction History Section -->
+<div class="bg-white border border-[#E6E8E7] rounded-2xl overflow-hidden">
+    <div class="p-6 border-b border-[#E6E8E7]">
+        <h2 class="text-xl font-bold text-[#0D1210] mb-4">Transaction History</h2>
+
+        <!-- Filters -->
+        <form method="GET" class="flex flex-col md:flex-row gap-2">
+            <div class="flex-1 relative">
+                <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#ADB2B0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                <input type="text" name="search" value="{{ search_query }}" placeholder="Search by fabric or order..." class="w-full pl-10 pr-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+            </div>
+            <select name="transaction_type" class="px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                <option value="">All Types</option>
+                {% for type in transaction_types %}
+                <option value="{{ type }}" {% if transaction_type_filter == type %}selected{% endif %}>{{ type }}</option>
+                {% endfor %}
+            </select>
+            <select name="fabric" class="px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                <option value="">All Fabrics</option>
+                {% for fabric in fabrics %}
+                <option value="{{ fabric.id }}" {% if fabric_filter == fabric.id|stringformat:"s" %}selected{% endif %}>{{ fabric.color_name_eng }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="px-5 py-2 bg-[#0D1210] text-white rounded-lg text-sm font-medium hover:bg-[#1a2420] transition-colors">
+                Filter
+            </button>
+            {% if search_query or transaction_type_filter or fabric_filter %}
+            <a href="/dashboard/inventory/" class="px-5 py-2 bg-[#F5F6F6] text-[#0D1210] rounded-lg text-sm font-medium hover:bg-[#E6E8E7] transition-colors">
+                Clear
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Transactions Table -->
+    <div class="overflow-x-auto">
+        <table class="w-full table-auto">
+            <thead class="bg-[#F5F6F6]">
+                <tr>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Date/Time</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Fabric</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Type</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Change</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Before</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">After</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Reference</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">User</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-[#E6E8E7]">
+                {% for transaction in transactions %}
+                <tr class="hover:bg-[#F5F6F6]/50 transition-colors">
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        <p class="text-xs text-[#6A736E]">{{ transaction.timestamp|date:"d M Y" }}</p>
+                        <p class="text-xs text-[#ADB2B0]">{{ transaction.timestamp|date:"H:i" }}</p>
+                    </td>
+                    <td class="px-3 py-2.5">
+                        <p class="text-sm font-semibold text-[#0D1210]">{{ transaction.fabric_color.color_name_eng }}</p>
+                        <p class="text-xs text-[#6A736E]">{{ transaction.fabric_color.fabric_type.fabric_name_eng }}</p>
+                    </td>
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        {% if transaction.transaction_type == 'ORDER' %}
+                            <span class="px-2 py-1 text-xs font-medium bg-[#FDECEC] text-[#BF3636] rounded-full">Order</span>
+                        {% elif transaction.transaction_type == 'CANCEL' %}
+                            <span class="px-2 py-1 text-xs font-medium bg-[#E9F9EF] text-[#1B9E4B] rounded-full">Cancel</span>
+                        {% elif transaction.transaction_type == 'RESTOCK' %}
+                            <span class="px-2 py-1 text-xs font-medium bg-[#E0F2FE] text-[#0EA5E9] rounded-full">Restock</span>
+                        {% else %}
+                            <span class="px-2 py-1 text-xs font-medium bg-[#F5F6F6] text-[#6A736E] rounded-full">Adjustment</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        <p class="text-sm font-bold {% if transaction.quantity_change > 0 %}text-[#1B9E4B]{% else %}text-[#BF3636]{% endif %}">
+                            {% if transaction.quantity_change > 0 %}+{% endif %}{{ transaction.quantity_change }}
+                        </p>
+                    </td>
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        <p class="text-sm text-[#6A736E]">{{ transaction.quantity_before }}</p>
+                    </td>
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        <p class="text-sm font-semibold text-[#0D1210]">{{ transaction.quantity_after }}</p>
+                    </td>
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        {% if transaction.reference_order %}
+                            <p class="text-xs font-mono text-[#0B5D35]">{{ transaction.reference_order }}</p>
+                        {% else %}
+                            <p class="text-xs text-[#ADB2B0]">-</p>
+                        {% endif %}
+                    </td>
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        {% if transaction.created_by %}
+                            <p class="text-xs text-[#6A736E]">{{ transaction.created_by.username }}</p>
+                        {% else %}
+                            <p class="text-xs text-[#ADB2B0]">System</p>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="px-6 py-12 text-center">
+                        <svg class="w-12 h-12 mx-auto text-[#ADB2B0] mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                        </svg>
+                        <p class="text-[#6A736E] text-sm font-medium">No transactions found</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Stock Modal -->
+<div id="addStockModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-[#0D1210]">Add Stock</h2>
+            <button onclick="closeAddStockModal()" class="text-[#6A736E] hover:text-[#0D1210]">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <p class="text-sm text-[#6A736E] mb-4">Fabric: <span id="add_fabric_name" class="font-semibold text-[#0D1210]"></span></p>
+
+        <form id="addStockForm" method="POST" action="/dashboard/inventory/add-stock/">
+            {% csrf_token %}
+            <input type="hidden" name="fabric_id" id="add_fabric_id">
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-[#0D1210] mb-2">Quantity to Add *</label>
+                <input type="number" name="quantity" min="1" required class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-[#0D1210] mb-2">Transaction Type *</label>
+                <select name="transaction_type" required class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                    <option value="RESTOCK">Restock (New supply)</option>
+                    <option value="ADJUSTMENT">Adjustment (Manual correction)</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-[#0D1210] mb-2">Notes</label>
+                <textarea name="notes" rows="3" class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]" placeholder="Optional notes about this transaction..."></textarea>
+            </div>
+
+            <div class="flex gap-2 justify-end">
+                <button type="button" onclick="closeAddStockModal()" class="px-5 py-2 bg-[#F5F6F6] text-[#0D1210] rounded-lg text-sm font-medium hover:bg-[#E6E8E7] transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" class="px-5 py-2 bg-[#0B5D35] text-white rounded-lg text-sm font-medium hover:bg-[#0D1210] transition-colors">
+                    Add Stock
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Reduce Stock Modal -->
+<div id="reduceStockModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-[#0D1210]">Reduce Stock</h2>
+            <button onclick="closeReduceStockModal()" class="text-[#6A736E] hover:text-[#0D1210]">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <p class="text-sm text-[#6A736E] mb-2">Fabric: <span id="reduce_fabric_name" class="font-semibold text-[#0D1210]"></span></p>
+        <p class="text-sm text-[#6A736E] mb-4">Current Stock: <span id="reduce_current_stock" class="font-semibold text-[#0B5D35]"></span> units</p>
+
+        <form id="reduceStockForm" method="POST" action="/dashboard/inventory/reduce-stock/">
+            {% csrf_token %}
+            <input type="hidden" name="fabric_id" id="reduce_fabric_id">
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-[#0D1210] mb-2">Quantity to Reduce *</label>
+                <input type="number" name="quantity" min="1" required class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-[#0D1210] mb-2">Notes</label>
+                <textarea name="notes" rows="3" class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]" placeholder="Reason for reduction..."></textarea>
+            </div>
+
+            <div class="flex gap-2 justify-end">
+                <button type="button" onclick="closeReduceStockModal()" class="px-5 py-2 bg-[#F5F6F6] text-[#0D1210] rounded-lg text-sm font-medium hover:bg-[#E6E8E7] transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" class="px-5 py-2 bg-[#BF3636] text-white rounded-lg text-sm font-medium hover:bg-[#0D1210] transition-colors">
+                    Reduce Stock
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Add Stock Modal
+function openAddStockModal(fabricId, fabricName) {
+    document.getElementById('add_fabric_id').value = fabricId;
+    document.getElementById('add_fabric_name').textContent = fabricName;
+    document.getElementById('addStockModal').classList.remove('hidden');
+    document.getElementById('addStockModal').classList.add('flex');
+}
+
+function closeAddStockModal() {
+    document.getElementById('addStockModal').classList.add('hidden');
+    document.getElementById('addStockModal').classList.remove('flex');
+    document.getElementById('addStockForm').reset();
+}
+
+document.getElementById('addStockModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeAddStockModal();
+    }
+});
+
+// Reduce Stock Modal
+function openReduceStockModal(fabricId, fabricName, currentStock) {
+    document.getElementById('reduce_fabric_id').value = fabricId;
+    document.getElementById('reduce_fabric_name').textContent = fabricName;
+    document.getElementById('reduce_current_stock').textContent = currentStock;
+    document.getElementById('reduceStockModal').classList.remove('hidden');
+    document.getElementById('reduceStockModal').classList.add('flex');
+}
+
+function closeReduceStockModal() {
+    document.getElementById('reduceStockModal').classList.add('hidden');
+    document.getElementById('reduceStockModal').classList.remove('flex');
+    document.getElementById('reduceStockForm').reset();
+}
+
+document.getElementById('reduceStockModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeReduceStockModal();
+    }
+});
+</script>
+
+{% endblock %}
