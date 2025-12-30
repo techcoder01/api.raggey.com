@@ -1,0 +1,226 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}About Us - Dashboard{% endblock %}
+
+{% block content %}
+<style>
+.editor-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 8px;
+    background: #F5F6F6;
+    border: 1px solid #E6E8E7;
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+}
+
+.editor-btn {
+    padding: 6px 10px;
+    background: white;
+    border: 1px solid #E6E8E7;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #0D1210;
+    transition: all 0.2s;
+}
+
+.editor-btn:hover {
+    background: #0B5D35;
+    color: white;
+}
+
+.editor-content {
+    min-height: 300px;
+    padding: 12px;
+    background: white;
+    border: 1px solid #E6E8E7;
+    border-radius: 0 0 8px 8px;
+    outline: none;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.editor-content:focus {
+    border-color: #0D1210;
+}
+
+.editor-content p {
+    margin-bottom: 0.5em;
+}
+
+.editor-content h1 {
+    font-size: 2em;
+    font-weight: bold;
+    margin: 0.5em 0;
+}
+
+.editor-content h2 {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin: 0.5em 0;
+}
+
+.editor-content h3 {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin: 0.5em 0;
+}
+
+.editor-content ul {
+    list-style: disc;
+    margin-left: 20px;
+    margin-bottom: 0.5em;
+}
+
+.editor-content ol {
+    list-style: decimal;
+    margin-left: 20px;
+    margin-bottom: 0.5em;
+}
+</style>
+
+<!-- Page Header -->
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-[#0D1210] mb-2">About Us Management</h1>
+    <p class="text-sm text-[#6A736E]">Manage your About Us page content</p>
+</div>
+
+<!-- Display Messages -->
+{% if messages %}
+<div class="mb-6">
+    {% for message in messages %}
+    <div class="p-4 rounded-lg {% if message.tags == 'success' %}bg-[#E9F9EF] text-[#1B9E4B]{% elif message.tags == 'error' %}bg-[#FDECEC] text-[#BF3636]{% else %}bg-[#F5F6F6] text-[#0D1210]{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- About Us Content Form -->
+<div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
+    <form id="aboutForm" method="POST" action="/dashboard/about/update/">
+        {% csrf_token %}
+
+        <!-- Titles -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div>
+                <label class="block text-sm font-medium text-[#0D1210] mb-2">Title (English) *</label>
+                <input type="text" name="title_en" value="{{ about_us.title_en }}" required class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-[#0D1210] mb-2">Title (Arabic) *</label>
+                <input type="text" name="title_ar" value="{{ about_us.title_ar }}" required class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]" dir="rtl">
+            </div>
+        </div>
+
+        <!-- Content English -->
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-[#0D1210] mb-2">Content (English)</label>
+            <div class="editor-toolbar">
+                <button type="button" class="editor-btn" onclick="formatDoc('bold', 'content_en')" title="Bold"><b>B</b></button>
+                <button type="button" class="editor-btn" onclick="formatDoc('italic', 'content_en')" title="Italic"><i>I</i></button>
+                <button type="button" class="editor-btn" onclick="formatDoc('underline', 'content_en')" title="Underline"><u>U</u></button>
+                <button type="button" class="editor-btn" onclick="formatDoc('justifyLeft', 'content_en')" title="Align Left">≡</button>
+                <button type="button" class="editor-btn" onclick="formatDoc('justifyCenter', 'content_en')" title="Align Center">≣</button>
+                <button type="button" class="editor-btn" onclick="formatDoc('justifyRight', 'content_en')" title="Align Right">≡</button>
+                <button type="button" class="editor-btn" onclick="formatDoc('insertUnorderedList', 'content_en')" title="Bullet List">• List</button>
+                <button type="button" class="editor-btn" onclick="formatDoc('insertOrderedList', 'content_en')" title="Numbered List">1. List</button>
+                <button type="button" class="editor-btn" onclick="formatHeading('h2', 'content_en')" title="Heading">H2</button>
+                <button type="button" class="editor-btn" onclick="formatHeading('h3', 'content_en')" title="Sub-heading">H3</button>
+            </div>
+            <div id="content_en" class="editor-content" contenteditable="true">{{ about_us.content_en|default:""|safe }}</div>
+            <input type="hidden" name="content_en" id="content_en_hidden">
+        </div>
+
+        <!-- Content Arabic -->
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-[#0D1210] mb-2">Content (Arabic)</label>
+            <div class="editor-toolbar">
+                <button type="button" class="editor-btn" onclick="formatDoc('bold', 'content_ar')" title="Bold"><b>B</b></button>
+                <button type="button" class="editor-btn" onclick="formatDoc('italic', 'content_ar')" title="Italic"><i>I</i></button>
+                <button type="button" class="editor-btn" onclick="formatDoc('underline', 'content_ar')" title="Underline"><u>U</u></button>
+                <button type="button" class="editor-btn" onclick="formatDoc('justifyLeft', 'content_ar')" title="Align Right">≡</button>
+                <button type="button" class="editor-btn" onclick="formatDoc('justifyCenter', 'content_ar')" title="Align Center">≣</button>
+                <button type="button" class="editor-btn" onclick="formatDoc('justifyRight', 'content_ar')" title="Align Left">≡</button>
+                <button type="button" class="editor-btn" onclick="formatDoc('insertUnorderedList', 'content_ar')" title="Bullet List">• قائمة</button>
+                <button type="button" class="editor-btn" onclick="formatDoc('insertOrderedList', 'content_ar')" title="Numbered List">1. قائمة</button>
+                <button type="button" class="editor-btn" onclick="formatHeading('h2', 'content_ar')" title="Heading">H2</button>
+                <button type="button" class="editor-btn" onclick="formatHeading('h3', 'content_ar')" title="Sub-heading">H3</button>
+            </div>
+            <div id="content_ar" class="editor-content" contenteditable="true" dir="rtl">{{ about_us.content_ar|default:""|safe }}</div>
+            <input type="hidden" name="content_ar" id="content_ar_hidden">
+        </div>
+
+        <!-- Active Status -->
+        <div class="mb-6">
+            <label class="flex items-center">
+                <input type="checkbox" name="is_active" {% if about_us.is_active %}checked{% endif %} class="w-4 h-4 text-[#0B5D35] bg-[#F5F6F6] border-none rounded focus:ring-2 focus:ring-[#0D1210]">
+                <span class="ml-2 text-sm text-[#0D1210]">Active (Visible to users)</span>
+            </label>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="flex gap-3">
+            <button type="submit" class="px-6 py-2.5 bg-[#0B5D35] text-white rounded-lg text-sm font-medium hover:bg-[#0D1210] transition-colors inline-flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Save Changes
+            </button>
+            <button type="button" onclick="window.location.reload()" class="px-6 py-2.5 bg-[#F5F6F6] text-[#0D1210] rounded-lg text-sm font-medium hover:bg-[#E6E8E7] transition-colors">
+                Reset
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Info Box -->
+<div class="mt-6 p-4 bg-[#E7EFEB] border border-[#0B5D35] rounded-lg">
+    <div class="flex items-start">
+        <svg class="w-5 h-5 text-[#0B5D35] mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <div>
+            <h4 class="text-sm font-semibold text-[#0D1210] mb-1">Content Tips</h4>
+            <ul class="text-xs text-[#6A736E] space-y-1">
+                <li>• Use the formatting toolbar to style your content</li>
+                <li>• Add headings, lists, and text alignment as needed</li>
+                <li>• Content supports HTML formatting for rich text</li>
+                <li>• Make sure to fill both English and Arabic content</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+// Custom Text Editor Functions
+function formatDoc(cmd, editorId) {
+    const editor = document.getElementById(editorId);
+    editor.focus();
+    document.execCommand(cmd, false, null);
+}
+
+function formatHeading(tag, editorId) {
+    const editor = document.getElementById(editorId);
+    editor.focus();
+    document.execCommand('formatBlock', false, tag);
+}
+
+// Sync contentEditable with hidden input before form submit
+function syncEditorContent() {
+    const contentEn = document.getElementById('content_en');
+    const contentAr = document.getElementById('content_ar');
+
+    document.getElementById('content_en_hidden').value = contentEn.innerHTML;
+    document.getElementById('content_ar_hidden').value = contentAr.innerHTML;
+}
+
+// Sync editor content before form submission
+document.getElementById('aboutForm').addEventListener('submit', function(e) {
+    syncEditorContent();
+});
+</script>
+
+{% endblock %}

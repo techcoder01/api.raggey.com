@@ -12,6 +12,7 @@ from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.cache import cache_page
 from django.core.cache import cache
+from decimal import Decimal
 from Purchase.models import Purchase, Payment
 from Design.models import (
     FabricColor, FabricType, GholaType, SleevesType,
@@ -107,10 +108,11 @@ def dashboard_view(request):
             'id', 'track_id', 'status', 'amount', 'created_at', 'purchase__invoice_number'
         ).order_by('-created_at')[:10]
 
-        # Active coupons
+        # Active coupons (include coupons with no expiry date)
         active_coupons = Coupon.objects.filter(
-            is_active=True,
-            valid_until__gte=today
+            is_active=True
+        ).filter(
+            Q(valid_until__isnull=True) | Q(valid_until__gte=today)
         ).count()
 
         # Total users
@@ -2092,3 +2094,334 @@ def update_address(request, address_id):
         messages.error(request, f'Error updating address: {str(e)}')
 
     return redirect(request.META.get('HTTP_REFERER', '/dashboard/addresses/'))
+
+
+# ==================== DELIVERY SETTINGS ====================
+
+@login_required(login_url='/dashboard/login/')
+@user_passes_test(is_staff_user, login_url='/dashboard/login/')
+def delivery_settings_view(request):
+    """Display and manage delivery settings"""
+    from Purchase.models import DeliverySettings
+
+    # Get active delivery settings or create default if none exists
+    settings = DeliverySettings.objects.filter(is_active=True).first()
+
+    if not settings:
+        # Create default settings if none exist
+        settings = DeliverySettings.objects.create(
+            delivery_days=5,
+            delivery_cost=Decimal('2.000'),
+            whatsapp_support='+96500000000',
+            is_active=True
+        )
+
+    context = {
+        'settings': settings,
+    }
+
+    return render(request, 'dashboard/delivery_settings.html', context)
+
+
+@login_required(login_url='/dashboard/login/')
+@user_passes_test(is_staff_user, login_url='/dashboard/login/')
+@require_http_methods(["POST"])
+def update_delivery_settings(request):
+    """Update delivery settings"""
+    from Purchase.models import DeliverySettings
+
+    try:
+        # Get active settings or create new
+        settings = DeliverySettings.objects.filter(is_active=True).first()
+
+        if not settings:
+            settings = DeliverySettings()
+
+        # Update fields
+        settings.delivery_days = int(request.POST.get('delivery_days', 5))
+        settings.delivery_cost = Decimal(request.POST.get('delivery_cost', '2.000'))
+        settings.whatsapp_support = request.POST.get('whatsapp_support', '+96500000000')
+        settings.is_active = True
+
+        settings.save()
+
+        messages.success(request, 'Delivery settings updated successfully!')
+
+    except Exception as e:
+        messages.error(request, f'Error updating delivery settings: {str(e)}')
+
+    return redirect('/dashboard/delivery-settings/')
+
+
+# ==================== ABOUT US MANAGEMENT ====================
+
+@login_required(login_url='/dashboard/login/')
+@user_passes_test(is_staff_user, login_url='/dashboard/login/')
+def about_view(request):
+    """Display and manage About Us content"""
+    from Purchase.models import AboutUs
+
+    # Get or create AboutUs instance
+    about_us = AboutUs.objects.first()
+
+    if not about_us:
+        about_us = AboutUs.objects.create(
+            title_en='About Us',
+            title_ar='من نحن',
+            content_en='',
+            content_ar='',
+            is_active=True
+        )
+
+    context = {
+        'about_us': about_us,
+    }
+
+    return render(request, 'dashboard/about.html', context)
+
+
+@login_required(login_url='/dashboard/login/')
+@user_passes_test(is_staff_user, login_url='/dashboard/login/')
+@require_http_methods(["POST"])
+def update_about(request):
+    """Update About Us content"""
+    from Purchase.models import AboutUs
+
+    try:
+        about_us = AboutUs.objects.first()
+
+        if not about_us:
+            about_us = AboutUs()
+
+        about_us.title_en = request.POST.get('title_en', 'About Us')
+        about_us.title_ar = request.POST.get('title_ar', 'من نحن')
+        about_us.content_en = request.POST.get('content_en', '')
+        about_us.content_ar = request.POST.get('content_ar', '')
+        about_us.is_active = 'is_active' in request.POST
+        about_us.save()
+
+        messages.success(request, 'About Us content updated successfully!')
+
+    except Exception as e:
+        messages.error(request, f'Error updating About Us: {str(e)}')
+
+    return redirect('/dashboard/about/')
+
+
+# ==================== TERMS AND CONDITIONS MANAGEMENT ====================
+
+@login_required(login_url='/dashboard/login/')
+@user_passes_test(is_staff_user, login_url='/dashboard/login/')
+def terms_view(request):
+    """Display and manage Terms and Conditions content"""
+    from Purchase.models import TermsAndConditions
+
+    # Get or create TermsAndConditions instance
+    terms = TermsAndConditions.objects.first()
+
+    if not terms:
+        terms = TermsAndConditions.objects.create(
+            title_en='Terms and Conditions',
+            title_ar='الشروط والأحكام',
+            content_en='',
+            content_ar='',
+            is_active=True
+        )
+
+    context = {
+        'terms': terms,
+    }
+
+    return render(request, 'dashboard/terms.html', context)
+
+
+@login_required(login_url='/dashboard/login/')
+@user_passes_test(is_staff_user, login_url='/dashboard/login/')
+@require_http_methods(["POST"])
+def update_terms(request):
+    """Update Terms and Conditions content"""
+    from Purchase.models import TermsAndConditions
+
+    try:
+        terms = TermsAndConditions.objects.first()
+
+        if not terms:
+            terms = TermsAndConditions()
+
+        terms.title_en = request.POST.get('title_en', 'Terms and Conditions')
+        terms.title_ar = request.POST.get('title_ar', 'الشروط والأحكام')
+        terms.content_en = request.POST.get('content_en', '')
+        terms.content_ar = request.POST.get('content_ar', '')
+        terms.is_active = 'is_active' in request.POST
+        terms.save()
+
+        messages.success(request, 'Terms and Conditions updated successfully!')
+
+    except Exception as e:
+        messages.error(request, f'Error updating Terms and Conditions: {str(e)}')
+
+    return redirect('/dashboard/terms/')
+
+
+@login_required(login_url='/dashboard/login/')
+@user_passes_test(is_staff_user, login_url='/dashboard/login/')
+@require_http_methods(["POST"])
+def create_about_section(request):
+    """Create a new About section"""
+    from Purchase.models import AboutUs, AboutSection
+
+    try:
+        about_us = AboutUs.objects.first()
+
+        if not about_us:
+            about_us = AboutUs.objects.create(title_en='About Us', title_ar='من نحن')
+
+        section_type = request.POST.get('section_type')
+        title_en = request.POST.get('title_en')
+        title_ar = request.POST.get('title_ar')
+        content_en = request.POST.get('content_en', '')
+        content_ar = request.POST.get('content_ar', '')
+        order = int(request.POST.get('order', 0))
+
+        AboutSection.objects.create(
+            about_us=about_us,
+            section_type=section_type,
+            title_en=title_en,
+            title_ar=title_ar,
+            content_en=content_en,
+            content_ar=content_ar,
+            order=order
+        )
+
+        messages.success(request, f'Section "{title_en}" created successfully!')
+
+    except Exception as e:
+        messages.error(request, f'Error creating section: {str(e)}')
+
+    return redirect('/dashboard/about/')
+
+
+@login_required(login_url='/dashboard/login/')
+@user_passes_test(is_staff_user, login_url='/dashboard/login/')
+@require_http_methods(["POST"])
+def update_about_section(request, section_id):
+    """Update an About section"""
+    from Purchase.models import AboutSection
+
+    try:
+        section = AboutSection.objects.get(id=section_id)
+
+        section.title_en = request.POST.get('title_en')
+        section.title_ar = request.POST.get('title_ar')
+        section.content_en = request.POST.get('content_en', '')
+        section.content_ar = request.POST.get('content_ar', '')
+        section.order = int(request.POST.get('order', 0))
+        section.save()
+
+        messages.success(request, f'Section "{section.title_en}" updated successfully!')
+
+    except AboutSection.DoesNotExist:
+        messages.error(request, 'Section not found')
+    except Exception as e:
+        messages.error(request, f'Error updating section: {str(e)}')
+
+    return redirect('/dashboard/about/')
+
+
+@login_required(login_url='/dashboard/login/')
+@user_passes_test(is_staff_user, login_url='/dashboard/login/')
+@require_http_methods(["POST"])
+def delete_about_section(request, section_id):
+    """Delete an About section"""
+    from Purchase.models import AboutSection
+
+    try:
+        section = AboutSection.objects.get(id=section_id)
+        title = section.title_en
+        section.delete()
+        messages.success(request, f'Section "{title}" deleted successfully!')
+
+    except AboutSection.DoesNotExist:
+        messages.error(request, 'Section not found')
+    except Exception as e:
+        messages.error(request, f'Error deleting section: {str(e)}')
+
+    return redirect('/dashboard/about/')
+
+
+@login_required(login_url='/dashboard/login/')
+@user_passes_test(is_staff_user, login_url='/dashboard/login/')
+@require_http_methods(["POST"])
+def create_about_value(request):
+    """Create a new About value"""
+    from Purchase.models import AboutValue, AboutSection
+
+    try:
+        section_id = request.POST.get('section_id')
+        section = AboutSection.objects.get(id=section_id)
+
+        AboutValue.objects.create(
+            section=section,
+            title_en=request.POST.get('title_en'),
+            title_ar=request.POST.get('title_ar'),
+            description_en=request.POST.get('description_en'),
+            description_ar=request.POST.get('description_ar'),
+            order=int(request.POST.get('order', 0))
+        )
+
+        messages.success(request, 'Value created successfully!')
+
+    except AboutSection.DoesNotExist:
+        messages.error(request, 'Section not found')
+    except Exception as e:
+        messages.error(request, f'Error creating value: {str(e)}')
+
+    return redirect('/dashboard/about/')
+
+
+@login_required(login_url='/dashboard/login/')
+@user_passes_test(is_staff_user, login_url='/dashboard/login/')
+@require_http_methods(["POST"])
+def update_about_value(request, value_id):
+    """Update an About value"""
+    from Purchase.models import AboutValue
+
+    try:
+        value = AboutValue.objects.get(id=value_id)
+
+        value.title_en = request.POST.get('title_en')
+        value.title_ar = request.POST.get('title_ar')
+        value.description_en = request.POST.get('description_en')
+        value.description_ar = request.POST.get('description_ar')
+        value.order = int(request.POST.get('order', 0))
+        value.save()
+
+        messages.success(request, f'Value "{value.title_en}" updated successfully!')
+
+    except AboutValue.DoesNotExist:
+        messages.error(request, 'Value not found')
+    except Exception as e:
+        messages.error(request, f'Error updating value: {str(e)}')
+
+    return redirect('/dashboard/about/')
+
+
+@login_required(login_url='/dashboard/login/')
+@user_passes_test(is_staff_user, login_url='/dashboard/login/')
+@require_http_methods(["POST"])
+def delete_about_value(request, value_id):
+    """Delete an About value"""
+    from Purchase.models import AboutValue
+
+    try:
+        value = AboutValue.objects.get(id=value_id)
+        title = value.title_en
+        value.delete()
+        messages.success(request, f'Value "{title}" deleted successfully!')
+
+    except AboutValue.DoesNotExist:
+        messages.error(request, 'Value not found')
+    except Exception as e:
+        messages.error(request, f'Error deleting value: {str(e)}')
+
+    return redirect('/dashboard/about/')

@@ -169,6 +169,11 @@ class DeliverySettings(models.Model):
         default=Decimal('2.000'),
         help_text="Delivery cost in KWD"
     )
+    whatsapp_support = models.CharField(
+        max_length=20,
+        default='+96500000000',
+        help_text="WhatsApp support number with country code (e.g., +96500000000)"
+    )
     is_active = models.BooleanField(
         default=True,
         help_text="Only one settings record should be active at a time"
@@ -265,3 +270,41 @@ class Payment(models.Model):
             models.Index(fields=['user', 'status']),
             models.Index(fields=['created_at']),
         ]
+
+
+class AboutUs(models.Model):
+    """About Us content - simple page with title and content in both languages"""
+    title_en = models.CharField(max_length=255, default='About Us')
+    title_ar = models.CharField(max_length=255, default='من نحن')
+    content_en = models.TextField(blank=True, null=True, help_text='About Us content in English (supports HTML)')
+    content_ar = models.TextField(blank=True, null=True, help_text='About Us content in Arabic (supports HTML)')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"About Us - {self.title_en}"
+
+    class Meta:
+        verbose_name = "About Us Content"
+        verbose_name_plural = "About Us Content"
+        ordering = ['-created_at']
+
+
+class TermsAndConditions(models.Model):
+    """Terms and Conditions content - simple page with title and content in both languages"""
+    title_en = models.CharField(max_length=255, default='Terms and Conditions')
+    title_ar = models.CharField(max_length=255, default='الشروط والأحكام')
+    content_en = models.TextField(blank=True, null=True, help_text='Terms and Conditions content in English (supports HTML)')
+    content_ar = models.TextField(blank=True, null=True, help_text='Terms and Conditions content in Arabic (supports HTML)')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Terms and Conditions - {self.title_en}"
+
+    class Meta:
+        verbose_name = "Terms and Conditions Content"
+        verbose_name_plural = "Terms and Conditions Content"
+        ordering = ['-created_at']

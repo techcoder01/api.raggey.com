@@ -7,6 +7,8 @@ from .views import (
     CancelOrderAPIView,
     UpdateOrderAddressAPIView,
     DeliverySettingsAPIView,
+    AboutUsAPIView,
+    TermsAndConditionsAPIView,
 
     # Admin-side views
     AdminOrderListAPIView,
@@ -43,6 +45,12 @@ urlpatterns = [
 
     # Delivery Settings
     path('delivery-settings/', DeliverySettingsAPIView.as_view(), name='delivery-settings'),
+
+    # About Us
+    path('about-us/', AboutUsAPIView.as_view(), name='about-us'),
+
+    # Terms and Conditions
+    path('terms-and-conditions/', TermsAndConditionsAPIView.as_view(), name='terms-and-conditions'),
 
     # ================ ADMIN-SIDE ENDPOINTS ================
 

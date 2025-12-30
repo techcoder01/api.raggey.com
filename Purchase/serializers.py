@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Purchase, Item, DeliverySettings, Payment, CancellationRequest
+from .models import Purchase, Item, DeliverySettings, Payment, CancellationRequest, AboutUs, TermsAndConditions
 from Design.serializers import UserDesignSerializer
 from Sizes.serializers import SizesSerializer
 
@@ -205,6 +205,7 @@ class DeliverySettingsSerializer(serializers.ModelSerializer):
             'id',
             'delivery_days',
             'delivery_cost',
+            'whatsapp_support',
             'is_active',
             'created_at',
             'updated_at'
@@ -336,3 +337,19 @@ class PaymentStatusSerializer(serializers.ModelSerializer):
             'created_at'
         ]
         read_only_fields = fields
+
+
+class AboutUsSerializer(serializers.ModelSerializer):
+    """Serializer for AboutUs model - simple About Us content"""
+    class Meta:
+        model = AboutUs
+        fields = ['id', 'title_en', 'title_ar', 'content_en', 'content_ar', 'is_active', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
+
+
+class TermsAndConditionsSerializer(serializers.ModelSerializer):
+    """Serializer for TermsAndConditions model - simple Terms and Conditions content"""
+    class Meta:
+        model = TermsAndConditions
+        fields = ['id', 'title_en', 'title_ar', 'content_en', 'content_ar', 'is_active', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']

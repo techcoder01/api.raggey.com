@@ -1,0 +1,146 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Delivery Settings - Dashboard{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-[#0D1210] mb-2">Delivery Settings</h1>
+    <p class="text-sm text-[#6A736E]">Manage delivery fees, delivery time, and support contact</p>
+</div>
+
+<!-- Display Messages -->
+{% if messages %}
+<div class="mb-6">
+    {% for message in messages %}
+    <div class="p-4 rounded-lg {% if message.tags == 'success' %}bg-[#E9F9EF] text-[#1B9E4B]{% elif message.tags == 'error' %}bg-[#FDECEC] text-[#BF3636]{% else %}bg-[#F5F6F6] text-[#0D1210]{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Delivery Settings Card -->
+<div class="bg-white border border-[#E6E8E7] rounded-2xl p-6 max-w-3xl">
+    <div class="mb-6">
+        <h2 class="text-xl font-semibold text-[#0D1210] mb-2">Current Settings</h2>
+        <p class="text-sm text-[#6A736E]">These settings control delivery fees and estimated delivery time shown to customers</p>
+    </div>
+
+    <!-- Current Values Display -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-[#F5F6F6] rounded-lg">
+        <div class="text-center">
+            <p class="text-xs text-[#6A736E] mb-1">Delivery Time</p>
+            <p class="text-2xl font-bold text-[#0B5D35]">{{ settings.delivery_days }} Days</p>
+        </div>
+        <div class="text-center">
+            <p class="text-xs text-[#6A736E] mb-1">Delivery Cost</p>
+            <p class="text-2xl font-bold text-[#5D0B33]">{{ settings.delivery_cost }} KD</p>
+        </div>
+        <div class="text-center">
+            <p class="text-xs text-[#6A736E] mb-1">WhatsApp Support</p>
+            <p class="text-lg font-semibold text-[#0D1210]">{{ settings.whatsapp_support }}</p>
+        </div>
+    </div>
+
+    <!-- Edit Form -->
+    <form method="POST" action="/dashboard/delivery-settings/update/" class="space-y-6">
+        {% csrf_token %}
+
+        <div class="border-t border-[#E6E8E7] pt-6">
+            <h3 class="text-lg font-semibold text-[#0D1210] mb-4">Update Settings</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Delivery Days -->
+                <div>
+                    <label for="delivery_days" class="block text-sm font-medium text-[#0D1210] mb-2">
+                        Delivery Time (Days) *
+                    </label>
+                    <input
+                        type="number"
+                        id="delivery_days"
+                        name="delivery_days"
+                        value="{{ settings.delivery_days }}"
+                        min="1"
+                        max="30"
+                        required
+                        class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]"
+                        placeholder="e.g., 5">
+                    <p class="text-xs text-[#6A736E] mt-1">Estimated delivery time shown to customers (e.g., "Receive within 5 days")</p>
+                </div>
+
+                <!-- Delivery Cost -->
+                <div>
+                    <label for="delivery_cost" class="block text-sm font-medium text-[#0D1210] mb-2">
+                        Delivery Cost (KWD) *
+                    </label>
+                    <input
+                        type="number"
+                        id="delivery_cost"
+                        name="delivery_cost"
+                        value="{{ settings.delivery_cost }}"
+                        step="0.001"
+                        min="0"
+                        required
+                        class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]"
+                        placeholder="e.g., 2.000">
+                    <p class="text-xs text-[#6A736E] mt-1">Standard delivery fee charged to customers</p>
+                </div>
+
+                <!-- WhatsApp Support -->
+                <div class="md:col-span-2">
+                    <label for="whatsapp_support" class="block text-sm font-medium text-[#0D1210] mb-2">
+                        WhatsApp Support Number *
+                    </label>
+                    <input
+                        type="text"
+                        id="whatsapp_support"
+                        name="whatsapp_support"
+                        value="{{ settings.whatsapp_support }}"
+                        required
+                        class="w-full px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]"
+                        placeholder="+96500000000">
+                    <p class="text-xs text-[#6A736E] mt-1">WhatsApp number for customer support (include country code, e.g., +965XXXXXXXX)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-3 pt-4 border-t border-[#E6E8E7]">
+            <button
+                type="submit"
+                class="px-6 py-2.5 bg-[#0B5D35] text-white rounded-lg text-sm font-medium hover:bg-[#0D1210] transition-colors inline-flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Save Changes
+            </button>
+            <button
+                type="button"
+                onclick="window.location.reload()"
+                class="px-6 py-2.5 bg-[#F5F6F6] text-[#0D1210] rounded-lg text-sm font-medium hover:bg-[#E6E8E7] transition-colors">
+                Reset
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Info Box -->
+<div class="mt-6 p-4 bg-[#E7EFEB] border border-[#0B5D35] rounded-lg max-w-3xl">
+    <div class="flex items-start">
+        <svg class="w-5 h-5 text-[#0B5D35] mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <div>
+            <h4 class="text-sm font-semibold text-[#0D1210] mb-1">Important Information</h4>
+            <ul class="text-xs text-[#6A736E] space-y-1">
+                <li>• Changes to delivery settings will apply to all new orders immediately</li>
+                <li>• Existing orders will retain their original delivery fee</li>
+                <li>• The delivery time is shown to customers as "Receive within X days"</li>
+                <li>• WhatsApp number should include country code (e.g., +965 for Kuwait)</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

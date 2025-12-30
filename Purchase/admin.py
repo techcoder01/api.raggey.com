@@ -3,7 +3,7 @@ from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils import timezone
 from django import forms
-from .models import Purchase, Item, DeliverySettings, Payment, CancellationRequest
+from .models import Purchase, Item, DeliverySettings, Payment, CancellationRequest, AboutUs, TermsAndConditions
 from User.models import Address
 
 
@@ -343,7 +343,7 @@ class ItemAdmin(admin.ModelAdmin):
 @admin.register(DeliverySettings)
 class DeliverySettingsAdmin(admin.ModelAdmin):
     """Admin configuration for Delivery Settings"""
-    list_display = ['id', 'delivery_days', 'delivery_cost', 'is_active', 'updated_at']
+    list_display = ['id', 'delivery_days', 'delivery_cost', 'whatsapp_support', 'is_active', 'updated_at']
     list_filter = ['is_active']
     readonly_fields = ['created_at', 'updated_at']
 
@@ -351,6 +351,10 @@ class DeliverySettingsAdmin(admin.ModelAdmin):
         ('Delivery Configuration', {
             'fields': ('delivery_days', 'delivery_cost'),
             'description': 'Configure delivery time and cost displayed in cart screen'
+        }),
+        ('Support Configuration', {
+            'fields': ('whatsapp_support',),
+            'description': 'WhatsApp support number with country code (e.g., +96500000000)'
         }),
         ('Status', {
             'fields': ('is_active',),
@@ -652,3 +656,77 @@ class CancellationRequestAdmin(admin.ModelAdmin):
             messages.warning(request, 'No approved cancellation requests with active orders found.')
 
     cancel_approved_orders.short_description = "Cancel orders for approved requests"
+
+
+@admin.register(AboutUs)
+class AboutUsAdmin(admin.ModelAdmin):
+    """Admin configuration for About Us content"""
+    list_display = ['id', 'title_en', 'title_ar', 'is_active', 'created_at', 'updated_at']
+    list_filter = ['is_active', 'created_at']
+    search_fields = ['title_en', 'title_ar', 'content_en', 'content_ar']
+    readonly_fields = ['created_at', 'updated_at']
+    ordering = ['-created_at']
+
+    fieldsets = (
+        ('About Us Information', {
+            'fields': ('title_en', 'title_ar', 'is_active'),
+            'description': '''
+                <div style="background-color: #d1ecf1; border: 1px solid #0c5460; padding: 10px; border-radius: 4px; margin-bottom: 15px;">
+                    <strong>ℹ️ How to use:</strong><br>
+                    1. Only ONE About Us record should be active at a time<br>
+                    2. Edit content in English and Arabic below<br>
+                    3. Use the Dashboard at /dashboard/about/ for rich text editing
+                </div>
+            '''
+        }),
+        ('Content', {
+            'fields': ('content_en', 'content_ar'),
+            'description': 'For rich text editing, use the Dashboard at /dashboard/about/'
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at')
+        }),
+    )
+
+    def has_delete_permission(self, request, obj=None):
+        # Prevent deletion of active About Us content
+        if obj and obj.is_active:
+            return False
+        return super().has_delete_permission(request, obj)
+
+
+@admin.register(TermsAndConditions)
+class TermsAndConditionsAdmin(admin.ModelAdmin):
+    """Admin configuration for Terms and Conditions content"""
+    list_display = ['id', 'title_en', 'title_ar', 'is_active', 'created_at', 'updated_at']
+    list_filter = ['is_active', 'created_at']
+    search_fields = ['title_en', 'title_ar', 'content_en', 'content_ar']
+    readonly_fields = ['created_at', 'updated_at']
+    ordering = ['-created_at']
+
+    fieldsets = (
+        ('Terms and Conditions Information', {
+            'fields': ('title_en', 'title_ar', 'is_active'),
+            'description': '''
+                <div style="background-color: #d1ecf1; border: 1px solid #0c5460; padding: 10px; border-radius: 4px; margin-bottom: 15px;">
+                    <strong>ℹ️ How to use:</strong><br>
+                    1. Only ONE Terms and Conditions record should be active at a time<br>
+                    2. Edit content in English and Arabic below<br>
+                    3. Use the Dashboard at /dashboard/terms/ for rich text editing
+                </div>
+            '''
+        }),
+        ('Content', {
+            'fields': ('content_en', 'content_ar'),
+            'description': 'For rich text editing, use the Dashboard at /dashboard/terms/'
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at')
+        }),
+    )
+
+    def has_delete_permission(self, request, obj=None):
+        # Prevent deletion of active Terms and Conditions content
+        if obj and obj.is_active:
+            return False
+        return super().has_delete_permission(request, obj)

@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from django.db import transaction
 from decimal import Decimal
 
-from .models import Purchase, Item, DeliverySettings
+from .models import Purchase, Item, DeliverySettings, AboutUs, TermsAndConditions
 from Sizes.models import Sizes
 from Coupon.models import Coupon, CouponUsage
 from Design.models import (
@@ -680,5 +680,67 @@ class UpdateOrderAddressAPIView(APIView):
             print(f"❌ Error updating order address: {e}")
             return Response({
                 'error': 'Failed to update order address',
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class AboutUsAPIView(APIView):
+    """
+    GET: Get About Us content
+    Endpoint: /purchase/about-us/
+    Public endpoint - no authentication required
+    """
+    permission_classes = []  # Public endpoint
+
+    def get(self, request):
+        try:
+            # Get active about us content
+            about_us = AboutUs.objects.filter(is_active=True).first()
+
+            if not about_us:
+                return Response({
+                    'error': 'No About Us content found',
+                    'message': 'Please add About Us content from admin panel'
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            from .serializers import AboutUsSerializer
+            serializer = AboutUsSerializer(about_us)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            print(f"❌ Error fetching About Us content: {e}")
+            return Response({
+                'error': 'Failed to fetch About Us content',
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class TermsAndConditionsAPIView(APIView):
+    """
+    GET: Get Terms and Conditions content
+    Endpoint: /purchase/terms-and-conditions/
+    Public endpoint - no authentication required
+    """
+    permission_classes = []  # Public endpoint
+
+    def get(self, request):
+        try:
+            # Get active terms and conditions content
+            terms = TermsAndConditions.objects.filter(is_active=True).first()
+
+            if not terms:
+                return Response({
+                    'error': 'No Terms and Conditions content found',
+                    'message': 'Please add Terms and Conditions content from admin panel'
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            from .serializers import TermsAndConditionsSerializer
+            serializer = TermsAndConditionsSerializer(terms)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            print(f"❌ Error fetching Terms and Conditions content: {e}")
+            return Response({
+                'error': 'Failed to fetch Terms and Conditions content',
                 'message': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -40,4 +40,10 @@ urlpatterns = [
     path('inventory/', views.inventory_view, name='inventory'),
     path('inventory/add-stock/', views.add_stock, name='add_stock'),
     path('inventory/reduce-stock/', views.reduce_stock, name='reduce_stock'),
+    path('delivery-settings/', views.delivery_settings_view, name='delivery_settings'),
+    path('delivery-settings/update/', views.update_delivery_settings, name='update_delivery_settings'),
+    path('about/', views.about_view, name='about'),
+    path('about/update/', views.update_about, name='update_about'),
+    path('terms/', views.terms_view, name='terms'),
+    path('terms/update/', views.update_terms, name='update_terms'),
 ]
