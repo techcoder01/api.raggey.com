@@ -396,16 +396,35 @@ class DeliverySettingsAPIView(APIView):
             if not settings:
                 # Return default values if no settings exist
                 return Response({
+                    'id': 0,
                     'delivery_days': 5,
-                    'delivery_cost': '2.000'
+                    'delivery_cost': '2.000',
+                    'whatsapp_support': '',
+                    'is_active': True,
+                    'created_at': None,
+                    'updated_at': None
                 }, status=status.HTTP_200_OK)
 
-            return Response({
+            response_data = {
+                'id': settings.id,
                 'delivery_days': settings.delivery_days,
-                'delivery_cost': str(settings.delivery_cost)
-            }, status=status.HTTP_200_OK)
+                'delivery_cost': str(settings.delivery_cost),
+                'whatsapp_support': settings.whatsapp_support or '',
+                'is_active': settings.is_active,
+                'created_at': settings.created_at.isoformat() if settings.created_at else None,
+                'updated_at': settings.updated_at.isoformat() if settings.updated_at else None
+            }
+
+            # Add no-cache headers
+            response = Response(response_data, status=status.HTTP_200_OK)
+            response['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+            response['Pragma'] = 'no-cache'
+            response['Expires'] = '0'
+
+            return response
 
         except Exception as e:
+            print(f"❌ Error fetching delivery settings: {e}")
             return Response({
                 'error': 'Failed to fetch delivery settings',
                 'message': str(e)
@@ -705,7 +724,14 @@ class AboutUsAPIView(APIView):
 
             from .serializers import AboutUsSerializer
             serializer = AboutUsSerializer(about_us)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+
+            # Create response with no-cache headers
+            response = Response(serializer.data, status=status.HTTP_200_OK)
+            response['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+            response['Pragma'] = 'no-cache'
+            response['Expires'] = '0'
+
+            return response
 
         except Exception as e:
             print(f"❌ Error fetching About Us content: {e}")
@@ -736,7 +762,14 @@ class TermsAndConditionsAPIView(APIView):
 
             from .serializers import TermsAndConditionsSerializer
             serializer = TermsAndConditionsSerializer(terms)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+
+            # Create response with no-cache headers
+            response = Response(serializer.data, status=status.HTTP_200_OK)
+            response['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+            response['Pragma'] = 'no-cache'
+            response['Expires'] = '0'
+
+            return response
 
         except Exception as e:
             print(f"❌ Error fetching Terms and Conditions content: {e}")
