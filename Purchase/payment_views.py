@@ -23,6 +23,7 @@ from .serializers import (
     PaymentStatusSerializer
 )
 from .services.payzahService import payzah_service
+from .notification_utils import send_payment_success_notification, send_payment_failed_notification
 
 logger = logging.getLogger(__name__)
 
@@ -240,6 +241,20 @@ class PaymentCallbackAPIView(APIView):
                         payment.purchase.save()
                         logger.info(f"Purchase {payment.purchase.invoice_number} marked as Processing")
 
+                        # Send payment success notification
+                        try:
+                            user_profile = getattr(payment.purchase.user, 'profile', None)
+                            if user_profile and user_profile.fcm_token:
+                                send_payment_success_notification(
+                                    user_fcm_token=user_profile.fcm_token,
+                                    order=payment.purchase
+                                )
+                                logger.info(f"🔔 Payment success notification sent to user {payment.purchase.user.id}")
+                            else:
+                                logger.warning(f"⚠️ No FCM token found for user {payment.purchase.user.id}")
+                        except Exception as e:
+                            logger.warning(f"⚠️ Could not send payment success notification: {e}")
+
                 payment.save()
                 logger.info(f"Payment {track_id} status updated to {internal_status}")
 
@@ -247,6 +262,22 @@ class PaymentCallbackAPIView(APIView):
             if internal_status == 'captured':
                 return redirect(f"{payment.success_url}?track_id={track_id}&status=success")
             else:
+                # Send payment failed notification
+                if payment.purchase:
+                    try:
+                        user_profile = getattr(payment.purchase.user, 'profile', None)
+                        if user_profile and user_profile.fcm_token:
+                            send_payment_failed_notification(
+                                user_fcm_token=user_profile.fcm_token,
+                                order=payment.purchase,
+                                error_message=f"Payment status: {internal_status}"
+                            )
+                            logger.info(f"🔔 Payment failed notification sent to user {payment.purchase.user.id}")
+                        else:
+                            logger.warning(f"⚠️ No FCM token found for user {payment.purchase.user.id}")
+                    except Exception as e:
+                        logger.warning(f"⚠️ Could not send payment failed notification: {e}")
+
                 return redirect(f"{payment.error_url}?track_id={track_id}&status={internal_status}")
 
         except Exception as e:

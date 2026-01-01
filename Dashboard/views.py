@@ -1035,18 +1035,14 @@ def update_fabric_relation(request):
             if value:
                 fabric_type = FabricType.objects.get(id=value)
                 item.fabric_type = fabric_type
-                messages.success(request, f'{item_name} fabric type updated to {fabric_type.fabric_name_eng}')
             else:
                 item.fabric_type = None
-                messages.success(request, f'{item_name} fabric type cleared')
         elif field == 'fabric_color':
             if value:
                 fabric_color = FabricColor.objects.get(id=value)
                 item.fabric_color = fabric_color
-                messages.success(request, f'{item_name} fabric color updated to {fabric_color.color_name_eng}')
             else:
                 item.fabric_color = None
-                messages.success(request, f'{item_name} fabric color cleared')
         else:
             messages.error(request, 'Invalid field')
             return redirect(f'/dashboard/designs/?type={component_type}')

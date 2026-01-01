@@ -34,6 +34,7 @@ from .utils import (
     restore_inventory,
     calculate_basket_total
 )
+from .notification_utils import send_order_status_notification, initialize_firebase
 
 
 # ================ USER-SIDE VIEWS ================
@@ -227,6 +228,23 @@ class CreateOrderAPIView(APIView):
                 except Exception as e:
                     print(f"⚠️ Warning: Could not create coupon usage: {e}")
                     # Don't fail order if coupon tracking fails
+
+            # Send "Order Pending" notification
+            try:
+                # Get user's FCM token from profile
+                user_profile = getattr(user, 'profile', None)
+                if user_profile and user_profile.fcm_token:
+                    send_order_status_notification(
+                        user_fcm_token=user_profile.fcm_token,
+                        order=purchase,
+                        new_status='Pending'
+                    )
+                    print(f"🔔 Order Pending notification sent to user {user.id}")
+                else:
+                    print(f"⚠️ No FCM token found for user {user.id}")
+            except Exception as e:
+                print(f"⚠️ Warning: Could not send order notification: {e}")
+                # Don't fail order if notification fails
 
             # Return created order
             response_serializer = PurchaseSerializer(purchase)
@@ -516,7 +534,27 @@ class AdminUpdateOrderStatusAPIView(APIView):
                     'details': serializer.errors
                 }, status=status.HTTP_400_BAD_REQUEST)
 
+            # Get new status before saving
+            new_status = request.data.get('status', order.status)
+
             serializer.save()
+
+            # Send notification for status change
+            try:
+                # Get user's FCM token from profile
+                user_profile = getattr(order.user, 'profile', None)
+                if user_profile and user_profile.fcm_token:
+                    send_order_status_notification(
+                        user_fcm_token=user_profile.fcm_token,
+                        order=order,
+                        new_status=new_status
+                    )
+                    print(f"🔔 Order {new_status} notification sent to user {order.user.id}")
+                else:
+                    print(f"⚠️ No FCM token found for user {order.user.id}")
+            except Exception as e:
+                print(f"⚠️ Warning: Could not send status update notification: {e}")
+                # Don't fail status update if notification fails
 
             response_serializer = PurchaseSerializer(order)
             return Response({
@@ -608,6 +646,25 @@ class AdminCancelOrderAPIView(APIView):
             # Update order status
             order.status = 'Cancelled'
             order.save()
+
+            # Send cancellation notification
+            try:
+                # Get user's FCM token from profile
+                user_profile = getattr(order.user, 'profile', None)
+                if user_profile and user_profile.fcm_token:
+                    cancellation_reason = request.data.get('reason')
+                    send_order_status_notification(
+                        user_fcm_token=user_profile.fcm_token,
+                        order=order,
+                        new_status='Cancelled',
+                        reason=cancellation_reason
+                    )
+                    print(f"🔔 Order Cancelled notification sent to user {order.user.id}")
+                else:
+                    print(f"⚠️ No FCM token found for user {order.user.id}")
+            except Exception as e:
+                print(f"⚠️ Warning: Could not send cancellation notification: {e}")
+                # Don't fail cancellation if notification fails
 
             serializer = PurchaseSerializer(order)
             return Response({
