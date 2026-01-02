@@ -1,4 +1,13 @@
 from django.contrib import admin
+from .fabric_notifications import (
+    notify_fabric_created,
+    notify_fabric_updated,
+    notify_fabric_deleted,
+    notify_fabric_hidden_changed,
+    notify_fabric_color_created,
+    notify_fabric_color_updated,
+    notify_fabric_color_deleted,
+)
 
 from .models import (
     HomePageSelectionCategory,
@@ -17,6 +26,33 @@ class FabricTypeAdmin(admin.ModelAdmin):
     list_filter = ('category_type', 'season', 'isHidden')
     search_fields = ('fabric_name_eng', 'fabric_name_arb')
 
+    def save_model(self, request, obj, form, change):
+        """Send FCM notification when fabric is created or updated."""
+        is_new = obj.pk is None
+        old_is_hidden = None
+
+        # Track isHidden changes for existing fabrics
+        if change and 'isHidden' in form.changed_data:
+            old_fabric = FabricType.objects.get(pk=obj.pk)
+            old_is_hidden = old_fabric.isHidden
+
+        super().save_model(request, obj, form, change)
+
+        # Send appropriate notification
+        if is_new:
+            notify_fabric_created()
+        else:
+            # Check if isHidden was changed
+            if old_is_hidden is not None and old_is_hidden != obj.isHidden:
+                notify_fabric_hidden_changed(obj.id, obj.isHidden)
+            else:
+                notify_fabric_updated(obj.id)
+
+    def delete_model(self, request, obj):
+        """Send FCM notification when fabric is deleted."""
+        super().delete_model(request, obj)
+        notify_fabric_deleted()
+
 @admin.register(FabricColor)
 class FabricColorAdmin(admin.ModelAdmin):
     list_display = ('get_fabric_name', 'color_name_eng', 'color_name_arb', 'hex_color', 'get_total_price', 'quantity', 'inStock')
@@ -30,6 +66,21 @@ class FabricColorAdmin(admin.ModelAdmin):
     def get_total_price(self, obj):
         return obj.total_price
     get_total_price.short_description = 'Total Price'
+
+    def save_model(self, request, obj, form, change):
+        """Send FCM notification when fabric color is created or updated."""
+        is_new = obj.pk is None
+        super().save_model(request, obj, form, change)
+
+        if is_new:
+            notify_fabric_color_created()
+        else:
+            notify_fabric_color_updated()
+
+    def delete_model(self, request, obj):
+        """Send FCM notification when fabric color is deleted."""
+        super().delete_model(request, obj)
+        notify_fabric_color_deleted()
 
 # Component models
 @admin.register(GholaType)

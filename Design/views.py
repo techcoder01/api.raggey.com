@@ -27,6 +27,17 @@ from .utils import hableImageUpload
 from typing import Dict
 from decimal import Decimal
 
+# FCM Notifications for real-time fabric updates
+from .fabric_notifications import (
+    notify_fabric_created,
+    notify_fabric_updated,
+    notify_fabric_deleted,
+    notify_fabric_hidden_changed,
+    notify_fabric_color_created,
+    notify_fabric_color_updated,
+    notify_fabric_color_deleted,
+)
+
 #================== END USER SIDE ====================================================
 class MainCatogeryUserSideAPIView(APIView):
     def get(self, request, pk=None, format=None):
@@ -447,6 +458,8 @@ class FabricTypeAdminSideAPIView(APIView):
                 deleted_fabric = FabricType.objects.get(id=pk)
                 if deleted_fabric:
                     deleted_fabric.delete()
+                    # Send FCM notification
+                    notify_fabric_deleted()
                     return Response('deleted', status=HTTP_200_OK)
         return Response('Something went wrong', status=HTTP_400_BAD_REQUEST)
 
@@ -499,6 +512,9 @@ class FabricTypeAdminSideAPIView(APIView):
             # Refresh again to ensure we have the latest state
             fabric.refresh_from_db()
 
+            # Send FCM notification
+            notify_fabric_created()
+
             serializer = FabricTypeSerializer(fabric, context={'request': request})
             return Response(serializer.data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
 
@@ -527,10 +543,14 @@ class FabricTypeAdminSideAPIView(APIView):
                 data = request.data
                 fabric = FabricType.objects.get(id=pk)
                 if fabric:
+                    # Track if isHidden changed
+                    old_is_hidden = fabric.isHidden
+                    new_is_hidden = data.get('isHidden', False)
+
                     fabric.fabric_name_eng = data['fabric_name_eng']
                     fabric.fabric_name_arb = data['fabric_name_arb']
                     fabric.base_price = data['base_price']
-                    fabric.isHidden = data.get('isHidden', False)
+                    fabric.isHidden = new_is_hidden
 
                     if data.get('cover'):
                         if isinstance(data['cover'], Dict):
@@ -540,6 +560,13 @@ class FabricTypeAdminSideAPIView(APIView):
                         fabric.cover = None
 
                     fabric.save()
+
+                    # Send appropriate FCM notification
+                    if old_is_hidden != new_is_hidden:
+                        notify_fabric_hidden_changed(fabric.id, new_is_hidden)
+                    else:
+                        notify_fabric_updated(fabric.id)
+
                     serializer = FabricTypeSerializer(fabric, context={'request': request})
                     return Response(serializer.data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
 
@@ -574,6 +601,8 @@ class FabricColorAdminSideAPIView(APIView):
                 deleted_color = FabricColor.objects.get(id=pk)
                 if deleted_color:
                     deleted_color.delete()
+                    # Send FCM notification
+                    notify_fabric_color_deleted()
                     return Response('deleted', status=HTTP_200_OK)
         return Response('Something went wrong', status=HTTP_400_BAD_REQUEST)
 
@@ -614,6 +643,9 @@ class FabricColorAdminSideAPIView(APIView):
                     image_obtain = hableImageUpload(data['cover'])
                     fabric_color.cover = image_obtain
                     fabric_color.save()
+
+                # Send FCM notification
+                notify_fabric_color_created()
 
                 serializer = FabricColorDetailSerializer(fabric_color, context={'request': request})
                 return Response(serializer.data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
@@ -669,6 +701,10 @@ class FabricColorAdminSideAPIView(APIView):
                     fabric_color.cover = None
 
                 fabric_color.save()
+
+                # Send FCM notification
+                notify_fabric_color_updated()
+
                 serializer = FabricColorDetailSerializer(fabric_color, context={'request': request})
                 return Response(serializer.data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
 
