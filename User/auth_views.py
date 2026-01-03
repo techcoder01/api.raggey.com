@@ -1,10 +1,11 @@
 """
 Authentication Views
-Handles user signup and login with JWT tokens
+Handles user signup, login, and logout with JWT tokens
 """
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import User
 from .serializers import UserSignupSerializer, UserLoginSerializer
@@ -150,5 +151,45 @@ class UserLoginAPIView(APIView):
         except Exception as e:
             return Response({
                 'error': 'Login failed',
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class UserLogoutAPIView(APIView):
+    """
+    POST: Logout user
+    Endpoint: /user/auth/logout/
+    Clears FCM token from backend
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            # Get user profile
+            from .models import Profile
+            profile = Profile.objects.filter(user=request.user).first()
+            
+            if profile:
+                # Clear FCM token
+                profile.fcm_token = ''
+                profile.save()
+                
+                print(f'✅ Logout: FCM token cleared for user {request.user.email}')
+                
+                return Response({
+                    'success': True,
+                    'message': 'Logged out successfully'
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    'success': False,
+                    'message': 'User profile not found'
+                }, status=status.HTTP_404_NOT_FOUND)
+                
+        except Exception as e:
+            print(f'❌ Logout error: {e}')
+            return Response({
+                'success': False,
+                'error': 'Logout failed',
                 'message': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

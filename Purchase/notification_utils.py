@@ -252,35 +252,6 @@ def send_payment_failed_notification(user_fcm_token, order, error_message=None):
         return False
 
 
-# ========== PROMO/DISCOUNT NOTIFICATIONS ==========
-
-def send_new_discount_notification(user_fcm_token, promo_code, discount_percentage, description=None):
-    """Send notification for new discount/promo"""
-    try:
-        body_text = description if description else f'New offer! Use code {promo_code} for {discount_percentage}% off on your next order.'
-
-        message = messaging.Message(
-            notification=messaging.Notification(
-                title='Special Offer!',
-                body=body_text
-            ),
-            data={
-                'type': 'new_discount',
-                'promo_code': promo_code,
-                'discount_percentage': str(discount_percentage),
-                'description': description or '',
-            },
-            token=user_fcm_token,
-        )
-
-        response = messaging.send(message)
-        print(f'✅ Discount notification sent: {response}')
-        return True
-    except Exception as e:
-        print(f'❌ Error sending discount notification: {e}')
-        return False
-
-
 # ========== HELPER FUNCTIONS ==========
 
 def send_order_status_notification(user_fcm_token, order, new_status, **kwargs):

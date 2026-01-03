@@ -4,12 +4,13 @@ from .views import (
     SelectedAddressAPIView, UserProfileAPIView, UpdateFCMTokenAPIView,
     BulkSaveCartDataAPIView, SaveDesignAPIView, SaveMeasurementAPIView
 )
-from .auth_views import UserSignupAPIView, UserLoginAPIView
+from .auth_views import UserSignupAPIView, UserLoginAPIView, UserLogoutAPIView
 
 urlpatterns = [
     # ================ AUTHENTICATION ================
     path('auth/signup/', UserSignupAPIView.as_view(), name='signup'),
     path('auth/login/', UserLoginAPIView.as_view(), name='login'),
+    path('auth/logout/', UserLogoutAPIView.as_view(), name='logout'),
 
     # ================ ADDRESS MANAGEMENT ================
     path('list/address/', AddressAPIView.as_view()),

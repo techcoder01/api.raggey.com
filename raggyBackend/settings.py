@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'Dashboard',
     'Coupon',
     'Banner',
+    'Notification',
 ]
 
 MIDDLEWARE = [
@@ -175,17 +176,43 @@ USE_I18N = True
 
 USE_TZ = True
 
-# Caching Configuration - For faster page loads
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'raggey-cache',
-        'TIMEOUT': 300,  # 5 minutes default
-        'OPTIONS': {
-            'MAX_ENTRIES': 1000
+# Caching Configuration - Redis for production-grade caching
+USE_REDIS_CACHE = config('USE_REDIS_CACHE', default=True, cast=bool)
+
+if USE_REDIS_CACHE:
+    # Redis cache configuration (Production)
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': config('REDIS_URL', default='redis://127.0.0.1:6379/1'),
+            'TIMEOUT': 600,  # 10 minutes default for fabric data
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+                'CONNECTION_POOL_KWARGS': {
+                    'max_connections': 50,
+                    'retry_on_timeout': True,
+                },
+                'SOCKET_CONNECT_TIMEOUT': 5,
+                'SOCKET_TIMEOUT': 5,
+                'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor',
+                'IGNORE_EXCEPTIONS': True,  # Fallback to DB if Redis fails
+            },
+            'KEY_PREFIX': 'raggey',
+            'VERSION': 1,
         }
     }
-}
+else:
+    # Local memory cache fallback (Development)
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'raggey-cache',
+            'TIMEOUT': 300,  # 5 minutes default
+            'OPTIONS': {
+                'MAX_ENTRIES': 1000
+            }
+        }
+    }
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/

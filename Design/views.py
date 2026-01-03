@@ -5,6 +5,9 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAdminUser
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from django.db import transaction
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
+from django.core.cache import cache
 
 
 # Custom SessionAuthentication that doesn't enforce CSRF for API calls
@@ -38,8 +41,42 @@ from .fabric_notifications import (
     notify_fabric_color_deleted,
 )
 
+
+# ================== CACHE INVALIDATION HELPERS ==================
+def clear_fabric_cache():
+    """
+    Clear all fabric-related caches when data is modified.
+    This ensures users get fresh data after admin makes changes.
+    """
+    try:
+        # Clear all fabric-related cache keys
+        cache.delete_many([
+            'views.decorators.cache.cache_page.*.design.fetch.fabric.*',
+            'views.decorators.cache.cache_page.*.design.fetch.fabric.*.colors.*',
+            'views.decorators.cache.cache_page.*.design.collar.*',
+            'views.decorators.cache.cache_page.*.design.sleeves.*',
+            'views.decorators.cache.cache_page.*.design.pocket.*',
+            'views.decorators.cache.cache_page.*.design.button.*',
+            'views.decorators.cache.cache_page.*.design.body.*',
+        ])
+
+        # Use wildcard delete if using django-redis
+        from django.conf import settings
+        if 'django_redis' in settings.CACHES['default']['BACKEND']:
+            from django_redis import get_redis_connection
+            redis_conn = get_redis_connection('default')
+            # Delete all cache keys matching pattern
+            keys = redis_conn.keys('*fabric*')
+            if keys:
+                redis_conn.delete(*keys)
+
+        print('✅ Fabric cache cleared successfully')
+    except Exception as e:
+        print(f'⚠️ Cache clear failed (non-critical): {e}')
+
 #================== END USER SIDE ====================================================
 class MainCatogeryUserSideAPIView(APIView):
+    @method_decorator(cache_page(60 * 10))  # Cache for 10 minutes
     def get(self, request, pk=None, format=None):
         queryset = HomePageSelectionCategory.objects.filter(isHidden=False)
         serializer = HomePageSelectionCategorySerializer(
@@ -52,7 +89,9 @@ class FetchFabricAPIView(APIView):
     """
     NEW: Fetch all fabric types (base fabrics without colors)
     Returns list of FabricType objects
+    ✅ CACHED: 10 minutes (600 seconds)
     """
+    @method_decorator(cache_page(60 * 10))  # Cache for 10 minutes
     def get(self, request, pk=None, format=None):
         queryset = FabricType.objects.filter(isHidden=False)
         serializer = FabricTypeSerializer(
@@ -65,7 +104,9 @@ class FetchFabricDetailAPIView(APIView):
     NEW: Fetch detailed information for a specific fabric (PUBLIC - no auth required)
     URL: /design/fetch/fabric/<fabric_id>/
     Returns single FabricType object with all details
+    ✅ CACHED: 10 minutes per fabric ID
     """
+    @method_decorator(cache_page(60 * 10))  # Cache for 10 minutes
     def get(self, request, fabric_id=None, format=None):
         try:
             fabric = FabricType.objects.get(id=fabric_id, isHidden=False)
@@ -82,7 +123,9 @@ class FetchFabricColorsAPIView_New(APIView):
     NEW: Get all color variants for a specific fabric
     URL: /design/fetch/fabric/<fabric_id>/colors/
     Returns all FabricColor records for the given FabricType
+    ✅ CACHED: 10 minutes per fabric ID
     """
+    @method_decorator(cache_page(60 * 10))  # Cache for 10 minutes
     def get(self, request, fabric_id=None, format=None):
         try:
             # Get the base fabric
@@ -111,12 +154,14 @@ class FetchFabricColorsAPIView_New(APIView):
     
 
 class FetchCollerAPIView(APIView):
+    """
+    Fetch collar options. Can filter by fabric_type_id (FabricType ID).
+    Returns all collars for all colors of the specified fabric type.
+    This allows users to mix and match colors.
+    ✅ CACHED: 10 minutes per fabric_type_id
+    """
+    @method_decorator(cache_page(60 * 10))  # Cache for 10 minutes
     def get(self, request, pk=None, format=None):
-        """
-        Fetch collar options. Can filter by fabric_type_id (FabricType ID).
-        Returns all collars for all colors of the specified fabric type.
-        This allows users to mix and match colors.
-        """
         fabric_type_id = request.GET.get('fabric_type_id', None)
 
         queryset = GholaType.objects.all()
@@ -129,11 +174,13 @@ class FetchCollerAPIView(APIView):
         return Response(serializer.data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
 
 class FetchSleevesRightAPIView(APIView):
+    """
+    Fetch right sleeve options. Can filter by fabric_type_id (FabricType ID).
+    Returns all right sleeves for all colors of the specified fabric type.
+    ✅ CACHED: 10 minutes per fabric_type_id
+    """
+    @method_decorator(cache_page(60 * 10))  # Cache for 10 minutes
     def get(self, request, pk=None, format=None):
-        """
-        Fetch right sleeve options. Can filter by fabric_type_id (FabricType ID).
-        Returns all right sleeves for all colors of the specified fabric type.
-        """
         fabric_type_id = request.GET.get('fabric_type_id', None)
 
         queryset = SleevesType.objects.filter(is_right_side=True)
@@ -145,11 +192,13 @@ class FetchSleevesRightAPIView(APIView):
         return Response(serializer.data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
 
 class FetchSleevesLeftAPIView(APIView):
+    """
+    Fetch left sleeve options. Can filter by fabric_type_id (FabricType ID).
+    Returns all left sleeves for all colors of the specified fabric type.
+    ✅ CACHED: 10 minutes per fabric_type_id
+    """
+    @method_decorator(cache_page(60 * 10))  # Cache for 10 minutes
     def get(self, request, pk=None, format=None):
-        """
-        Fetch left sleeve options. Can filter by fabric_type_id (FabricType ID).
-        Returns all left sleeves for all colors of the specified fabric type.
-        """
         fabric_type_id = request.GET.get('fabric_type_id', None)
 
         queryset = SleevesType.objects.filter(is_right_side=False)
@@ -161,11 +210,13 @@ class FetchSleevesLeftAPIView(APIView):
         return Response(serializer.data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
 
 class FetchPocketAPIView(APIView):
+    """
+    Fetch pocket options. Can filter by fabric_type_id (FabricType ID).
+    Returns all pockets for all colors of the specified fabric type.
+    ✅ CACHED: 10 minutes per fabric_type_id
+    """
+    @method_decorator(cache_page(60 * 10))  # Cache for 10 minutes
     def get(self, request, pk=None, format=None):
-        """
-        Fetch pocket options. Can filter by fabric_type_id (FabricType ID).
-        Returns all pockets for all colors of the specified fabric type.
-        """
         fabric_type_id = request.GET.get('fabric_type_id', None)
 
         queryset = PocketType.objects.all()
@@ -177,11 +228,13 @@ class FetchPocketAPIView(APIView):
         return Response(serializer.data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
 
 class FetchButtonAPIView(APIView):
+    """
+    Fetch button options. Can filter by fabric_type_id (FabricType ID).
+    Returns all buttons (including out of stock) for all colors of the specified fabric type.
+    ✅ CACHED: 10 minutes per fabric_type_id
+    """
+    @method_decorator(cache_page(60 * 10))  # Cache for 10 minutes
     def get(self, request, pk=None, format=None):
-        """
-        Fetch button options. Can filter by fabric_type_id (FabricType ID).
-        Returns all buttons (including out of stock) for all colors of the specified fabric type.
-        """
         fabric_type_id = request.GET.get('fabric_type_id', None)
 
         queryset = ButtonType.objects.all()
@@ -193,11 +246,13 @@ class FetchButtonAPIView(APIView):
         return Response(serializer.data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
 
 class FetchButtonStripAPIView(APIView):
+    """
+    Fetch button strip options. Can filter by fabric_type_id (FabricType ID).
+    Returns all button strips for all colors of the specified fabric type.
+    ✅ CACHED: 10 minutes per fabric_type_id
+    """
+    @method_decorator(cache_page(60 * 10))  # Cache for 10 minutes
     def get(self, request, pk=None, format=None):
-        """
-        Fetch button strip options. Can filter by fabric_type_id (FabricType ID).
-        Returns all button strips for all colors of the specified fabric type.
-        """
         fabric_type_id = request.GET.get('fabric_type_id', None)
 
         queryset = ButtonStripType.objects.all()
@@ -209,11 +264,13 @@ class FetchButtonStripAPIView(APIView):
         return Response(serializer.data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
 
 class FetchBodyAPIView(APIView):
+    """
+    Fetch body options. Can filter by fabric_type_id (FabricType ID).
+    Returns all body types for all colors of the specified fabric type.
+    ✅ CACHED: 10 minutes per fabric_type_id
+    """
+    @method_decorator(cache_page(60 * 10))  # Cache for 10 minutes
     def get(self, request, pk=None, format=None):
-        """
-        Fetch body options. Can filter by fabric_type_id (FabricType ID).
-        Returns all body types for all colors of the specified fabric type.
-        """
         fabric_type_id = request.GET.get('fabric_type_id', None)
 
         queryset = BodyType.objects.all()
@@ -458,7 +515,8 @@ class FabricTypeAdminSideAPIView(APIView):
                 deleted_fabric = FabricType.objects.get(id=pk)
                 if deleted_fabric:
                     deleted_fabric.delete()
-                    # Send FCM notification
+                    # Clear cache and send FCM notification
+                    clear_fabric_cache()
                     notify_fabric_deleted()
                     return Response('deleted', status=HTTP_200_OK)
         return Response('Something went wrong', status=HTTP_400_BAD_REQUEST)
@@ -512,7 +570,8 @@ class FabricTypeAdminSideAPIView(APIView):
             # Refresh again to ensure we have the latest state
             fabric.refresh_from_db()
 
-            # Send FCM notification
+            # Clear cache and send FCM notification
+            clear_fabric_cache()
             notify_fabric_created()
 
             serializer = FabricTypeSerializer(fabric, context={'request': request})
@@ -561,7 +620,8 @@ class FabricTypeAdminSideAPIView(APIView):
 
                     fabric.save()
 
-                    # Send appropriate FCM notification
+                    # Clear cache and send appropriate FCM notification
+                    clear_fabric_cache()
                     if old_is_hidden != new_is_hidden:
                         notify_fabric_hidden_changed(fabric.id, new_is_hidden)
                     else:
@@ -601,7 +661,8 @@ class FabricColorAdminSideAPIView(APIView):
                 deleted_color = FabricColor.objects.get(id=pk)
                 if deleted_color:
                     deleted_color.delete()
-                    # Send FCM notification
+                    # Clear cache and send FCM notification
+                    clear_fabric_cache()
                     notify_fabric_color_deleted()
                     return Response('deleted', status=HTTP_200_OK)
         return Response('Something went wrong', status=HTTP_400_BAD_REQUEST)
@@ -644,7 +705,8 @@ class FabricColorAdminSideAPIView(APIView):
                     fabric_color.cover = image_obtain
                     fabric_color.save()
 
-                # Send FCM notification
+                # Clear cache and send FCM notification
+                clear_fabric_cache()
                 notify_fabric_color_created()
 
                 serializer = FabricColorDetailSerializer(fabric_color, context={'request': request})
@@ -702,7 +764,8 @@ class FabricColorAdminSideAPIView(APIView):
 
                 fabric_color.save()
 
-                # Send FCM notification
+                # Clear cache and send FCM notification
+                clear_fabric_cache()
                 notify_fabric_color_updated()
 
                 serializer = FabricColorDetailSerializer(fabric_color, context={'request': request})
