@@ -2092,7 +2092,7 @@ def force_logout_user(request, user_id):
 
         # Add user to force logout table - will trigger 401 on next API request
         try:
-            from User.force_logout_model import ForceLogoutUser
+            from User.models import ForceLogoutUser
             ForceLogoutUser.add_user(user, reason="Force logout from admin dashboard")
         except ImportError:
             pass  # Model not available yet (migration pending)
@@ -2136,7 +2136,7 @@ def force_logout_all_users(request):
 
         # Add all users (except current) to force logout table
         try:
-            from User.force_logout_model import ForceLogoutUser
+            from User.models import ForceLogoutUser
             users_to_logout = User.objects.exclude(id=current_user.id)
             logout_count = 0
             for user in users_to_logout:

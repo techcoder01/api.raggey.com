@@ -132,7 +132,7 @@ class UserLoginAPIView(APIView):
 
             # Remove from force logout table (if present)
             try:
-                from .force_logout_model import ForceLogoutUser
+                from .models import ForceLogoutUser
                 ForceLogoutUser.remove_user(user)
             except ImportError:
                 pass  # Model not available yet (migration pending)

@@ -20,7 +20,7 @@ class CustomJWTAuthentication(JWTAuthentication):
 
             # Check if user should be force logged out
             try:
-                from User.force_logout_model import ForceLogoutUser
+                from User.models import ForceLogoutUser
                 if ForceLogoutUser.should_logout(user):
                     # Remove from force logout list (they'll need to login again)
                     ForceLogoutUser.remove_user(user)
