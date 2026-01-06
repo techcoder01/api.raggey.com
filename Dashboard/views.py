@@ -2078,6 +2078,53 @@ def update_user(request, user_id):
     return redirect(request.META.get('HTTP_REFERER', '/dashboard/users/'))
 
 
+# ==================== FORCE LOGOUT ====================
+
+@login_required(login_url='/dashboard/login/')
+@user_passes_test(is_staff_user, login_url='/dashboard/login/')
+@require_http_methods(["POST"])
+def force_logout_user(request, user_id):
+    """Force logout a specific user by deleting their auth tokens"""
+    try:
+        from rest_framework.authtoken.models import Token
+
+        user = User.objects.get(id=user_id)
+
+        # Delete all auth tokens for this user
+        Token.objects.filter(user=user).delete()
+
+        messages.success(request, f'Successfully forced logout for user: {user.username}. They will need to login again.')
+
+    except User.DoesNotExist:
+        messages.error(request, 'User not found')
+    except Exception as e:
+        messages.error(request, f'Error forcing logout: {str(e)}')
+
+    return redirect(request.META.get('HTTP_REFERER', '/dashboard/users/'))
+
+
+@login_required(login_url='/dashboard/login/')
+@user_passes_test(is_staff_user, login_url='/dashboard/login/')
+@require_http_methods(["POST"])
+def force_logout_all_users(request):
+    """Force logout ALL users (except current user) by deleting all their auth tokens"""
+    try:
+        from rest_framework.authtoken.models import Token
+
+        # Get current user to exclude them
+        current_user = request.user
+
+        # Delete all tokens except current user's tokens
+        deleted_count = Token.objects.exclude(user=current_user).delete()[0]
+
+        messages.success(request, f'Successfully forced logout for ALL users! {deleted_count} sessions were terminated. All users (except you) will need to login again.')
+
+    except Exception as e:
+        messages.error(request, f'Error forcing logout all users: {str(e)}')
+
+    return redirect(request.META.get('HTTP_REFERER', '/dashboard/users/'))
+
+
 # ==================== ADDRESS UPDATE ====================
 
 @login_required
