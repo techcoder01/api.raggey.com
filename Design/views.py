@@ -791,7 +791,7 @@ class GholaTypeAdminSideAPIView(APIView):
                 queryset, context={'request': request},  many=False)
             return Response(serializer.data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
         return Response('Something went wrong', status=HTTP_400_BAD_REQUEST)
-    # Delete a Gola Type 
+    # Delete a Gola Type
     def delete(self, request, pk):
         user = self.request.user
         if user.is_authenticated:
@@ -799,6 +799,8 @@ class GholaTypeAdminSideAPIView(APIView):
                 deleted_ghola_type = GholaType.objects.get(id=pk)
                 if deleted_ghola_type:
                     deleted_ghola_type.delete()
+                    # Clear cache so deleted collar disappears immediately
+                    clear_fabric_cache()
                     return Response('deleted', status=HTTP_200_OK)
         return Response('Something went wrong', status=HTTP_400_BAD_REQUEST)
     
@@ -825,6 +827,9 @@ class GholaTypeAdminSideAPIView(APIView):
                         fabric_type=fabric_color.fabric_type,
                         fabric_color=fabric_color
                     )
+
+                    # Clear cache so new collar appears immediately
+                    clear_fabric_cache()
 
                     serializer = GholaTypeSerializer(ghola, context={'request': request})
                     return Response(serializer.data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
@@ -857,6 +862,10 @@ class GholaTypeAdminSideAPIView(APIView):
                             ghola_type.cover = None
 
                         ghola_type.save()
+
+                        # Clear cache so updated collar appears immediately
+                        clear_fabric_cache()
+
                         serializer = GholaTypeSerializer(ghola_type, context={'request': request})
                         return Response(serializer.data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
         return Response('Something went wrong', status=HTTP_400_BAD_REQUEST)
@@ -872,7 +881,7 @@ class SleevesTypeAdminSideAPIView(APIView):
                 queryset, context={'request': request},  many=False)
             return Response(serializer.data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
         return Response('Something went wrong', status=HTTP_400_BAD_REQUEST)
-    # Delete a Sleeve Type 
+    # Delete a Sleeve Type
     def delete(self, request, pk):
         user = self.request.user
         if user.is_authenticated:
@@ -880,6 +889,8 @@ class SleevesTypeAdminSideAPIView(APIView):
                 deleted_sleeves_type = SleevesType.objects.get(id=pk)
                 if deleted_sleeves_type:
                     deleted_sleeves_type.delete()
+                    # Clear cache so deleted sleeve disappears immediately
+                    clear_fabric_cache()
                     return Response('deleted', status=HTTP_200_OK)
         return Response('Something went wrong', status=HTTP_400_BAD_REQUEST)
     
@@ -907,6 +918,8 @@ class SleevesTypeAdminSideAPIView(APIView):
                         fabric_color=fabric_color,
                         is_right_side=data.get('is_right_side', False)
                     )
+                    # Clear cache so new sleeve appears immediately
+                    clear_fabric_cache()
                     serializer = SleevesTypeSerializer(sleeve, context={'request': request})
                     return Response(serializer.data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
         return Response('Something went wrong', status=HTTP_400_BAD_REQUEST)
@@ -939,6 +952,8 @@ class SleevesTypeAdminSideAPIView(APIView):
                         elif data.get('cover') is None:
                             sleeve_type.cover = None
                         sleeve_type.save()
+                        # Clear cache so updated sleeve appears immediately
+                        clear_fabric_cache()
                         serializer = SleevesTypeSerializer(sleeve_type, context={'request': request})
                         return Response(serializer.data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
         return Response('Something went wrong', status=HTTP_400_BAD_REQUEST)
@@ -980,6 +995,8 @@ class PocketTypeAdminSideAPIView(APIView):
                         fabric_type=fabric_color.fabric_type,
                         fabric_color=fabric_color
                     )
+                    # Clear cache so new pocket appears immediately
+                    clear_fabric_cache()
                     serializer = PocketTypeSerializer(pocket, context={'request': request})
                     return Response(serializer.data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
         return Response('Something went wrong', status=HTTP_400_BAD_REQUEST)
@@ -1011,6 +1028,8 @@ class PocketTypeAdminSideAPIView(APIView):
                         elif data.get('cover') is None:
                             pocket_type.cover = None
                         pocket_type.save()
+                        # Clear cache so updated pocket appears immediately
+                        clear_fabric_cache()
                         serializer = PocketTypeSerializer(pocket_type, context={'request': request})
                         return Response(serializer.data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
         return Response('Something went wrong', status=HTTP_400_BAD_REQUEST)
@@ -1023,6 +1042,8 @@ class PocketTypeAdminSideAPIView(APIView):
                 pocket_type = PocketType.objects.get(id=pk)
                 if pocket_type:
                     pocket_type.delete()
+                    # Clear cache so deleted pocket disappears immediately
+                    clear_fabric_cache()
                     return Response('Pocket Type Deleted', status=HTTP_200_OK, content_type='application/json; charset=utf-8')
         return Response('Something went wrong', status=HTTP_400_BAD_REQUEST)
 
@@ -1064,6 +1085,8 @@ class ButtonTypeAdminSideAPIView(APIView):
                         fabric_type=fabric_color.fabric_type,
                         fabric_color=fabric_color
                     )
+                    # Clear cache so new button appears immediately
+                    clear_fabric_cache()
                     serializer = ButtonTypeSerializer(button, context={'request': request})
                     return Response(serializer.data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
         return Response('Something went wrong', status=HTTP_400_BAD_REQUEST)
@@ -1096,6 +1119,8 @@ class ButtonTypeAdminSideAPIView(APIView):
                         elif data.get('cover') is None:
                             button_type.cover = None
                         button_type.save()
+                        # Clear cache so updated button appears immediately
+                        clear_fabric_cache()
                         serializer = ButtonTypeSerializer(button_type, context={'request': request})
                         return Response(serializer.data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
         return Response('Something went wrong', status=HTTP_400_BAD_REQUEST)
@@ -1108,6 +1133,8 @@ class ButtonTypeAdminSideAPIView(APIView):
                 button_type = ButtonType.objects.get(id=pk)
                 if button_type:
                     button_type.delete()
+                    # Clear cache so deleted button disappears immediately
+                    clear_fabric_cache()
                     return Response('Button Type Deleted', status=HTTP_200_OK, content_type='application/json; charset=utf-8')
         return Response('Something went wrong', status=HTTP_400_BAD_REQUEST)
 
@@ -1148,6 +1175,8 @@ class ButtonStripTypeAdminSideAPIView(APIView):
                         fabric_type=fabric_color.fabric_type,
                         fabric_color=fabric_color
                     )
+                    # Clear cache so new button strip appears immediately
+                    clear_fabric_cache()
                     serializer = ButtonStripTypeSerializer(button_strip, context={'request': request})
                     return Response(serializer.data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
         return Response('Something went wrong', status=HTTP_400_BAD_REQUEST)
@@ -1179,6 +1208,8 @@ class ButtonStripTypeAdminSideAPIView(APIView):
                         elif data.get('cover') is None:
                             button_strip_type.cover = None
                         button_strip_type.save()
+                        # Clear cache so updated button strip appears immediately
+                        clear_fabric_cache()
                         serializer = ButtonStripTypeSerializer(button_strip_type, context={'request': request})
                         return Response(serializer.data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
         return Response('Something went wrong', status=HTTP_400_BAD_REQUEST)
@@ -1191,6 +1222,8 @@ class ButtonStripTypeAdminSideAPIView(APIView):
                 button_strip_type = ButtonStripType.objects.get(id=pk)
                 if button_strip_type:
                     button_strip_type.delete()
+                    # Clear cache so deleted button strip disappears immediately
+                    clear_fabric_cache()
                     return Response('Button Strip Type Deleted', status=HTTP_200_OK, content_type='application/json; charset=utf-8')
         return Response('Something went wrong', status=HTTP_400_BAD_REQUEST)
 
@@ -1231,6 +1264,8 @@ class BodyTypeAdminSideAPIView(APIView):
                         fabric_type=fabric_color.fabric_type,
                         fabric_color=fabric_color
                     )
+                    # Clear cache so new body appears immediately
+                    clear_fabric_cache()
                     serializer = BodyTypeSerializer(body, context={'request': request})
                     return Response(serializer.data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
         return Response('Something went wrong', status=HTTP_400_BAD_REQUEST)
@@ -1262,6 +1297,8 @@ class BodyTypeAdminSideAPIView(APIView):
                         elif data.get('cover') is None:
                             body_type.cover = None
                         body_type.save()
+                        # Clear cache so updated body appears immediately
+                        clear_fabric_cache()
                         serializer = BodyTypeSerializer(body_type, context={'request': request})
                         return Response(serializer.data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
         return Response('Something went wrong', status=HTTP_400_BAD_REQUEST)
@@ -1274,6 +1311,8 @@ class BodyTypeAdminSideAPIView(APIView):
                 body_type = BodyType.objects.get(id=pk)
                 if body_type:
                     body_type.delete()
+                    # Clear cache so deleted body disappears immediately
+                    clear_fabric_cache()
                     return Response('Body Type Deleted', status=HTTP_200_OK, content_type='application/json; charset=utf-8')
         return Response('Something went wrong', status=HTTP_400_BAD_REQUEST)
 
