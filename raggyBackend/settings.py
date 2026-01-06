@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'import_export',
+    'django_apscheduler',  # Background task scheduler
     # Removed unused apps: 'Auth', 'Basket', 'Adminstration' (no models, not used in frontend)
     'Design',
     'Purchase',

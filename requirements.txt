@@ -172,3 +172,4 @@ xdg==5
 xlrd==2.0.1
 yarl==1.8.2
 yt-dlp==2024.4.9
+django-apscheduler==0.7.0
