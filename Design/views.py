@@ -45,35 +45,19 @@ from .fabric_notifications import (
 # ================== CACHE INVALIDATION HELPERS ==================
 def clear_design_cache():
     """
-    Clear all design-related caches when data is modified.
-    This ensures users get fresh data after admin makes changes.
+    Professional cache invalidation
+    Uses Django signals for automatic clearing (see signals.py)
+    This function can also be called manually when needed.
     """
-    try:
-        # Use wildcard delete if using django-redis
-        from django.conf import settings
-        if 'django_redis' in settings.CACHES['default']['BACKEND']:
-            from django_redis import get_redis_connection
-            redis_conn = get_redis_connection('default')
-            # Delete all cache keys matching design patterns
-            patterns = ['*fabric*', '*collar*', '*sleeves*', '*pocket*', '*button*', '*body*', '*design*']
-            for pattern in patterns:
-                keys = redis_conn.keys(pattern)
-                if keys:
-                    redis_conn.delete(*keys)
-        else:
-            # Fallback: clear entire cache if not using redis
-            cache.clear()
-
-        print('✅ Design cache cleared successfully')
-    except Exception as e:
-        print(f'⚠️ Cache clear failed (non-critical): {e}')
+    from .signals import invalidate_all_design_cache
+    return invalidate_all_design_cache()
 
 def clear_fabric_cache():
     """
     Clear all fabric-related caches when data is modified.
     This ensures users get fresh data after admin makes changes.
     """
-    clear_design_cache()  # Just call the main design cache clear function
+    return clear_design_cache()  # Just call the main design cache clear function
 
 #================== END USER SIDE ====================================================
 class MainCatogeryUserSideAPIView(APIView):
