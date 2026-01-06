@@ -43,36 +43,37 @@ from .fabric_notifications import (
 
 
 # ================== CACHE INVALIDATION HELPERS ==================
-def clear_fabric_cache():
+def clear_design_cache():
     """
-    Clear all fabric-related caches when data is modified.
+    Clear all design-related caches when data is modified.
     This ensures users get fresh data after admin makes changes.
     """
     try:
-        # Clear all fabric-related cache keys
-        cache.delete_many([
-            'views.decorators.cache.cache_page.*.design.fetch.fabric.*',
-            'views.decorators.cache.cache_page.*.design.fetch.fabric.*.colors.*',
-            'views.decorators.cache.cache_page.*.design.collar.*',
-            'views.decorators.cache.cache_page.*.design.sleeves.*',
-            'views.decorators.cache.cache_page.*.design.pocket.*',
-            'views.decorators.cache.cache_page.*.design.button.*',
-            'views.decorators.cache.cache_page.*.design.body.*',
-        ])
-
         # Use wildcard delete if using django-redis
         from django.conf import settings
         if 'django_redis' in settings.CACHES['default']['BACKEND']:
             from django_redis import get_redis_connection
             redis_conn = get_redis_connection('default')
-            # Delete all cache keys matching pattern
-            keys = redis_conn.keys('*fabric*')
-            if keys:
-                redis_conn.delete(*keys)
+            # Delete all cache keys matching design patterns
+            patterns = ['*fabric*', '*collar*', '*sleeves*', '*pocket*', '*button*', '*body*', '*design*']
+            for pattern in patterns:
+                keys = redis_conn.keys(pattern)
+                if keys:
+                    redis_conn.delete(*keys)
+        else:
+            # Fallback: clear entire cache if not using redis
+            cache.clear()
 
-        print('✅ Fabric cache cleared successfully')
+        print('✅ Design cache cleared successfully')
     except Exception as e:
         print(f'⚠️ Cache clear failed (non-critical): {e}')
+
+def clear_fabric_cache():
+    """
+    Clear all fabric-related caches when data is modified.
+    This ensures users get fresh data after admin makes changes.
+    """
+    clear_design_cache()  # Just call the main design cache clear function
 
 #================== END USER SIDE ====================================================
 class MainCatogeryUserSideAPIView(APIView):

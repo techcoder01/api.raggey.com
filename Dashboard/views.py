@@ -18,6 +18,7 @@ from Design.models import (
     FabricColor, FabricType, GholaType, SleevesType,
     PocketType, ButtonType, ButtonStripType, BodyType
 )
+from Design.views import clear_design_cache
 from Coupon.models import Coupon
 
 
@@ -775,6 +776,10 @@ def update_design_item(request):
             item.cover_option = request.FILES['cover_option']
 
         item.save()
+
+        # Clear design cache so API returns fresh data
+        clear_design_cache()
+
         messages.success(request, f'{name_eng} updated successfully')
 
     except Exception as e:
@@ -814,6 +819,10 @@ def delete_design_item(request):
             return redirect(f'/dashboard/designs/?type={component_type}')
 
         item.delete()
+
+        # Clear design cache so API returns fresh data
+        clear_design_cache()
+
         messages.success(request, 'Item deleted successfully')
 
     except Exception as e:
@@ -948,6 +957,9 @@ def create_design_item(request):
             messages.error(request, 'Invalid component type')
             return redirect(f'/dashboard/designs/?type={component_type}')
 
+        # Clear design cache so API returns fresh data
+        clear_design_cache()
+
         messages.success(request, f'{name_eng} created successfully')
 
     except Exception as e:
@@ -971,6 +983,9 @@ def update_design_status(request):
             item.inStock = (status == 'in_stock')
             item.save()
 
+            # Clear design cache so API returns fresh data
+            clear_design_cache()
+
             status_text = 'In Stock' if item.inStock else 'Out of Stock'
             messages.success(request, f'{item.color_name_eng} status updated to {status_text}')
         elif component_type == 'fabric_types':
@@ -978,12 +993,18 @@ def update_design_status(request):
             item.isHidden = (status == 'hidden')
             item.save()
 
+            # Clear design cache so API returns fresh data
+            clear_design_cache()
+
             status_text = 'Hidden' if item.isHidden else 'Active'
             messages.success(request, f'{item.fabric_name_eng} status updated to {status_text}')
         elif component_type == 'buttons':
             item = ButtonType.objects.get(id=item_id)
             item.inStock = (status == 'in_stock')
             item.save()
+
+            # Clear design cache so API returns fresh data
+            clear_design_cache()
 
             status_text = 'In Stock' if item.inStock else 'Out of Stock'
             messages.success(request, f'{item.button_type_name_eng} status updated to {status_text}')
@@ -1049,6 +1070,9 @@ def update_fabric_relation(request):
 
         item.save()
 
+        # Clear design cache so API returns fresh data
+        clear_design_cache()
+
     except Exception as e:
         messages.error(request, f'Error updating: {str(e)}')
 
@@ -1105,6 +1129,9 @@ def update_image(request):
             return redirect(f'/dashboard/designs/?type={component_type}')
 
         item.save()
+
+        # Clear design cache so API returns fresh data
+        clear_design_cache()
 
     except Exception as e:
         messages.error(request, f'Error updating image: {str(e)}')
