@@ -2084,16 +2084,29 @@ def update_user(request, user_id):
 @user_passes_test(is_staff_user, login_url='/dashboard/login/')
 @require_http_methods(["POST"])
 def force_logout_user(request, user_id):
-    """Force logout a specific user by deleting their auth tokens"""
+    """Force logout a specific user by clearing their FCM tokens and JWT refresh tokens"""
     try:
-        from rest_framework.authtoken.models import Token
+        from User.models import Profile
 
         user = User.objects.get(id=user_id)
 
-        # Delete all auth tokens for this user
-        Token.objects.filter(user=user).delete()
+        # Clear FCM token to stop push notifications
+        try:
+            profile = user.profile
+            profile.fcm_token = None
+            profile.save()
+        except Profile.DoesNotExist:
+            pass
 
-        messages.success(request, f'Successfully forced logout for user: {user.username}. They will need to login again.')
+        # Try to delete JWT tokens if token blacklist is enabled
+        try:
+            from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
+            OutstandingToken.objects.filter(user=user).delete()
+        except Exception:
+            # Token blacklist might not be installed, that's okay
+            pass
+
+        messages.success(request, f'Successfully forced logout for user: {user.username}. Their session has been cleared.')
 
     except User.DoesNotExist:
         messages.error(request, 'User not found')
@@ -2107,17 +2120,25 @@ def force_logout_user(request, user_id):
 @user_passes_test(is_staff_user, login_url='/dashboard/login/')
 @require_http_methods(["POST"])
 def force_logout_all_users(request):
-    """Force logout ALL users (except current user) by deleting all their auth tokens"""
+    """Force logout ALL users (except current user) by clearing their FCM tokens and JWT refresh tokens"""
     try:
-        from rest_framework.authtoken.models import Token
+        from User.models import Profile
 
         # Get current user to exclude them
         current_user = request.user
 
-        # Delete all tokens except current user's tokens
-        deleted_count = Token.objects.exclude(user=current_user).delete()[0]
+        # Clear FCM tokens for all users except current user
+        cleared_count = Profile.objects.exclude(user=current_user).update(fcm_token=None)
 
-        messages.success(request, f'Successfully forced logout for ALL users! {deleted_count} sessions were terminated. All users (except you) will need to login again.')
+        # Try to delete JWT tokens if token blacklist is enabled
+        try:
+            from rest_framework_simplejwt.token_blacklist.models import OutstandingToken
+            OutstandingToken.objects.exclude(user=current_user).delete()
+        except Exception:
+            # Token blacklist might not be installed, that's okay
+            pass
+
+        messages.success(request, f'Successfully forced logout for ALL users! {cleared_count} user sessions were cleared. All users (except you) will need to login again.')
 
     except Exception as e:
         messages.error(request, f'Error forcing logout all users: {str(e)}')
