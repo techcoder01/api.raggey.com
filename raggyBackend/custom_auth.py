@@ -4,7 +4,6 @@ Extends JWTAuthentication to check if user should be force logged out
 """
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.exceptions import AuthenticationFailed
-from User.force_logout_model import ForceLogoutUser
 
 
 class CustomJWTAuthentication(JWTAuthentication):
@@ -20,18 +19,27 @@ class CustomJWTAuthentication(JWTAuthentication):
             user, token = result
 
             # Check if user should be force logged out
-            if ForceLogoutUser.should_logout(user):
-                # Remove from force logout list (they'll need to login again)
-                ForceLogoutUser.remove_user(user)
+            try:
+                from User.force_logout_model import ForceLogoutUser
+                if ForceLogoutUser.should_logout(user):
+                    # Remove from force logout list (they'll need to login again)
+                    ForceLogoutUser.remove_user(user)
 
-                # Raise authentication error - will trigger force logout on client
-                raise AuthenticationFailed(
-                    {
-                        'success': False,
-                        'error': 'AUTHENTICATION_FAILED',
-                        'message': 'Your session has expired. Please login again.',
-                        'force_logout': True
-                    }
-                )
+                    # Raise authentication error - will trigger force logout on client
+                    raise AuthenticationFailed(
+                        {
+                            'success': False,
+                            'error': 'AUTHENTICATION_FAILED',
+                            'message': 'Your session has expired. Please login again.',
+                            'force_logout': True
+                        }
+                    )
+            except ImportError:
+                # ForceLogoutUser model not available yet (migration pending)
+                pass
+            except Exception as e:
+                # Any other error - log but don't break authentication
+                print(f'Warning: Force logout check failed: {e}')
+                pass
 
         return result

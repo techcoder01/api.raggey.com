@@ -131,8 +131,11 @@ class UserLoginAPIView(APIView):
             phone_number = profile.phone_number if profile else ''
 
             # Remove from force logout table (if present)
-            from .force_logout_model import ForceLogoutUser
-            ForceLogoutUser.remove_user(user)
+            try:
+                from .force_logout_model import ForceLogoutUser
+                ForceLogoutUser.remove_user(user)
+            except ImportError:
+                pass  # Model not available yet (migration pending)
 
             # Generate JWT token
             refresh = RefreshToken.for_user(user)

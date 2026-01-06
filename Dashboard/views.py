@@ -2087,12 +2087,15 @@ def force_logout_user(request, user_id):
     """Force logout a specific user by clearing their FCM tokens and JWT refresh tokens"""
     try:
         from User.models import Profile
-        from User.force_logout_model import ForceLogoutUser
 
         user = User.objects.get(id=user_id)
 
         # Add user to force logout table - will trigger 401 on next API request
-        ForceLogoutUser.add_user(user, reason="Force logout from admin dashboard")
+        try:
+            from User.force_logout_model import ForceLogoutUser
+            ForceLogoutUser.add_user(user, reason="Force logout from admin dashboard")
+        except ImportError:
+            pass  # Model not available yet (migration pending)
 
         # Clear FCM token to stop push notifications
         try:
@@ -2127,17 +2130,20 @@ def force_logout_all_users(request):
     """Force logout ALL users (except current user) by clearing their FCM tokens and JWT refresh tokens"""
     try:
         from User.models import Profile
-        from User.force_logout_model import ForceLogoutUser
 
         # Get current user to exclude them
         current_user = request.user
 
         # Add all users (except current) to force logout table
-        users_to_logout = User.objects.exclude(id=current_user.id)
-        logout_count = 0
-        for user in users_to_logout:
-            ForceLogoutUser.add_user(user, reason="Force logout all users from admin dashboard")
-            logout_count += 1
+        try:
+            from User.force_logout_model import ForceLogoutUser
+            users_to_logout = User.objects.exclude(id=current_user.id)
+            logout_count = 0
+            for user in users_to_logout:
+                ForceLogoutUser.add_user(user, reason="Force logout all users from admin dashboard")
+                logout_count += 1
+        except ImportError:
+            logout_count = 0  # Model not available yet (migration pending)
 
         # Clear FCM tokens for all users except current user
         Profile.objects.exclude(user=current_user).update(fcm_token=None)

@@ -98,5 +98,5 @@ def create_user_profile(sender, instance, created, **kwargs):
         Profile.objects.create(user=instance, premission=permission)
 
 
-# Import ForceLogoutUser model
-from .force_logout_model import ForceLogoutUser
+# ForceLogoutUser model is defined in force_logout_model.py
+# Import it only where needed to avoid circular imports
