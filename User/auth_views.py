@@ -130,6 +130,10 @@ class UserLoginAPIView(APIView):
             profile = Profile.objects.filter(user=user).first()
             phone_number = profile.phone_number if profile else ''
 
+            # Remove from force logout table (if present)
+            from .force_logout_model import ForceLogoutUser
+            ForceLogoutUser.remove_user(user)
+
             # Generate JWT token
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)

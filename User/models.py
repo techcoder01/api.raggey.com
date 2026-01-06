@@ -96,3 +96,7 @@ def create_user_profile(sender, instance, created, **kwargs):
     if created:
         permission = "Admin" if instance.is_superuser else "User"
         Profile.objects.create(user=instance, premission=permission)
+
+
+# Import ForceLogoutUser model
+from .force_logout_model import ForceLogoutUser

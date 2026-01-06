@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'cloudinary_storage',
     'cloudinary',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',  # JWT token blacklisting
     'rest_framework',
     'corsheaders',
     'import_export',
@@ -85,11 +86,14 @@ MIDDLEWARE = [
 ]
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=100000),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": False,
 }
 ROOT_URLCONF = 'raggyBackend.urls'
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "raggyBackend.custom_auth.CustomJWTAuthentication",
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 100,

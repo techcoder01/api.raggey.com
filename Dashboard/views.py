@@ -2087,8 +2087,12 @@ def force_logout_user(request, user_id):
     """Force logout a specific user by clearing their FCM tokens and JWT refresh tokens"""
     try:
         from User.models import Profile
+        from User.force_logout_model import ForceLogoutUser
 
         user = User.objects.get(id=user_id)
+
+        # Add user to force logout table - will trigger 401 on next API request
+        ForceLogoutUser.add_user(user, reason="Force logout from admin dashboard")
 
         # Clear FCM token to stop push notifications
         try:
@@ -2106,7 +2110,7 @@ def force_logout_user(request, user_id):
             # Token blacklist might not be installed, that's okay
             pass
 
-        messages.success(request, f'Successfully forced logout for user: {user.username}. Their session has been cleared.')
+        messages.success(request, f'Successfully forced logout for user: {user.username}. They will be logged out on their next API request.')
 
     except User.DoesNotExist:
         messages.error(request, 'User not found')
@@ -2123,12 +2127,20 @@ def force_logout_all_users(request):
     """Force logout ALL users (except current user) by clearing their FCM tokens and JWT refresh tokens"""
     try:
         from User.models import Profile
+        from User.force_logout_model import ForceLogoutUser
 
         # Get current user to exclude them
         current_user = request.user
 
+        # Add all users (except current) to force logout table
+        users_to_logout = User.objects.exclude(id=current_user.id)
+        logout_count = 0
+        for user in users_to_logout:
+            ForceLogoutUser.add_user(user, reason="Force logout all users from admin dashboard")
+            logout_count += 1
+
         # Clear FCM tokens for all users except current user
-        cleared_count = Profile.objects.exclude(user=current_user).update(fcm_token=None)
+        Profile.objects.exclude(user=current_user).update(fcm_token=None)
 
         # Try to delete JWT tokens if token blacklist is enabled
         try:
@@ -2138,7 +2150,7 @@ def force_logout_all_users(request):
             # Token blacklist might not be installed, that's okay
             pass
 
-        messages.success(request, f'Successfully forced logout for ALL users! {cleared_count} user sessions were cleared. All users (except you) will need to login again.')
+        messages.success(request, f'Successfully forced logout for ALL users! {logout_count} users will be logged out on their next API request.')
 
     except Exception as e:
         messages.error(request, f'Error forcing logout all users: {str(e)}')
