@@ -46,13 +46,21 @@
     </div>
 
     <div class="flex flex-wrap gap-2 mb-6">
-        <a href="?type=fabric_colors{% if search_query %}&search={{ search_query }}{% endif %}{% if order_item_id %}&order_item={{ order_item_id }}{% endif %}"
-            class="px-4 py-2 rounded-lg font-medium transition-colors {% if component_type == 'fabric_colors' %}bg-[#5D0B33] text-white{% else %}bg-[#F5F6F6] text-[#6A736E] hover:bg-[#E6E8E7]{% endif %}">
-            Fabric Colors ({{ component_counts.fabric_colors }})
+        <a href="?type=main_categories{% if search_query %}&search={{ search_query }}{% endif %}{% if order_item_id %}&order_item={{ order_item_id }}{% endif %}"
+            class="px-4 py-2 rounded-lg font-medium transition-colors {% if component_type == 'main_categories' %}bg-[#5D0B33] text-white{% else %}bg-[#F5F6F6] text-[#6A736E] hover:bg-[#E6E8E7]{% endif %}">
+            Main Categories ({{ component_counts.main_categories }})
         </a>
         <a href="?type=fabric_types{% if search_query %}&search={{ search_query }}{% endif %}{% if order_item_id %}&order_item={{ order_item_id }}{% endif %}"
             class="px-4 py-2 rounded-lg font-medium transition-colors {% if component_type == 'fabric_types' %}bg-[#5D0B33] text-white{% else %}bg-[#F5F6F6] text-[#6A736E] hover:bg-[#E6E8E7]{% endif %}">
             Fabric Types ({{ component_counts.fabric_types }})
+        </a>
+        <a href="?type=fabric_colors{% if search_query %}&search={{ search_query }}{% endif %}{% if order_item_id %}&order_item={{ order_item_id }}{% endif %}"
+            class="px-4 py-2 rounded-lg font-medium transition-colors {% if component_type == 'fabric_colors' %}bg-[#5D0B33] text-white{% else %}bg-[#F5F6F6] text-[#6A736E] hover:bg-[#E6E8E7]{% endif %}">
+            Fabric Colors ({{ component_counts.fabric_colors }})
+        </a>
+        <a href="?type=body{% if search_query %}&search={{ search_query }}{% endif %}{% if order_item_id %}&order_item={{ order_item_id }}{% endif %}"
+            class="px-4 py-2 rounded-lg font-medium transition-colors {% if component_type == 'body' %}bg-[#5D0B33] text-white{% else %}bg-[#F5F6F6] text-[#6A736E] hover:bg-[#E6E8E7]{% endif %}">
+            Body ({{ component_counts.body }})
         </a>
         <a href="?type=collars{% if search_query %}&search={{ search_query }}{% endif %}{% if order_item_id %}&order_item={{ order_item_id }}{% endif %}"
             class="px-4 py-2 rounded-lg font-medium transition-colors {% if component_type == 'collars' %}bg-[#5D0B33] text-white{% else %}bg-[#F5F6F6] text-[#6A736E] hover:bg-[#E6E8E7]{% endif %}">
@@ -69,15 +77,6 @@
         <a href="?type=buttons{% if search_query %}&search={{ search_query }}{% endif %}{% if order_item_id %}&order_item={{ order_item_id }}{% endif %}"
             class="px-4 py-2 rounded-lg font-medium transition-colors {% if component_type == 'buttons' %}bg-[#5D0B33] text-white{% else %}bg-[#F5F6F6] text-[#6A736E] hover:bg-[#E6E8E7]{% endif %}">
             Buttons ({{ component_counts.buttons }})
-        </a>
-
-        <a href="?type=body{% if search_query %}&search={{ search_query }}{% endif %}{% if order_item_id %}&order_item={{ order_item_id }}{% endif %}"
-            class="px-4 py-2 rounded-lg font-medium transition-colors {% if component_type == 'body' %}bg-[#5D0B33] text-white{% else %}bg-[#F5F6F6] text-[#6A736E] hover:bg-[#E6E8E7]{% endif %}">
-            Body ({{ component_counts.body }})
-        </a>
-        <a href="?type=main_categories{% if search_query %}&search={{ search_query }}{% endif %}{% if order_item_id %}&order_item={{ order_item_id }}{% endif %}"
-            class="px-4 py-2 rounded-lg font-medium transition-colors {% if component_type == 'main_categories' %}bg-[#5D0B33] text-white{% else %}bg-[#F5F6F6] text-[#6A736E] hover:bg-[#E6E8E7]{% endif %}">
-            Main Categories ({{ component_counts.main_categories }})
         </a>
     </div>
 
