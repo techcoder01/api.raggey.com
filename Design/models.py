@@ -14,7 +14,7 @@ class HomePageSelectionCategory(models.Model):
     review_rate = models.IntegerField(default= 0 )
     isHidden = models.BooleanField(default=False)
     is_comming_soon = models.BooleanField(default=False)
-    priority = models.IntegerField(default=0, help_text="Higher value = higher priority in display")
+    priority = models.IntegerField(default=0, help_text="Lower value = higher priority (appears first)")
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -48,7 +48,7 @@ class FabricType(models.Model):
     base_price = models.DecimalField(max_digits=9, decimal_places=3)
     cover = CloudinaryField('image', blank=True, null=True, folder="FabricType")
     isHidden = models.BooleanField(default=False)
-    priority = models.IntegerField(default=0, help_text="Higher value = higher priority in display")
+    priority = models.IntegerField(default=0, help_text="Lower value = higher priority (appears first)")
     timestamp = models.DateTimeField(auto_now_add=True)
 
     # New fields based on UI design
@@ -68,7 +68,7 @@ class FabricType(models.Model):
         return self.fabric_name_eng
 
     class Meta:
-        ordering = ['-priority', '-timestamp']
+        ordering = ['priority', '-timestamp']
         verbose_name = "Fabric Type"
         verbose_name_plural = "Fabric Types"
 
@@ -88,7 +88,7 @@ class FabricColor(models.Model):
         default=0.000,
         help_text="Additional price for this color (can be positive or negative)"
     )
-    priority = models.IntegerField(default=0, help_text="Higher value = higher priority in display")
+    priority = models.IntegerField(default=0, help_text="Lower value = higher priority (appears first)")
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -100,7 +100,7 @@ class FabricColor(models.Model):
         return self.fabric_type.base_price + self.price_adjustment
 
     class Meta:
-        ordering = ['-priority', '-timestamp']
+        ordering = ['priority', '-timestamp']
         verbose_name = "Fabric Color"
         verbose_name_plural = "Fabric Colors"
         unique_together = ['fabric_type', 'color_name_eng']
@@ -119,7 +119,7 @@ class GholaType(models.Model):
     # FK to FabricColor (specific color from that fabric's colors)
     fabric_color = models.ForeignKey(FabricColor, on_delete=models.CASCADE, null=True, blank=True, related_name="ghola_types")
 
-    priority = models.IntegerField(default=0, help_text="Higher value = higher priority in display")
+    priority = models.IntegerField(default=0, help_text="Lower value = higher priority (appears first)")
     timestamp = models.DateTimeField(auto_now_add=True)
     initial_price = models.DecimalField(max_digits=9, decimal_places=3)
     cover = CloudinaryField('image', blank=True, null=True, folder="GholaType", help_text="Image shown on dishdasha preview")
@@ -131,7 +131,7 @@ class GholaType(models.Model):
         return f"{self.ghola_type_name_eng} - {color_name}"
 
     class Meta:
-        ordering = ['-priority', '-timestamp']
+        ordering = ['priority', '-timestamp']
         verbose_name = "Collar Type (Ghola)"
         verbose_name_plural = "Collar Types (Ghola)"
     
@@ -149,7 +149,7 @@ class SleevesType(models.Model):
     fabric_color = models.ForeignKey(FabricColor, on_delete=models.CASCADE, null=True, blank=True, related_name="sleeve_types")
 
     is_right_side = models.BooleanField(default=False)
-    priority = models.IntegerField(default=0, help_text="Higher value = higher priority in display")
+    priority = models.IntegerField(default=0, help_text="Lower value = higher priority (appears first)")
     timestamp = models.DateTimeField(auto_now_add=True)
     initial_price = models.DecimalField(max_digits=9, decimal_places=3)
     cover = CloudinaryField('image', blank=True, null=True, folder="SleevesType", help_text="Image shown on dishdasha preview")
@@ -160,7 +160,7 @@ class SleevesType(models.Model):
         return f"{self.sleeves_type_name_eng} - {color_name}"
 
     class Meta:
-        ordering = ['-priority', '-timestamp']
+        ordering = ['priority', '-timestamp']
         verbose_name = "Sleeve Type"
         verbose_name_plural = "Sleeve Types"
 
@@ -176,7 +176,7 @@ class PocketType(models.Model):
     # FK to FabricColor (specific color from that fabric's colors)
     fabric_color = models.ForeignKey(FabricColor, on_delete=models.CASCADE, null=True, blank=True, related_name="pocket_types")
 
-    priority = models.IntegerField(default=0, help_text="Higher value = higher priority in display")
+    priority = models.IntegerField(default=0, help_text="Lower value = higher priority (appears first)")
     timestamp = models.DateTimeField(auto_now_add=True)
     initial_price = models.DecimalField(max_digits=9, decimal_places=3)
     cover = CloudinaryField('image', blank=True, null=True, folder="PocketType", help_text="Image shown on dishdasha preview")
@@ -187,7 +187,7 @@ class PocketType(models.Model):
         return f"{self.pocket_type_name_eng} - {color_name}"
 
     class Meta:
-        ordering = ['-priority', '-timestamp']
+        ordering = ['priority', '-timestamp']
         verbose_name = "Pocket Type"
         verbose_name_plural = "Pocket Types"
 
@@ -203,7 +203,7 @@ class ButtonType(models.Model):
     # FK to FabricColor (specific color from that fabric's colors)
     fabric_color = models.ForeignKey(FabricColor, on_delete=models.CASCADE, null=True, blank=True, related_name="button_types")
 
-    priority = models.IntegerField(default=0, help_text="Higher value = higher priority in display")
+    priority = models.IntegerField(default=0, help_text="Lower value = higher priority (appears first)")
     timestamp = models.DateTimeField(auto_now_add=True)
     inStock = models.BooleanField(default=True)
     initial_price = models.DecimalField(max_digits=9, decimal_places=3)
@@ -215,7 +215,7 @@ class ButtonType(models.Model):
         return f"{self.button_type_name_eng} - {color_name}"
 
     class Meta:
-        ordering = ['-priority', '-timestamp']
+        ordering = ['priority', '-timestamp']
         verbose_name = "Button Type"
         verbose_name_plural = "Button Types"
 
