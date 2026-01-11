@@ -1,0 +1,681 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Default Measurements - Dashboard{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-[#0D1210] mb-2">Default Measurements</h1>
+    <p class="text-sm text-[#6A736E]">Manage default size measurements visible to all users</p>
+</div>
+
+<!-- Statistics Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+    <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
+        <p class="text-sm text-[#6A736E] font-medium mb-2">Total Measurements</p>
+        <p class="text-3xl font-bold text-[#0D1210]">{{ total_measurements }}</p>
+    </div>
+    <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
+        <p class="text-sm text-[#6A736E] font-medium mb-2">Active</p>
+        <p class="text-3xl font-bold text-[#0B5D35]">{{ active_measurements }}</p>
+    </div>
+    <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
+        <p class="text-sm text-[#6A736E] font-medium mb-2">Inactive</p>
+        <p class="text-3xl font-bold text-[#BF3636]">{{ inactive_measurements }}</p>
+    </div>
+    <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
+        <p class="text-sm text-[#6A736E] font-medium mb-2">Children</p>
+        <p class="text-3xl font-bold text-[#5D0B33]">{{ child_count }}</p>
+    </div>
+    <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
+        <p class="text-sm text-[#6A736E] font-medium mb-2">Adults</p>
+        <p class="text-3xl font-bold text-[#0D1210]">{{ adult_count }}</p>
+    </div>
+</div>
+
+<!-- Actions and Filters -->
+<div class="bg-white border border-[#E6E8E7] rounded-2xl p-6 mb-6">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold text-[#0D1210]">Manage Measurements</h2>
+        <button onclick="openAddModal()" class="px-4 py-2 bg-[#5D0B33] text-white rounded-lg font-medium hover:bg-[#4a0829] transition-colors flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Add New Measurement
+        </button>
+    </div>
+
+    <!-- Filters -->
+    <form method="GET" class="flex flex-col md:flex-row gap-2">
+        <div class="flex-1 relative">
+            <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#ADB2B0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <input type="text" name="search" value="{{ search_query }}" placeholder="Search by size name..." class="w-full pl-10 pr-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+        </div>
+        <select name="category" class="px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+            <option value="">All Categories</option>
+            <option value="child" {% if category_filter == 'child' %}selected{% endif %}>Child</option>
+            <option value="adult" {% if category_filter == 'adult' %}selected{% endif %}>Adult</option>
+            <option value="baby" {% if category_filter == 'baby' %}selected{% endif %}>Baby</option>
+        </select>
+        <button type="submit" class="px-5 py-2 bg-[#0D1210] text-white rounded-lg text-sm font-medium hover:bg-[#1a2420] transition-colors">
+            Filter
+        </button>
+        {% if search_query or category_filter %}
+        <a href="/dashboard/measurements/" class="px-5 py-2 bg-[#F5F6F6] text-[#0D1210] rounded-lg text-sm font-medium hover:bg-[#E6E8E7] transition-colors">
+            Clear
+        </a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Measurements Table -->
+<div class="bg-white border border-[#E6E8E7] rounded-2xl overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full table-auto">
+            <thead class="bg-[#F5F6F6]">
+                <tr>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">ID</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Size Name</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Name (English)</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Name (Arabic)</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Category</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Length</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Sleeves</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Chest</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Status</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-[#E6E8E7]">
+                {% for measurement in measurements %}
+                <tr class="hover:bg-[#F5F6F6]/50 transition-colors">
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        <p class="text-xs font-mono text-[#6A736E]">{{ measurement.id }}</p>
+                    </td>
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        <p class="text-sm font-semibold text-[#0D1210]">{{ measurement.size_name }}</p>
+                    </td>
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        <p class="text-sm text-[#0D1210]">{{ measurement.size_name_eng|default:"-" }}</p>
+                    </td>
+                    <td class="px-3 py-2.5 whitespace-nowrap" dir="rtl">
+                        <p class="text-sm text-[#0D1210]">{{ measurement.size_name_ar|default:"-" }}</p>
+                    </td>
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        <span class="px-2 py-1 text-xs font-medium rounded-full
+                            {% if measurement.category == 'child' %}bg-blue-100 text-blue-800
+                            {% elif measurement.category == 'adult' %}bg-purple-100 text-purple-800
+                            {% elif measurement.category == 'baby' %}bg-pink-100 text-pink-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ measurement.get_category_display }}
+                        </span>
+                    </td>
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        <p class="text-sm text-[#0D1210]">{{ measurement.length }}</p>
+                    </td>
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        <p class="text-sm text-[#0D1210]">{{ measurement.sleeves }}</p>
+                    </td>
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        <p class="text-sm text-[#0D1210]">{{ measurement.chest }}</p>
+                    </td>
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        <span class="px-3 py-1 {% if measurement.is_active %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %} rounded-full text-xs font-medium">
+                            {% if measurement.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </td>
+                    <td class="px-3 py-2.5 whitespace-nowrap">
+                        <div class="flex gap-1">
+                            <button onclick="viewMeasurement({{ measurement.id }})" class="inline-flex items-center px-2.5 py-1 bg-[#0B5D35] text-white rounded-lg text-xs font-medium hover:bg-[#0D1210] transition-colors" title="View Details">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                            </button>
+                            <button onclick="openEditModal({{ measurement.id }})" class="inline-flex items-center px-2.5 py-1 bg-[#5D0B33] text-white rounded-lg text-xs font-medium hover:bg-[#0D1210] transition-colors" title="Edit">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                </svg>
+                            </button>
+                            <button onclick="openDeleteModal({{ measurement.id }}, '{{ measurement.size_name|escapejs }}')" class="inline-flex items-center px-2.5 py-1 bg-[#BF3636] text-white rounded-lg text-xs font-medium hover:bg-[#0D1210] transition-colors" title="Delete">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="10" class="px-6 py-12 text-center">
+                        <svg class="w-12 h-12 mx-auto text-[#ADB2B0] mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                        </svg>
+                        <p class="text-[#6A736E] text-sm font-medium">No measurements found</p>
+                        {% if search_query or category_filter %}
+                        <p class="text-[#ADB2B0] text-xs mt-1">Try adjusting your filters</p>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div id="measurementModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-5xl mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-[#0D1210]" id="modalTitle">Add New Measurement</h2>
+            <button onclick="closeModal()" class="text-[#6A736E] hover:text-[#0D1210]">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <form id="measurementForm">
+            <input type="hidden" id="measurementId" value="">
+
+            <!-- Basic Info -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-1">Size Name *</label>
+                    <input type="text" id="sizeName" required class="w-full px-3 py-2 border border-[#E6E8E7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-1">Category *</label>
+                    <select id="category" required class="w-full px-3 py-2 border border-[#E6E8E7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                        <option value="">Select Category</option>
+                        <option value="child">Child</option>
+                        <option value="adult">Adult</option>
+                        <option value="baby">Baby</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-1">Name (English)</label>
+                    <input type="text" id="sizeNameEng" class="w-full px-3 py-2 border border-[#E6E8E7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-1">Name (Arabic)</label>
+                    <input type="text" id="sizeNameAr" dir="rtl" class="w-full px-3 py-2 border border-[#E6E8E7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+            </div>
+
+            <!-- Display Fields -->
+            <h3 class="text-sm font-semibold text-[#0D1210] mb-3 pb-2 border-b border-[#E6E8E7]">Display Measurements (Shown to Users)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-1">Length (inches)</label>
+                    <input type="number" step="0.01" id="length" value="0" class="w-full px-3 py-2 border border-[#E6E8E7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-1">Sleeves (inches)</label>
+                    <input type="number" step="0.01" id="sleeves" value="0" class="w-full px-3 py-2 border border-[#E6E8E7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-1">Chest (inches)</label>
+                    <input type="number" step="0.01" id="chest" value="0" class="w-full px-3 py-2 border border-[#E6E8E7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+            </div>
+
+            <!-- Detailed Measurements for Tailor -->
+            <h3 class="text-sm font-semibold text-[#0D1210] mb-3 pb-2 border-b border-[#E6E8E7]">Detailed Measurements (For Tailor)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-1">Front Height *</label>
+                    <input type="text" id="frontHeight" required class="w-full px-3 py-2 border border-[#E6E8E7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-1">Back Height *</label>
+                    <input type="text" id="backHeight" required class="w-full px-3 py-2 border border-[#E6E8E7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-1">Neck Size *</label>
+                    <input type="text" id="neckSize" required class="w-full px-3 py-2 border border-[#E6E8E7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-1">Around Legs *</label>
+                    <input type="text" id="aroundLegs" required class="w-full px-3 py-2 border border-[#E6E8E7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-1">Full Chest *</label>
+                    <input type="text" id="fullChest" required class="w-full px-3 py-2 border border-[#E6E8E7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-1">Half Chest *</label>
+                    <input type="text" id="halfChest" required class="w-full px-3 py-2 border border-[#E6E8E7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-1">Full Belly *</label>
+                    <input type="text" id="fullBelly" required class="w-full px-3 py-2 border border-[#E6E8E7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-1">Half Belly *</label>
+                    <input type="text" id="halfBelly" required class="w-full px-3 py-2 border border-[#E6E8E7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-1">Neck to Center Belly *</label>
+                    <input type="text" id="neckToCenterBelly" required class="w-full px-3 py-2 border border-[#E6E8E7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-1">Neck to Chest Pocket *</label>
+                    <input type="text" id="neckToChestPocket" required class="w-full px-3 py-2 border border-[#E6E8E7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-1">Shoulder Width *</label>
+                    <input type="text" id="shoulderWidth" required class="w-full px-3 py-2 border border-[#E6E8E7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-1">Arm Tall *</label>
+                    <input type="text" id="armTall" required class="w-full px-3 py-2 border border-[#E6E8E7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-1">Arm Width 1 *</label>
+                    <input type="text" id="armWidth1" required class="w-full px-3 py-2 border border-[#E6E8E7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-1">Arm Width 2 *</label>
+                    <input type="text" id="armWidth2" required class="w-full px-3 py-2 border border-[#E6E8E7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-1">Arm Width 3 *</label>
+                    <input type="text" id="armWidth3" required class="w-full px-3 py-2 border border-[#E6E8E7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-[#0D1210] mb-1">Arm Width 4 *</label>
+                    <input type="text" id="armWidth4" required class="w-full px-3 py-2 border border-[#E6E8E7] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+            </div>
+
+            <!-- Status -->
+            <div class="mb-6">
+                <label class="flex items-center">
+                    <input type="checkbox" id="isActive" checked class="w-4 h-4 text-[#0D1210] border-[#E6E8E7] rounded focus:ring-2 focus:ring-[#0D1210]">
+                    <span class="ml-2 text-sm text-[#0D1210]">Active (visible to users)</span>
+                </label>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex gap-3 justify-end">
+                <button type="button" onclick="closeModal()" class="px-5 py-2 bg-[#F5F6F6] text-[#0D1210] rounded-lg text-sm font-medium hover:bg-[#E6E8E7] transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" class="px-5 py-2 bg-[#0D1210] text-white rounded-lg text-sm font-medium hover:bg-[#1a2420] transition-colors">
+                    <span id="submitText">Save Measurement</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- View Details Modal -->
+<div id="viewModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-[#0D1210]">Measurement Details</h2>
+            <button onclick="closeViewModal()" class="text-[#6A736E] hover:text-[#0D1210]">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <div id="viewContent"></div>
+        <div class="flex justify-end mt-4">
+            <button onclick="closeViewModal()" class="px-5 py-2 bg-[#F5F6F6] text-[#0D1210] rounded-lg text-sm font-medium hover:bg-[#E6E8E7] transition-colors">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-[#0D1210]">Delete Measurement</h2>
+            <button onclick="closeDeleteModal()" class="text-[#6A736E] hover:text-[#0D1210]">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="mb-6">
+            <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-[#FDECEC] rounded-full">
+                <svg class="w-6 h-6 text-[#BF3636]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+            </div>
+            <p class="text-center text-[#0D1210] font-semibold mb-2">Are you sure you want to delete this measurement?</p>
+            <p class="text-center text-sm text-[#6A736E]">Size: <span id="deleteMeasurementName" class="font-bold text-[#0D1210]"></span></p>
+            <p class="text-center text-sm text-[#BF3636] mt-2">This action cannot be undone.</p>
+        </div>
+
+        <div class="flex gap-2 justify-end">
+            <button type="button" onclick="closeDeleteModal()" class="px-5 py-2 bg-[#F5F6F6] text-[#0D1210] rounded-lg text-sm font-medium hover:bg-[#E6E8E7] transition-colors">
+                Cancel
+            </button>
+            <button type="button" onclick="confirmDelete()" class="px-5 py-2 bg-[#BF3636] text-white rounded-lg text-sm font-medium hover:bg-[#0D1210] transition-colors">
+                Delete Measurement
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let deleteId = null;
+
+// CSRF Token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Open Add Modal
+function openAddModal() {
+    document.getElementById('modalTitle').textContent = 'Add New Measurement';
+    document.getElementById('submitText').textContent = 'Save Measurement';
+    document.getElementById('measurementForm').reset();
+    document.getElementById('measurementId').value = '';
+    document.getElementById('measurementModal').classList.remove('hidden');
+    document.getElementById('measurementModal').classList.add('flex');
+}
+
+// Open Edit Modal
+async function openEditModal(id) {
+    try {
+        const response = await fetch(`/sizes/measurements/default/${id}/`);
+        const data = await response.json();
+
+        document.getElementById('modalTitle').textContent = 'Edit Measurement';
+        document.getElementById('submitText').textContent = 'Update Measurement';
+        document.getElementById('measurementId').value = id;
+        document.getElementById('sizeName').value = data.size_name || '';
+        document.getElementById('sizeNameEng').value = data.size_name_eng || '';
+        document.getElementById('sizeNameAr').value = data.size_name_ar || '';
+        document.getElementById('category').value = data.category || '';
+        document.getElementById('length').value = data.length || 0;
+        document.getElementById('sleeves').value = data.sleeves || 0;
+        document.getElementById('chest').value = data.chest || 0;
+        document.getElementById('frontHeight').value = data.front_height || '';
+        document.getElementById('backHeight').value = data.back_height || '';
+        document.getElementById('neckSize').value = data.neck_size || '';
+        document.getElementById('aroundLegs').value = data.around_legs || '';
+        document.getElementById('fullChest').value = data.full_chest || '';
+        document.getElementById('halfChest').value = data.half_chest || '';
+        document.getElementById('fullBelly').value = data.full_belly || '';
+        document.getElementById('halfBelly').value = data.half_belly || '';
+        document.getElementById('neckToCenterBelly').value = data.neck_to_center_belly || '';
+        document.getElementById('neckToChestPocket').value = data.neck_to_chest_pocket || '';
+        document.getElementById('shoulderWidth').value = data.shoulder_width || '';
+        document.getElementById('armTall').value = data.arm_tall || '';
+        document.getElementById('armWidth1').value = data.arm_width_1 || '';
+        document.getElementById('armWidth2').value = data.arm_width_2 || '';
+        document.getElementById('armWidth3').value = data.arm_width_3 || '';
+        document.getElementById('armWidth4').value = data.arm_width_4 || '';
+        document.getElementById('isActive').checked = data.is_active || false;
+
+        document.getElementById('measurementModal').classList.remove('hidden');
+        document.getElementById('measurementModal').classList.add('flex');
+    } catch (error) {
+        console.error('Error loading measurement:', error);
+        alert('Failed to load measurement details');
+    }
+}
+
+// Close Modal
+function closeModal() {
+    document.getElementById('measurementModal').classList.add('hidden');
+    document.getElementById('measurementModal').classList.remove('flex');
+}
+
+// View Measurement
+async function viewMeasurement(id) {
+    try {
+        const response = await fetch(`/sizes/measurements/default/${id}/`);
+        const data = await response.json();
+
+        const content = `
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <p class="text-xs text-[#6A736E] mb-1">Size Name</p>
+                    <p class="text-sm font-bold text-[#0D1210]">${data.size_name || '-'}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-[#6A736E] mb-1">Category</p>
+                    <p class="text-sm font-bold text-[#0D1210]">${data.category || '-'}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-[#6A736E] mb-1">Name (English)</p>
+                    <p class="text-sm font-bold text-[#0D1210]">${data.size_name_eng || '-'}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-[#6A736E] mb-1">Name (Arabic)</p>
+                    <p class="text-sm font-bold text-[#0D1210]" dir="rtl">${data.size_name_ar || '-'}</p>
+                </div>
+            </div>
+            <h3 class="text-sm font-semibold text-[#0D1210] mb-3 pb-2 border-b border-[#E6E8E7]">Display Measurements</h3>
+            <div class="grid grid-cols-3 gap-4 mb-4">
+                <div class="border border-[#E6E8E7] rounded-lg p-3">
+                    <p class="text-xs text-[#6A736E] mb-1">Length</p>
+                    <p class="text-sm font-semibold text-[#0D1210]">${data.length || '0'}"</p>
+                </div>
+                <div class="border border-[#E6E8E7] rounded-lg p-3">
+                    <p class="text-xs text-[#6A736E] mb-1">Sleeves</p>
+                    <p class="text-sm font-semibold text-[#0D1210]">${data.sleeves || '0'}"</p>
+                </div>
+                <div class="border border-[#E6E8E7] rounded-lg p-3">
+                    <p class="text-xs text-[#6A736E] mb-1">Chest</p>
+                    <p class="text-sm font-semibold text-[#0D1210]">${data.chest || '0'}"</p>
+                </div>
+            </div>
+            <h3 class="text-sm font-semibold text-[#0D1210] mb-3 pb-2 border-b border-[#E6E8E7]">Detailed Measurements</h3>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div class="border border-[#E6E8E7] rounded-lg p-3">
+                    <p class="text-xs text-[#6A736E] mb-1">Front Height</p>
+                    <p class="text-sm font-semibold text-[#0D1210]">${data.front_height || '-'}</p>
+                </div>
+                <div class="border border-[#E6E8E7] rounded-lg p-3">
+                    <p class="text-xs text-[#6A736E] mb-1">Back Height</p>
+                    <p class="text-sm font-semibold text-[#0D1210]">${data.back_height || '-'}</p>
+                </div>
+                <div class="border border-[#E6E8E7] rounded-lg p-3">
+                    <p class="text-xs text-[#6A736E] mb-1">Neck Size</p>
+                    <p class="text-sm font-semibold text-[#0D1210]">${data.neck_size || '-'}</p>
+                </div>
+                <div class="border border-[#E6E8E7] rounded-lg p-3">
+                    <p class="text-xs text-[#6A736E] mb-1">Around Legs</p>
+                    <p class="text-sm font-semibold text-[#0D1210]">${data.around_legs || '-'}</p>
+                </div>
+                <div class="border border-[#E6E8E7] rounded-lg p-3">
+                    <p class="text-xs text-[#6A736E] mb-1">Full Chest</p>
+                    <p class="text-sm font-semibold text-[#0D1210]">${data.full_chest || '-'}</p>
+                </div>
+                <div class="border border-[#E6E8E7] rounded-lg p-3">
+                    <p class="text-xs text-[#6A736E] mb-1">Half Chest</p>
+                    <p class="text-sm font-semibold text-[#0D1210]">${data.half_chest || '-'}</p>
+                </div>
+                <div class="border border-[#E6E8E7] rounded-lg p-3">
+                    <p class="text-xs text-[#6A736E] mb-1">Full Belly</p>
+                    <p class="text-sm font-semibold text-[#0D1210]">${data.full_belly || '-'}</p>
+                </div>
+                <div class="border border-[#E6E8E7] rounded-lg p-3">
+                    <p class="text-xs text-[#6A736E] mb-1">Half Belly</p>
+                    <p class="text-sm font-semibold text-[#0D1210]">${data.half_belly || '-'}</p>
+                </div>
+                <div class="border border-[#E6E8E7] rounded-lg p-3">
+                    <p class="text-xs text-[#6A736E] mb-1">Neck to Center Belly</p>
+                    <p class="text-sm font-semibold text-[#0D1210]">${data.neck_to_center_belly || '-'}</p>
+                </div>
+                <div class="border border-[#E6E8E7] rounded-lg p-3">
+                    <p class="text-xs text-[#6A736E] mb-1">Neck to Chest Pocket</p>
+                    <p class="text-sm font-semibold text-[#0D1210]">${data.neck_to_chest_pocket || '-'}</p>
+                </div>
+                <div class="border border-[#E6E8E7] rounded-lg p-3">
+                    <p class="text-xs text-[#6A736E] mb-1">Shoulder Width</p>
+                    <p class="text-sm font-semibold text-[#0D1210]">${data.shoulder_width || '-'}</p>
+                </div>
+                <div class="border border-[#E6E8E7] rounded-lg p-3">
+                    <p class="text-xs text-[#6A736E] mb-1">Arm Tall</p>
+                    <p class="text-sm font-semibold text-[#0D1210]">${data.arm_tall || '-'}</p>
+                </div>
+                <div class="border border-[#E6E8E7] rounded-lg p-3">
+                    <p class="text-xs text-[#6A736E] mb-1">Arm Width 1</p>
+                    <p class="text-sm font-semibold text-[#0D1210]">${data.arm_width_1 || '-'}</p>
+                </div>
+                <div class="border border-[#E6E8E7] rounded-lg p-3">
+                    <p class="text-xs text-[#6A736E] mb-1">Arm Width 2</p>
+                    <p class="text-sm font-semibold text-[#0D1210]">${data.arm_width_2 || '-'}</p>
+                </div>
+                <div class="border border-[#E6E8E7] rounded-lg p-3">
+                    <p class="text-xs text-[#6A736E] mb-1">Arm Width 3</p>
+                    <p class="text-sm font-semibold text-[#0D1210]">${data.arm_width_3 || '-'}</p>
+                </div>
+                <div class="border border-[#E6E8E7] rounded-lg p-3">
+                    <p class="text-xs text-[#6A736E] mb-1">Arm Width 4</p>
+                    <p class="text-sm font-semibold text-[#0D1210]">${data.arm_width_4 || '-'}</p>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('viewContent').innerHTML = content;
+        document.getElementById('viewModal').classList.remove('hidden');
+        document.getElementById('viewModal').classList.add('flex');
+    } catch (error) {
+        console.error('Error loading measurement:', error);
+        alert('Failed to load measurement details');
+    }
+}
+
+function closeViewModal() {
+    document.getElementById('viewModal').classList.add('hidden');
+    document.getElementById('viewModal').classList.remove('flex');
+}
+
+// Save/Update Measurement
+document.getElementById('measurementForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const id = document.getElementById('measurementId').value;
+    const payload = {
+        size_name: document.getElementById('sizeName').value,
+        size_name_eng: document.getElementById('sizeNameEng').value,
+        size_name_ar: document.getElementById('sizeNameAr').value,
+        category: document.getElementById('category').value,
+        length: parseFloat(document.getElementById('length').value) || 0,
+        sleeves: parseFloat(document.getElementById('sleeves').value) || 0,
+        chest: parseFloat(document.getElementById('chest').value) || 0,
+        front_height: document.getElementById('frontHeight').value,
+        back_height: document.getElementById('backHeight').value,
+        neck_size: document.getElementById('neckSize').value,
+        around_legs: document.getElementById('aroundLegs').value,
+        full_chest: document.getElementById('fullChest').value,
+        half_chest: document.getElementById('halfChest').value,
+        full_belly: document.getElementById('fullBelly').value,
+        half_belly: document.getElementById('halfBelly').value,
+        neck_to_center_belly: document.getElementById('neckToCenterBelly').value,
+        neck_to_chest_pocket: document.getElementById('neckToChestPocket').value,
+        shoulder_width: document.getElementById('shoulderWidth').value,
+        arm_tall: document.getElementById('armTall').value,
+        arm_width_1: document.getElementById('armWidth1').value,
+        arm_width_2: document.getElementById('armWidth2').value,
+        arm_width_3: document.getElementById('armWidth3').value,
+        arm_width_4: document.getElementById('armWidth4').value,
+        is_active: document.getElementById('isActive').checked
+    };
+
+    try {
+        const url = id ? `/sizes/measurements/default/update/${id}/` : '/sizes/measurements/default/create/';
+        const method = 'POST';
+
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            alert(id ? 'Measurement updated successfully' : 'Measurement created successfully');
+            closeModal();
+            window.location.reload();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + (error.error || 'Failed to save measurement'));
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to save measurement');
+    }
+});
+
+// Delete Modal
+function openDeleteModal(id, name) {
+    deleteId = id;
+    document.getElementById('deleteMeasurementName').textContent = name;
+    document.getElementById('deleteModal').classList.remove('hidden');
+    document.getElementById('deleteModal').classList.add('flex');
+}
+
+function closeDeleteModal() {
+    deleteId = null;
+    document.getElementById('deleteModal').classList.add('hidden');
+    document.getElementById('deleteModal').classList.remove('flex');
+}
+
+async function confirmDelete() {
+    if (!deleteId) return;
+
+    try {
+        const response = await fetch(`/sizes/measurements/default/delete/${deleteId}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        });
+
+        if (response.ok) {
+            alert('Measurement deleted successfully');
+            closeDeleteModal();
+            window.location.reload();
+        } else {
+            alert('Failed to delete measurement');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to delete measurement');
+    }
+}
+
+// Close modals when clicking outside
+document.getElementById('measurementModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+
+document.getElementById('viewModal').addEventListener('click', function(e) {
+    if (e.target === this) closeViewModal();
+});
+
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+});
+</script>
+
+{% endblock %}

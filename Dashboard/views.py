@@ -1377,6 +1377,57 @@ def user_sizes_view(request):
     return render(request, 'dashboard/user_sizes.html', context)
 
 
+# ==================== DEFAULT MEASUREMENTS MANAGEMENT ====================
+
+@login_required(login_url='/dashboard/login/')
+@user_passes_test(is_staff_user, login_url='/dashboard/login/')
+def default_measurements_view(request):
+    """Display and manage default measurements (admin-created, visible to all users)"""
+    from Sizes.models import DefaultMeasurement
+
+    search_query = request.GET.get('search', '')
+    category_filter = request.GET.get('category', '')
+
+    # Get all default measurements
+    measurements = DefaultMeasurement.objects.all().order_by('timestamp')
+
+    # Apply search filter
+    if search_query:
+        measurements = measurements.filter(
+            Q(size_name__icontains=search_query) |
+            Q(size_name_eng__icontains=search_query) |
+            Q(size_name_ar__icontains=search_query)
+        )
+
+    # Filter by category
+    if category_filter:
+        measurements = measurements.filter(category=category_filter)
+
+    # Count by status
+    total_measurements = DefaultMeasurement.objects.count()
+    active_measurements = DefaultMeasurement.objects.filter(is_active=True).count()
+    inactive_measurements = DefaultMeasurement.objects.filter(is_active=False).count()
+
+    # Count by category
+    child_count = DefaultMeasurement.objects.filter(category='child').count()
+    adult_count = DefaultMeasurement.objects.filter(category='adult').count()
+    baby_count = DefaultMeasurement.objects.filter(category='baby').count()
+
+    context = {
+        'measurements': measurements,
+        'search_query': search_query,
+        'category_filter': category_filter,
+        'total_measurements': total_measurements,
+        'active_measurements': active_measurements,
+        'inactive_measurements': inactive_measurements,
+        'child_count': child_count,
+        'adult_count': adult_count,
+        'baby_count': baby_count,
+    }
+
+    return render(request, 'dashboard/default_measurements.html', context)
+
+
 # ==================== PAYMENTS MANAGEMENT ====================
 
 @login_required(login_url='/dashboard/login/')

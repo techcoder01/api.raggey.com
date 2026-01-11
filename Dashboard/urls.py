@@ -26,6 +26,7 @@ urlpatterns = [
     path('users/<int:user_id>/force-logout/', views.force_logout_user, name='force_logout_user'),
     path('users/force-logout-all/', views.force_logout_all_users, name='force_logout_all_users'),
     path('sizes/', views.user_sizes_view, name='user_sizes'),
+    path('measurements/', views.default_measurements_view, name='default_measurements'),
     path('payments/', views.payments_view, name='payments'),
     path('coupons/', views.coupons_view, name='coupons'),
     path('coupons/create/', views.create_coupon, name='create_coupon'),
