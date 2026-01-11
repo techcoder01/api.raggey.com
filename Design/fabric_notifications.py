@@ -177,6 +177,53 @@ def send_fabric_color_update_notification():
         return None
 
 
+def send_main_category_update_notification():
+    """
+    Send notification when main categories (home page) change.
+    
+    Use cases:
+    - New category added
+    - Category deleted
+    - Category hidden/shown
+    - Category fields (name, price, duration) changed
+    """
+    try:
+        # Get all active FCM tokens
+        tokens = Profile.objects.filter(
+            fcm_token__isnull=False
+        ).exclude(
+            fcm_token=''
+        ).values_list('fcm_token', flat=True)
+
+        tokens = list(tokens)
+
+        if not tokens:
+            logger.warning("No FCM tokens found for main category update notification")
+            return
+
+        # Create FCM message with data payload
+        message = messaging.MulticastMessage(
+            tokens=tokens,
+            data={
+                'type': 'main_category_update',
+            },
+        )
+
+        # Send to all devices
+        response = messaging.send_multicast(message)
+
+        logger.info(
+            f'✅ Main category update notification sent successfully: '
+            f'{response.success_count}/{len(tokens)} devices'
+        )
+
+        return response
+
+    except Exception as e:
+        logger.error(f'❌ Error sending main category update notification: {e}')
+        return None
+
+
 # ============================================================================
 # Convenience Functions for Common Admin Actions
 # ============================================================================
@@ -238,3 +285,9 @@ def notify_bulk_color_update():
     """Called after bulk color operations."""
     logger.info("🎨 Bulk color update - sending notification...")
     return send_fabric_color_update_notification()
+
+
+def notify_main_category_changed():
+    """Called when main categories are changed in admin."""
+    logger.info("🏠 Main categories updated - sending notification...")
+    return send_main_category_update_notification()

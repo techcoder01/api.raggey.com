@@ -11,7 +11,11 @@ import logging
 from .models import (
     FabricType, FabricColor,
     GholaType, SleevesType, PocketType,
-    ButtonType, BodyType
+    ButtonType, BodyType,
+    HomePageSelectionCategory
+)
+from .fabric_notifications import (
+    notify_main_category_changed
 )
 
 logger = logging.getLogger(__name__)
@@ -134,6 +138,15 @@ def body_changed(sender, instance, **kwargs):
     """Clear cache when Body is modified"""
     logger.info(f"📝 Body changed: {instance.body_type_name_eng}")
     invalidate_all_design_cache()
+
+
+@receiver(post_save, sender=HomePageSelectionCategory)
+@receiver(post_delete, sender=HomePageSelectionCategory)
+def main_category_changed(sender, instance, **kwargs):
+    """Clear cache and notify app when Main Category is modified"""
+    logger.info(f"🏠 Main Category changed: {instance.main_category_name_eng}")
+    invalidate_all_design_cache()
+    notify_main_category_changed()
 
 
 logger.info("✅ Design cache invalidation signals registered successfully")
