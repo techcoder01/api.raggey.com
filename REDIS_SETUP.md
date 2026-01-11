@@ -18,7 +18,6 @@ All fabric/asset endpoints now have 10-minute Redis caching:
 - ✅ `/design/sleeves/` - Sleeve options
 - ✅ `/design/pocket/` - Pocket options
 - ✅ `/design/button/` - Button options
-- ✅ `/design/button-strip/` - Button strip options
 - ✅ `/design/body/` - Body options
 
 ### Cache Invalidation

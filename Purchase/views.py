@@ -17,7 +17,7 @@ from Design.models import (
     SleevesType,
     PocketType,
     ButtonType,
-    ButtonStripType,
+
     BodyType,
     InventoryTransaction
 )

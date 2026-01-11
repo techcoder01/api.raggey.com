@@ -219,32 +219,7 @@ class ButtonType(models.Model):
         verbose_name = "Button Type"
         verbose_name_plural = "Button Types"
 
-#================ Button Strip TYPE ================
 
-class ButtonStripType(models.Model):
-    button_strip_type_name_eng = models.CharField(max_length=300)
-    button_strip_type_name_arb = models.CharField(max_length=300)
-
-    # FK to FabricType (Cotton, Silk, etc.) - for filtering
-    fabric_type = models.ForeignKey(FabricType, on_delete=models.CASCADE, null=True, blank=True, related_name="button_strip_types")
-
-    # FK to FabricColor (specific color from that fabric's colors)
-    fabric_color = models.ForeignKey(FabricColor, on_delete=models.CASCADE, null=True, blank=True, related_name="button_strip_types")
-
-    priority = models.IntegerField(default=0, help_text="Higher value = higher priority in display")
-    timestamp = models.DateTimeField(auto_now_add=True)
-    initial_price = models.DecimalField(max_digits=9, decimal_places=3)
-    cover = CloudinaryField('image', blank=True, null=True, folder="ButtonStripType", help_text="Image shown on dishdasha preview")
-    cover_option = CloudinaryField('image', blank=True, null=True, folder="ButtonStripType/Options", help_text="Image shown in selection cards/options")
-
-    def __str__(self):
-        color_name = self.fabric_color.color_name_eng if self.fabric_color else "No Color"
-        return f"{self.button_strip_type_name_eng} - {color_name}"
-
-    class Meta:
-        ordering = ['-priority', '-timestamp']
-        verbose_name = "Button Strip Type"
-        verbose_name_plural = "Button Strip Types"
 
 #================ Body TYPE ================
 
@@ -258,7 +233,7 @@ class BodyType(models.Model):
     # FK to FabricColor (specific color from that fabric's colors)
     fabric_color = models.ForeignKey(FabricColor, on_delete=models.CASCADE, null=True, blank=True, related_name="body_types")
 
-    priority = models.IntegerField(default=0, help_text="Higher value = higher priority in display")
+
     timestamp = models.DateTimeField(auto_now_add=True)
     initial_price = models.DecimalField(max_digits=9, decimal_places=3)
     cover = CloudinaryField('image', blank=True, null=True, folder="BodyType", help_text="Image shown on dishdasha preview")
@@ -269,7 +244,7 @@ class BodyType(models.Model):
         return f"{self.body_type_name_eng} - {color_name}"
 
     class Meta:
-        ordering = ['-priority', '-timestamp']
+        ordering = ['-timestamp']
         verbose_name = "Body Type"
         verbose_name_plural = "Body Types"
 
@@ -287,10 +262,10 @@ class UserDesign(models.Model):
     selected_sleeve_left_type = models.ForeignKey(SleevesType, on_delete=models.CASCADE, null=True, blank=True, related_name="selected_sleeve_left_type")
     selected_sleeve_right_type = models.ForeignKey(SleevesType, on_delete=models.CASCADE, null=True, blank=True)
 
-    # FIX ISSUE 1: Add pocket, button, and button strip selections
+    # FIX ISSUE 1: Add pocket and button selections
     selected_pocket_type = models.ForeignKey(PocketType, on_delete=models.CASCADE, null=True, blank=True, related_name="selected_pocket_designs")
     selected_button_type = models.ForeignKey(ButtonType, on_delete=models.CASCADE, null=True, blank=True, related_name="selected_button_designs")
-    selected_button_strip_type = models.ForeignKey(ButtonStripType, on_delete=models.CASCADE, null=True, blank=True, related_name="selected_button_strip_designs")
+
     selected_body_type = models.ForeignKey(BodyType, on_delete=models.CASCADE, null=True, blank=True, related_name="selected_body_designs")
 
     design_Total = models.DecimalField(max_digits=9, decimal_places=3, default=0.000)
@@ -370,7 +345,6 @@ class DesignScreenshot(models.Model):
     sleeve_right_id = models.IntegerField(null=True, blank=True)
     pocket_id = models.IntegerField(null=True, blank=True)
     button_id = models.IntegerField(null=True, blank=True)
-    button_strip_id = models.IntegerField(null=True, blank=True)
     body_id = models.IntegerField(null=True, blank=True)
 
     # Metadata

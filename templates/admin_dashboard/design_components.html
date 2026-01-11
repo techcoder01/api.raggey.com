@@ -6,32 +6,35 @@
     <!-- Header -->
     <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-800">Design Components Management</h1>
-        <p class="text-gray-600 mt-2">Manage Collars, Sleeves, Pockets, Buttons, and Button Strips</p>
+        <p class="text-gray-600 mt-2">Manage Collars, Sleeves, Pockets, and Buttons</p>
     </div>
     <!-- Tabs -->
     <div class="bg-white rounded-xl card-shadow mb-6">
         <div class="flex border-b overflow-x-auto">
-            <button onclick="showComponentTab('collars')" id="tab-collars" class="tab-button px-6 py-4 font-medium text-purple-600 border-b-2 border-purple-600 whitespace-nowrap">
+            <button onclick="showComponentTab('collars')" id="tab-collars"
+                class="tab-button px-6 py-4 font-medium text-purple-600 border-b-2 border-purple-600 whitespace-nowrap">
                 <i class="fas fa-user-tie mr-2"></i>Collars (Ghola)
             </button>
-            <button onclick="showComponentTab('sleeves')" id="tab-sleeves" class="tab-button px-6 py-4 font-medium text-gray-600 whitespace-nowrap">
+            <button onclick="showComponentTab('sleeves')" id="tab-sleeves"
+                class="tab-button px-6 py-4 font-medium text-gray-600 whitespace-nowrap">
                 <i class="fas fa-hand-paper mr-2"></i>Sleeves
             </button>
-            <button onclick="showComponentTab('pockets')" id="tab-pockets" class="tab-button px-6 py-4 font-medium text-gray-600 whitespace-nowrap">
+            <button onclick="showComponentTab('pockets')" id="tab-pockets"
+                class="tab-button px-6 py-4 font-medium text-gray-600 whitespace-nowrap">
                 <i class="fas fa-inbox mr-2"></i>Pockets
             </button>
-            <button onclick="showComponentTab('buttons')" id="tab-buttons" class="tab-button px-6 py-4 font-medium text-gray-600 whitespace-nowrap">
+            <button onclick="showComponentTab('buttons')" id="tab-buttons"
+                class="tab-button px-6 py-4 font-medium text-gray-600 whitespace-nowrap">
                 <i class="fas fa-circle mr-2"></i>Buttons
             </button>
-            <button onclick="showComponentTab('button-strips')" id="tab-button-strips" class="tab-button px-6 py-4 font-medium text-gray-600 whitespace-nowrap">
-                <i class="fas fa-grip-lines mr-2"></i>Button Strips
-            </button>
+
         </div>
     </div>
     <!-- Collars Tab -->
     <div id="collars-content" class="tab-content-component">
         <div class="mb-4">
-            <button onclick="openComponentModal('collar')" class="gradient-bg text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition">
+            <button onclick="openComponentModal('collar')"
+                class="gradient-bg text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition">
                 <i class="fas fa-plus mr-2"></i>Add New Collar Type
             </button>
         </div>
@@ -67,7 +70,8 @@
     <!-- Sleeves Tab -->
     <div id="sleeves-content" class="tab-content-component hidden">
         <div class="mb-4">
-            <button onclick="openComponentModal('sleeve')" class="gradient-bg text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition">
+            <button onclick="openComponentModal('sleeve')"
+                class="gradient-bg text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition">
                 <i class="fas fa-plus mr-2"></i>Add New Sleeve Type
             </button>
         </div>
@@ -104,7 +108,8 @@
     <!-- Pockets Tab -->
     <div id="pockets-content" class="tab-content-component hidden">
         <div class="mb-4">
-            <button onclick="openComponentModal('pocket')" class="gradient-bg text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition">
+            <button onclick="openComponentModal('pocket')"
+                class="gradient-bg text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition">
                 <i class="fas fa-plus mr-2"></i>Add New Pocket Type
             </button>
         </div>
@@ -140,7 +145,8 @@
     <!-- Buttons Tab -->
     <div id="buttons-content" class="tab-content-component hidden">
         <div class="mb-4">
-            <button onclick="openComponentModal('button')" class="gradient-bg text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition">
+            <button onclick="openComponentModal('button')"
+                class="gradient-bg text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition">
                 <i class="fas fa-plus mr-2"></i>Add New Button Type
             </button>
         </div>
@@ -173,45 +179,11 @@
             </div>
         </div>
     </div>
-    <!-- Button Strips Tab -->
-    <div id="button-strips-content" class="tab-content-component hidden">
-        <div class="mb-4">
-            <button onclick="openComponentModal('button-strip')" class="gradient-bg text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition">
-                <i class="fas fa-plus mr-2"></i>Add New Button Strip Type
-            </button>
-        </div>
-        <div class="bg-white rounded-xl card-shadow overflow-hidden">
-            <div class="p-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">Button Strip Types</h3>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead>
-                            <tr class="text-left text-xs font-medium text-gray-500 uppercase">
-                                <th class="pb-4">ID</th>
-                                <th class="pb-4">Image</th>
-                                <th class="pb-4">Name (Eng)</th>
-                                <th class="pb-4">Name (Arb)</th>
-                                <th class="pb-4">Price</th>
-                                <th class="pb-4">In Stock</th>
-                                <th class="pb-4">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="button-strips-table" class="divide-y divide-gray-200">
-                            <tr>
-                                <td colspan="7" class="py-8 text-center text-gray-500">
-                                    <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
-                                    <p>Loading button strip types...</p>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
+
 </div>
 <!-- Component Modal -->
-<div id="component-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+<div id="component-modal"
+    class="modal hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-white rounded-xl p-8 max-w-2xl w-full mx-4 max-h-screen overflow-y-auto">
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-2xl font-bold text-gray-800" id="component-modal-title">Add Component</h2>
@@ -225,15 +197,19 @@
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Name (English) *</label>
-                    <input type="text" id="component-name-eng" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    <input type="text" id="component-name-eng" required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Name (Arabic)</label>
-                    <input type="text" id="component-name-arb" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" dir="rtl">
+                    <input type="text" id="component-name-arb"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        dir="rtl">
                 </div>
                 <div id="sleeve-side-field" class="hidden">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Sleeve Side *</label>
-                    <select id="component-side" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    <select id="component-side"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                         <option value="">Select Side</option>
                         <option value="True">Right</option>
                         <option value="False">Left</option>
@@ -241,37 +217,45 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Price (KWD) *</label>
-                    <input type="number" step="0.001" id="component-price" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    <input type="number" step="0.001" id="component-price" required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Image</label>
-                    <input type="file" id="component-image" accept="image/*" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    <input type="file" id="component-image" accept="image/*"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                     <p class="text-xs text-gray-500 mt-1">Upload an image file</p>
                 </div>
-                 <div>
+                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">In Stock</label>
-                    <input type="checkbox" id="component-in-stock" class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
+                    <input type="checkbox" id="component-in-stock"
+                        class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
                 </div>
-                 <div>
+                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Hidden</label>
-                    <input type="checkbox" id="component-is-hidden" class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
+                    <input type="checkbox" id="component-is-hidden"
+                        class="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500">
                 </div>
-                 <div>
+                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Fabric Color ID *</label>
-                    <input type="number" id="component-fabric-color-id" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    <input type="number" id="component-fabric-color-id" required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                     <p class="text-xs text-gray-500 mt-1">Associated Fabric Color ID (integer)</p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Categories</label>
-                    <input type="text" id="component-categories" placeholder='e.g., [{"id": 1}, {"id": 2}]' class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    <input type="text" id="component-categories" placeholder='e.g., [{"id": 1}, {"id": 2}]'
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                     <p class="text-xs text-gray-500 mt-1">Enter categories as JSON array of objects with 'id' keys</p>
                 </div>
             </div>
             <div class="flex gap-4 mt-6">
-                <button type="button" onclick="saveComponent()" class="flex-1 gradient-bg text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition">
+                <button type="button" onclick="saveComponent()"
+                    class="flex-1 gradient-bg text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition">
                     <i class="fas fa-save mr-2"></i>Save Component
                 </button>
-                <button type="button" onclick="closeComponentModal()" class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                <button type="button" onclick="closeComponentModal()"
+                    class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
                     Cancel
                 </button>
             </div>
@@ -279,120 +263,108 @@
     </div>
 </div>
 <script>
-let componentsData = {
-    collars: [],
-    sleeves: [],
-    pockets: [],
-    buttons: [],
-    buttonStrips: []
-};
+    let componentsData = {
+        collars: [],
+        sleeves: [],
+        pockets: [],
+        buttons: []
+    };
 
-// API Endpoints mapping - Updated to match your Design/urls.py
-const apiEndpoints = {
-    collar: {
-        fetch: '/design/fetch/coller/', // This fetches *all* collars, not by ID
-        detail: (id) => `/design/detail/ghola/${id}/`,
-        create: '/design/create/ghola/',
-        update: (id) => `/design/update/ghola/${id}/`,
-        delete: (id) => `/design/delete/ghola/${id}/`,
-    },
-    sleeve: {
-        fetchRight: '/design/fetch/sleeves/right/',
-        fetchLeft: '/design/fetch/sleeves/left/',
-        detail: (id) => `/design/detail/sleeve/${id}/`,
-        create: '/design/create/sleeve/',
-        update: (id) => `/design/update/sleeve/${id}/`,
-        delete: (id) => `/design/delete/sleeve/${id}/`,
-    },
-    pocket: {
-        fetch: '/design/fetch/pocket/', // This fetches *all* pockets
-        detail: (id) => `/design/detail/pocket/${id}/`,
-        create: '/design/create/pocket/',
-        update: (id) => `/design/update/pocket/${id}/`,
-        delete: (id) => `/design/delete/pocket/${id}/`,
-    },
-    button: {
-        fetch: '/design/fetch/button/', // This fetches *all* buttons
-        detail: (id) => `/design/detail/button/${id}/`,
-        create: '/design/create/button/',
-        update: (id) => `/design/update/button/${id}/`,
-        delete: (id) => `/design/delete/button/${id}/`,
-    },
-    'button-strip': {
-        fetch: '/design/fetch/button-strip/', // This fetches *all* button strips
-        detail: (id) => `/design/detail/button-strip/${id}/`,
-        create: '/design/create/button-strip/',
-        update: (id) => `/design/update/button-strip/${id}/`,
-        delete: (id) => `/design/delete/button-strip/${id}/`,
+    // API Endpoints mapping - Updated to match your Design/urls.py
+    const apiEndpoints = {
+        collar: {
+            fetch: '/design/fetch/coller/', // This fetches *all* collars, not by ID
+            detail: (id) => `/design/detail/ghola/${id}/`,
+            create: '/design/create/ghola/',
+            update: (id) => `/design/update/ghola/${id}/`,
+            delete: (id) => `/design/delete/ghola/${id}/`,
+        },
+        sleeve: {
+            fetchRight: '/design/fetch/sleeves/right/',
+            fetchLeft: '/design/fetch/sleeves/left/',
+            detail: (id) => `/design/detail/sleeve/${id}/`,
+            create: '/design/create/sleeve/',
+            update: (id) => `/design/update/sleeve/${id}/`,
+            delete: (id) => `/design/delete/sleeve/${id}/`,
+        },
+        pocket: {
+            fetch: '/design/fetch/pocket/', // This fetches *all* pockets
+            detail: (id) => `/design/detail/pocket/${id}/`,
+            create: '/design/create/pocket/',
+            update: (id) => `/design/update/pocket/${id}/`,
+            delete: (id) => `/design/delete/pocket/${id}/`,
+        },
+        button: {
+            fetch: '/design/fetch/button/', // This fetches *all* buttons
+            detail: (id) => `/design/detail/button/${id}/`,
+            create: '/design/create/button/',
+            update: (id) => `/design/update/button/${id}/`,
+            delete: (id) => `/design/delete/button/${id}/`,
+        },
+
+    };
+
+    // Tab Management
+    function showComponentTab(tabName) {
+        document.querySelectorAll('.tab-content-component').forEach(tab => tab.classList.add('hidden'));
+        document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.classList.remove('text-purple-600', 'border-b-2', 'border-purple-600');
+            btn.classList.add('text-gray-600');
+        });
+        document.getElementById(`${tabName}-content`).classList.remove('hidden');
+        const activeButton = document.getElementById(`tab-${tabName}`);
+        activeButton.classList.add('text-purple-600', 'border-b-2', 'border-purple-600');
+        activeButton.classList.remove('text-gray-600');
+        // Load data for active tab
+        loadComponentData(tabName);
     }
-};
 
-// Tab Management
-function showComponentTab(tabName) {
-    document.querySelectorAll('.tab-content-component').forEach(tab => tab.classList.add('hidden'));
-    document.querySelectorAll('.tab-button').forEach(btn => {
-        btn.classList.remove('text-purple-600', 'border-b-2', 'border-purple-600');
-        btn.classList.add('text-gray-600');
-    });
-    document.getElementById(`${tabName}-content`).classList.remove('hidden');
-    const activeButton = document.getElementById(`tab-${tabName}`);
-    activeButton.classList.add('text-purple-600', 'border-b-2', 'border-purple-600');
-    activeButton.classList.remove('text-gray-600');
-    // Load data for active tab
-    loadComponentData(tabName);
-}
-
-// Load Component Data
-async function loadComponentData(type) {
-    try {
-        let data = [];
-        if (type === 'collars') {
-            const response = await fetch(apiEndpoints.collar.fetch);
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            data = await response.json(); // Assumes API returns array directly
-            componentsData.collars = data;
-        } else if (type === 'sleeves') {
-            // Fetch both right and left sleeves
-            const [rightRes, leftRes] = await Promise.all([
-                fetch(apiEndpoints.sleeve.fetchRight),
-                fetch(apiEndpoints.sleeve.fetchLeft)
-            ]);
-            if (!rightRes.ok || !leftRes.ok) throw new Error('Error fetching sleeve data');
-            const rightData = await rightRes.json();
-            const leftData = await leftRes.json();
-            data = [...rightData, ...leftData]; // Assumes API returns arrays directly
-            componentsData.sleeves = data;
-        } else if (type === 'pockets') {
-            const response = await fetch(apiEndpoints.pocket.fetch);
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            data = await response.json(); // Assumes API returns array directly
-            componentsData.pockets = data;
-        } else if (type === 'buttons') {
-            const response = await fetch(apiEndpoints.button.fetch);
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            data = await response.json(); // Assumes API returns array directly
-            componentsData.buttons = data;
-        } else if (type === 'button-strips') {
-            const response = await fetch(apiEndpoints['button-strip'].fetch);
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            data = await response.json(); // Assumes API returns array directly
-            componentsData.buttonStrips = data;
+    // Load Component Data
+    async function loadComponentData(type) {
+        try {
+            let data = [];
+            if (type === 'collars') {
+                const response = await fetch(apiEndpoints.collar.fetch);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                data = await response.json(); // Assumes API returns array directly
+                componentsData.collars = data;
+            } else if (type === 'sleeves') {
+                // Fetch both right and left sleeves
+                const [rightRes, leftRes] = await Promise.all([
+                    fetch(apiEndpoints.sleeve.fetchRight),
+                    fetch(apiEndpoints.sleeve.fetchLeft)
+                ]);
+                if (!rightRes.ok || !leftRes.ok) throw new Error('Error fetching sleeve data');
+                const rightData = await rightRes.json();
+                const leftData = await leftRes.json();
+                data = [...rightData, ...leftData]; // Assumes API returns arrays directly
+                componentsData.sleeves = data;
+            } else if (type === 'pockets') {
+                const response = await fetch(apiEndpoints.pocket.fetch);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                data = await response.json(); // Assumes API returns array directly
+                componentsData.pockets = data;
+            } else if (type === 'buttons') {
+                const response = await fetch(apiEndpoints.button.fetch);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                data = await response.json(); // Assumes API returns array directly
+                componentsData.buttons = data;
+            }
+            renderComponentTable(type, data);
+        } catch (error) {
+            console.error(`Error loading ${type}:`, error);
+            alert(`Failed to load ${type}. Check console for details.`);
         }
-        renderComponentTable(type, data);
-    } catch (error) {
-        console.error(`Error loading ${type}:`, error);
-        alert(`Failed to load ${type}. Check console for details.`);
     }
-}
 
-// Render Component Table
-function renderComponentTable(type, data) {
-    const tableId = `${type}-table`;
-    const tableBody = document.getElementById(tableId);
-    tableBody.innerHTML = '';
-    if (data.length === 0) {
-        const colspan = type === 'sleeves' ? 8 : 7; // Adjust colspan for sleeves (has 'Side' column)
-        tableBody.innerHTML = `
+    // Render Component Table
+    function renderComponentTable(type, data) {
+        const tableId = `${type}-table`;
+        const tableBody = document.getElementById(tableId);
+        tableBody.innerHTML = '';
+        if (data.length === 0) {
+            const colspan = type === 'sleeves' ? 8 : 7; // Adjust colspan for sleeves (has 'Side' column)
+            tableBody.innerHTML = `
             <tr>
                 <td colspan="${colspan}" class="py-8 text-center text-gray-500">
                     <i class="fas fa-inbox text-3xl mb-2"></i>
@@ -400,26 +372,26 @@ function renderComponentTable(type, data) {
                 </td>
             </tr>
         `;
-    } else {
-        data.forEach(item => {
-            const row = document.createElement('tr');
-            row.classList.add('hover:bg-gray-50');
-            let rowHTML = `
+        } else {
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.classList.add('hover:bg-gray-50');
+                let rowHTML = `
                 <td class="py-4">${item.id}</td>
                 <td class="py-4">
-                    ${item.cover ? `<img src="${item.cover}" alt="${item.ghola_type_name_eng || item.sleeves_type_name_eng || item.pocket_type_name_eng || item.button_type_name_eng || item.button_strip_type_name_eng}" class="w-16 h-16 object-cover rounded">` : '<span class="text-gray-400">No image</span>'}
+                    ${item.cover ? `<img src="${item.cover}" alt="${item.ghola_type_name_eng || item.sleeves_type_name_eng || item.pocket_type_name_eng || item.button_type_name_eng}" class="w-16 h-16 object-cover rounded">` : '<span class="text-gray-400">No image</span>'}
                 </td>
-                <td class="py-4 font-medium">${item.ghola_type_name_eng || item.sleeves_type_name_eng || item.pocket_type_name_eng || item.button_type_name_eng || item.button_strip_type_name_eng || 'N/A'}</td>
-                <td class="py-4">${item.ghola_type_name_arb || item.sleeves_type_name_arb || item.pocket_type_name_arb || item.button_type_name_arb || item.button_strip_type_name_arb || 'N/A'}</td>
+                <td class="py-4 font-medium">${item.ghola_type_name_eng || item.sleeves_type_name_eng || item.pocket_type_name_eng || item.button_type_name_eng || 'N/A'}</td>
+                <td class="py-4">${item.ghola_type_name_arb || item.sleeves_type_name_arb || item.pocket_type_name_arb || item.button_type_name_arb || 'N/A'}</td>
             `;
-            if (type === 'sleeves') {
-                rowHTML += `<td class="py-4">
+                if (type === 'sleeves') {
+                    rowHTML += `<td class="py-4">
                     <span class="px-3 py-1 ${item.is_right_side ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'} rounded-full text-sm">
                         ${item.is_right_side ? 'Right' : 'Left'}
                     </span>
                 </td>`;
-            }
-            rowHTML += `
+                }
+                rowHTML += `
                 <td class="py-4">${item.initial_price ? item.initial_price.toFixed(3) + ' KWD' : 'N/A'}</td>
                 <td class="py-4">
                     <span class="px-3 py-1 ${item.inStock ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} rounded-full text-sm">
@@ -435,252 +407,247 @@ function renderComponentTable(type, data) {
                     </button>
                 </td>
             `;
-            row.innerHTML = rowHTML;
-            tableBody.appendChild(row);
-        });
-    }
-}
-
-// Modal Management
-function openComponentModal(type, itemId = null) {
-    document.getElementById('component-modal').classList.remove('hidden');
-    document.getElementById('component-type').value = type;
-    document.getElementById('component-form').reset(); // Clear form on open
-
-    // Show/hide sleeve side field
-    if (type === 'sleeve') {
-        document.getElementById('sleeve-side-field').classList.remove('hidden');
-    } else {
-        document.getElementById('sleeve-side-field').classList.add('hidden');
+                row.innerHTML = rowHTML;
+                tableBody.appendChild(row);
+            });
+        }
     }
 
-    const typeNames = {
-        'collar': 'Collar',
-        'sleeve': 'Sleeve',
-        'pocket': 'Pocket',
-        'button': 'Button',
-        'button-strip': 'Button Strip'
-    };
-    document.getElementById('component-modal-title').textContent =
-        itemId ? `Edit ${typeNames[type]}` : `Add New ${typeNames[type]}`;
+    // Modal Management
+    function openComponentModal(type, itemId = null) {
+        document.getElementById('component-modal').classList.remove('hidden');
+        document.getElementById('component-type').value = type;
+        document.getElementById('component-form').reset(); // Clear form on open
 
-    if (itemId) {
-        loadComponentForEdit(type, itemId);
-    } else {
-        document.getElementById('component-id').value = '';
-    }
-}
-
-function closeComponentModal() {
-    document.getElementById('component-modal').classList.add('hidden');
-    document.getElementById('component-form').reset();
-}
-
-async function loadComponentForEdit(type, id) {
-    try {
-        const typeMap = {
-            'collars': 'collar',
-            'sleeves': 'sleeve',
-            'pockets': 'pocket',
-            'buttons': 'button',
-            'button-strips': 'button-strip'
-        };
-        const apiType = typeMap[type] || type;
-        const url = apiEndpoints[apiType].detail(id);
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const item = await response.json(); // Assumes API returns single object
-
-        document.getElementById('component-id').value = id;
-        document.getElementById('component-name-eng').value = item.ghola_type_name_eng || item.sleeves_type_name_eng || item.pocket_type_name_eng || item.button_type_name_eng || item.button_strip_type_name_eng || '';
-        document.getElementById('component-name-arb').value = item.ghola_type_name_arb || item.sleeves_type_name_arb || item.pocket_type_name_arb || item.button_type_name_arb || item.button_strip_type_name_arb || '';
-        document.getElementById('component-price').value = item.initial_price || '';
-        document.getElementById('component-in-stock').checked = item.inStock || false;
-        document.getElementById('component-is-hidden').checked = item.isHidden || false;
-        document.getElementById('component-fabric-color-id').value = item.fabric_color ? item.fabric_color.id : ''; // Assuming fabric_color is an object with id
-
+        // Show/hide sleeve side field
         if (type === 'sleeve') {
-            document.getElementById('component-side').value = item.is_right_side; // True/False string
-        }
-
-        // Categories are complex, might need specific handling
-        // For now, just set as JSON string if available
-        if (item.category) {
-            document.getElementById('component-categories').value = JSON.stringify(item.category);
-        }
-
-    } catch (error) {
-        console.error('Error loading component for edit:', error);
-        alert('Failed to load component details. Check console for details.');
-    }
-}
-
-// Save Component
-async function saveComponent() {
-    const type = document.getElementById('component-type').value;
-    const id = document.getElementById('component-id').value;
-    const nameEng = document.getElementById('component-name-eng').value;
-    const nameArb = document.getElementById('component-name-arb').value;
-    const price = document.getElementById('component-price').value;
-    const imageFile = document.getElementById('component-image').files[0]; // Get file object
-    const inStock = document.getElementById('component-in-stock').checked;
-    const isHidden = document.getElementById('component-is-hidden').checked;
-    const fabricColorId = document.getElementById('component-fabric-color-id').value;
-    const categoriesInput = document.getElementById('component-categories').value;
-
-    let side = null;
-    if (type === 'sleeve') {
-        side = document.getElementById('component-side').value;
-        if (!side && !id) { // Required for new sleeves
-            alert('Please select sleeve side');
-            return;
-        }
-    }
-
-    if (!nameEng || !price || !fabricColorId) {
-        alert('Please fill in all required fields: Name (Eng), Price, and Fabric Color ID');
-        return;
-    }
-
-    // Prepare FormData for file upload and other fields
-    const formData = new FormData();
-    formData.append('ghola_type_name_eng', nameEng);
-    formData.append('ghola_type_name_arb', nameArb);
-    formData.append('initial_price', parseFloat(price));
-    formData.append('inStock', inStock);
-    formData.append('isHidden', isHidden);
-    formData.append('fabric_color_id', parseInt(fabricColorId)); // Parse to integer
-
-    // Handle categories input (JSON string)
-    if (categoriesInput) {
-        try {
-            const categoriesArray = JSON.parse(categoriesInput);
-            if (Array.isArray(categoriesArray)) {
-                categoriesArray.forEach((cat, index) => {
-                    formData.append(`category[${index}][id]`, cat.id);
-                });
-            }
-        } catch (e) {
-            console.error("Invalid categories JSON:", e);
-            alert("Invalid categories format. Please use JSON array format.");
-            return;
-        }
-    }
-
-    if (imageFile) {
-        formData.append('cover', imageFile); // 'cover' is the field name expected by your API
-    }
-
-    // Add type-specific fields (side for sleeves)
-    if (type === 'sleeve' && side !== null) {
-        formData.append('is_right_side', side === 'True'); // Convert string 'True'/'False' to boolean
-    }
-
-    try {
-        const url = id ? apiEndpoints[type].update(id) : apiEndpoints[type].create;
-        const method = id ? 'PUT' : 'POST';
-
-        const response = await fetch(url, {
-            method: method,
-            // Note: Do NOT set 'Content-Type' header when using FormData with file uploads
-            // The browser will set it automatically with the correct boundary
-            headers: {
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: formData
-        });
-
-        if (response.ok) {
-            alert(id ? 'Component updated successfully' : 'Component created successfully');
-            closeComponentModal();
-            // Reload the appropriate tab
-            const tabMap = {
-                'collar': 'collars',
-                'sleeve': 'sleeves',
-                'pocket': 'pockets',
-                'button': 'buttons',
-                'button-strip': 'button-strips'
-            };
-            loadComponentData(tabMap[type]);
+            document.getElementById('sleeve-side-field').classList.remove('hidden');
         } else {
-            const errorText = await response.text(); // Get raw text response
-            console.error('Server Error Response:', errorText);
-            alert('Error: ' + errorText); // Display raw error
+            document.getElementById('sleeve-side-field').classList.add('hidden');
         }
-    } catch (error) {
-        console.error('Error saving component:', error);
-        alert('Failed to save component. Check console for details.');
+
+        const typeNames = {
+            'collar': 'Collar',
+            'sleeve': 'Sleeve',
+            'pocket': 'Pocket',
+            'button': 'Button'
+        };
+        document.getElementById('component-modal-title').textContent =
+            itemId ? `Edit ${typeNames[type]}` : `Add New ${typeNames[type]}`;
+
+        if (itemId) {
+            loadComponentForEdit(type, itemId);
+        } else {
+            document.getElementById('component-id').value = '';
+        }
     }
-}
 
-
-// Edit Component
-function editComponent(type, id) {
-    const typeMap = {
-        'collars': 'collar',
-        'sleeves': 'sleeve',
-        'pockets': 'pocket',
-        'buttons': 'button',
-        'button-strips': 'button-strip'
-    };
-    openComponentModal(typeMap[type], id);
-}
-
-// Delete Component
-async function deleteComponent(type, id) {
-    if (!confirm('Are you sure you want to delete this component?')) {
-        return;
+    function closeComponentModal() {
+        document.getElementById('component-modal').classList.add('hidden');
+        document.getElementById('component-form').reset();
     }
-    try {
+
+    async function loadComponentForEdit(type, id) {
+        try {
+            const typeMap = {
+                'collars': 'collar',
+                'sleeves': 'sleeve',
+                'pockets': 'pocket',
+                'buttons': 'button'
+            };
+            const apiType = typeMap[type] || type;
+            const url = apiEndpoints[apiType].detail(id);
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const item = await response.json(); // Assumes API returns single object
+
+            document.getElementById('component-id').value = id;
+            document.getElementById('component-name-eng').value = item.ghola_type_name_eng || item.sleeves_type_name_eng || item.pocket_type_name_eng || item.button_type_name_eng || '';
+            document.getElementById('component-name-arb').value = item.ghola_type_name_arb || item.sleeves_type_name_arb || item.pocket_type_name_arb || item.button_type_name_arb || '';
+            document.getElementById('component-price').value = item.initial_price || '';
+            document.getElementById('component-in-stock').checked = item.inStock || false;
+            document.getElementById('component-is-hidden').checked = item.isHidden || false;
+            document.getElementById('component-fabric-color-id').value = item.fabric_color ? item.fabric_color.id : ''; // Assuming fabric_color is an object with id
+
+            if (type === 'sleeve') {
+                document.getElementById('component-side').value = item.is_right_side; // True/False string
+            }
+
+            // Categories are complex, might need specific handling
+            // For now, just set as JSON string if available
+            if (item.category) {
+                document.getElementById('component-categories').value = JSON.stringify(item.category);
+            }
+
+        } catch (error) {
+            console.error('Error loading component for edit:', error);
+            alert('Failed to load component details. Check console for details.');
+        }
+    }
+
+    // Save Component
+    async function saveComponent() {
+        const type = document.getElementById('component-type').value;
+        const id = document.getElementById('component-id').value;
+        const nameEng = document.getElementById('component-name-eng').value;
+        const nameArb = document.getElementById('component-name-arb').value;
+        const price = document.getElementById('component-price').value;
+        const imageFile = document.getElementById('component-image').files[0]; // Get file object
+        const inStock = document.getElementById('component-in-stock').checked;
+        const isHidden = document.getElementById('component-is-hidden').checked;
+        const fabricColorId = document.getElementById('component-fabric-color-id').value;
+        const categoriesInput = document.getElementById('component-categories').value;
+
+        let side = null;
+        if (type === 'sleeve') {
+            side = document.getElementById('component-side').value;
+            if (!side && !id) { // Required for new sleeves
+                alert('Please select sleeve side');
+                return;
+            }
+        }
+
+        if (!nameEng || !price || !fabricColorId) {
+            alert('Please fill in all required fields: Name (Eng), Price, and Fabric Color ID');
+            return;
+        }
+
+        // Prepare FormData for file upload and other fields
+        const formData = new FormData();
+        formData.append('ghola_type_name_eng', nameEng);
+        formData.append('ghola_type_name_arb', nameArb);
+        formData.append('initial_price', parseFloat(price));
+        formData.append('inStock', inStock);
+        formData.append('isHidden', isHidden);
+        formData.append('fabric_color_id', parseInt(fabricColorId)); // Parse to integer
+
+        // Handle categories input (JSON string)
+        if (categoriesInput) {
+            try {
+                const categoriesArray = JSON.parse(categoriesInput);
+                if (Array.isArray(categoriesArray)) {
+                    categoriesArray.forEach((cat, index) => {
+                        formData.append(`category[${index}][id]`, cat.id);
+                    });
+                }
+            } catch (e) {
+                console.error("Invalid categories JSON:", e);
+                alert("Invalid categories format. Please use JSON array format.");
+                return;
+            }
+        }
+
+        if (imageFile) {
+            formData.append('cover', imageFile); // 'cover' is the field name expected by your API
+        }
+
+        // Add type-specific fields (side for sleeves)
+        if (type === 'sleeve' && side !== null) {
+            formData.append('is_right_side', side === 'True'); // Convert string 'True'/'False' to boolean
+        }
+
+        try {
+            const url = id ? apiEndpoints[type].update(id) : apiEndpoints[type].create;
+            const method = id ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method: method,
+                // Note: Do NOT set 'Content-Type' header when using FormData with file uploads
+                // The browser will set it automatically with the correct boundary
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: formData
+            });
+
+            if (response.ok) {
+                alert(id ? 'Component updated successfully' : 'Component created successfully');
+                closeComponentModal();
+                // Reload the appropriate tab
+                const tabMap = {
+                    'collar': 'collars',
+                    'sleeve': 'sleeves',
+                    'pocket': 'pockets',
+                    'button': 'buttons'
+                };
+                loadComponentData(tabMap[type]);
+            } else {
+                const errorText = await response.text(); // Get raw text response
+                console.error('Server Error Response:', errorText);
+                alert('Error: ' + errorText); // Display raw error
+            }
+        } catch (error) {
+            console.error('Error saving component:', error);
+            alert('Failed to save component. Check console for details.');
+        }
+    }
+
+
+    // Edit Component
+    function editComponent(type, id) {
         const typeMap = {
             'collars': 'collar',
             'sleeves': 'sleeve',
             'pockets': 'pocket',
-            'buttons': 'button',
-            'button-strips': 'button-strip'
+            'buttons': 'button'
         };
-        const apiType = typeMap[type];
-        const url = apiEndpoints[apiType].delete(id);
-        const response = await fetch(url, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRFToken': getCookie('csrftoken')
+        openComponentModal(typeMap[type], id);
+    }
+
+    // Delete Component
+    async function deleteComponent(type, id) {
+        if (!confirm('Are you sure you want to delete this component?')) {
+            return;
+        }
+        try {
+            const typeMap = {
+                'collars': 'collar',
+                'sleeves': 'sleeve',
+                'pockets': 'pocket',
+                'buttons': 'button'
+            };
+            const apiType = typeMap[type];
+            const url = apiEndpoints[apiType].delete(id);
+            const response = await fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+            if (response.ok) {
+                alert('Component deleted successfully');
+                loadComponentData(type);
+            } else {
+                alert('Failed to delete component. Check console for details.');
+                console.error(`Delete failed with status: ${response.status}`);
             }
-        });
-        if (response.ok) {
-            alert('Component deleted successfully');
-            loadComponentData(type);
-        } else {
+        } catch (error) {
+            console.error('Error deleting component:', error);
             alert('Failed to delete component. Check console for details.');
-            console.error(`Delete failed with status: ${response.status}`);
         }
-    } catch (error) {
-        console.error('Error deleting component:', error);
-        alert('Failed to delete component. Check console for details.');
     }
-}
 
-// Get CSRF Token
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
+    // Get CSRF Token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
             }
         }
+        return cookieValue;
     }
-    return cookieValue;
-}
 
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-    // Load collars first as default
-    loadComponentData('collars');
-});
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        // Load collars first as default
+        loadComponentData('collars');
+    });
 
 </script>
 {% endblock %}

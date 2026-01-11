@@ -12,17 +12,22 @@ from .fabric_notifications import (
 from .models import (
     HomePageSelectionCategory,
     FabricType, FabricColor,
-    GholaType, SleevesType, PocketType, ButtonType, ButtonStripType, BodyType,
+    GholaType, SleevesType, PocketType, ButtonType, BodyType,
     UserDesign, InventoryTransaction, DesignScreenshot
 )
 
 # Register your models here.
-admin.site.register(HomePageSelectionCategory)
+@admin.register(HomePageSelectionCategory)
+class HomePageSelectionCategoryAdmin(admin.ModelAdmin):
+    list_display = ('main_category_name_eng', 'main_category_name_arb', 'initial_price', 'priority', 'isHidden')
+    list_editable = ('priority', 'isHidden')
+    search_fields = ('main_category_name_eng', 'main_category_name_arb')
 
 # NEW: Fabric models
 @admin.register(FabricType)
 class FabricTypeAdmin(admin.ModelAdmin):
     list_display = ('fabric_name_eng', 'fabric_name_arb', 'base_price', 'category_type', 'season', 'priority', 'isHidden')
+    list_editable = ('priority',)
     list_filter = ('category_type', 'season', 'isHidden')
     search_fields = ('fabric_name_eng', 'fabric_name_arb')
 
@@ -56,6 +61,7 @@ class FabricTypeAdmin(admin.ModelAdmin):
 @admin.register(FabricColor)
 class FabricColorAdmin(admin.ModelAdmin):
     list_display = ('get_fabric_name', 'color_name_eng', 'color_name_arb', 'hex_color', 'get_total_price', 'quantity', 'priority', 'inStock')
+    list_editable = ('priority',)
     list_filter = ('fabric_type', 'inStock')
     search_fields = ('color_name_eng', 'color_name_arb', 'fabric_type__fabric_name_eng')
 
@@ -86,6 +92,7 @@ class FabricColorAdmin(admin.ModelAdmin):
 @admin.register(GholaType)
 class GholaTypeAdmin(admin.ModelAdmin):
     list_display = ('ghola_type_name_eng', 'ghola_type_name_arb', 'get_fabric_type', 'get_fabric_color', 'initial_price', 'priority')
+    list_editable = ('priority',)
     list_filter = ('fabric_type', 'fabric_color')
     search_fields = ('ghola_type_name_eng', 'ghola_type_name_arb', 'fabric_color__color_name_eng')
 
@@ -104,6 +111,7 @@ class GholaTypeAdmin(admin.ModelAdmin):
 @admin.register(SleevesType)
 class SleevesTypeAdmin(admin.ModelAdmin):
     list_display = ('sleeves_type_name_eng', 'sleeves_type_name_arb', 'get_fabric_type', 'get_fabric_color', 'is_right_side', 'initial_price', 'priority')
+    list_editable = ('priority',)
     list_filter = ('is_right_side', 'fabric_type', 'fabric_color')
     search_fields = ('sleeves_type_name_eng', 'sleeves_type_name_arb', 'fabric_color__color_name_eng')
 
@@ -122,6 +130,7 @@ class SleevesTypeAdmin(admin.ModelAdmin):
 @admin.register(PocketType)
 class PocketTypeAdmin(admin.ModelAdmin):
     list_display = ('pocket_type_name_eng', 'pocket_type_name_arb', 'get_fabric_type', 'get_fabric_color', 'initial_price', 'priority')
+    list_editable = ('priority',)
     list_filter = ('fabric_type', 'fabric_color')
     search_fields = ('pocket_type_name_eng', 'pocket_type_name_arb', 'fabric_color__color_name_eng')
 
@@ -140,6 +149,7 @@ class PocketTypeAdmin(admin.ModelAdmin):
 @admin.register(ButtonType)
 class ButtonTypeAdmin(admin.ModelAdmin):
     list_display = ('button_type_name_eng', 'button_type_name_arb', 'get_fabric_type', 'get_fabric_color', 'initial_price', 'priority', 'inStock')
+    list_editable = ('priority',)
     list_filter = ('inStock', 'fabric_type', 'fabric_color')
     search_fields = ('button_type_name_eng', 'button_type_name_arb', 'fabric_color__color_name_eng')
 
@@ -155,27 +165,11 @@ class ButtonTypeAdmin(admin.ModelAdmin):
         return "No Color"
     get_fabric_color.short_description = 'Color'
 
-@admin.register(ButtonStripType)
-class ButtonStripTypeAdmin(admin.ModelAdmin):
-    list_display = ('button_strip_type_name_eng', 'button_strip_type_name_arb', 'get_fabric_type', 'get_fabric_color', 'initial_price', 'priority')
-    list_filter = ('fabric_type', 'fabric_color')
-    search_fields = ('button_strip_type_name_eng', 'button_strip_type_name_arb', 'fabric_color__color_name_eng')
 
-    def get_fabric_type(self, obj):
-        if obj.fabric_type:
-            return f"{obj.fabric_type.fabric_name_eng}"
-        return "No Fabric Type"
-    get_fabric_type.short_description = 'Fabric Type'
-
-    def get_fabric_color(self, obj):
-        if obj.fabric_color:
-            return obj.fabric_color.color_name_eng
-        return "No Color"
-    get_fabric_color.short_description = 'Color'
 
 @admin.register(BodyType)
 class BodyTypeAdmin(admin.ModelAdmin):
-    list_display = ('body_type_name_eng', 'body_type_name_arb', 'get_fabric_type', 'get_fabric_color', 'initial_price', 'priority')
+    list_display = ('body_type_name_eng', 'body_type_name_arb', 'get_fabric_type', 'get_fabric_color', 'initial_price')
     list_filter = ('fabric_type', 'fabric_color')
     search_fields = ('body_type_name_eng', 'body_type_name_arb', 'fabric_color__color_name_eng')
 

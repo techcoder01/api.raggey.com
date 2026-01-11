@@ -16,7 +16,7 @@ from decimal import Decimal
 from Purchase.models import Purchase, Payment
 from Design.models import (
     FabricColor, FabricType, GholaType, SleevesType,
-    PocketType, ButtonType, ButtonStripType, BodyType
+    PocketType, ButtonType, BodyType
 )
 from Design.views import clear_design_cache
 from Coupon.models import Coupon
@@ -371,10 +371,9 @@ def designs_view(request):
                             filter_ids['sleeves'].append(value)
                         elif 'pocket' in key_lower:
                             filter_ids['pocket'] = value
-                        elif 'button' in key_lower and 'strip' not in key_lower:
+                        elif 'button' in key_lower:
                             filter_ids['button'] = value
-                        elif 'button' in key_lower and 'strip' in key_lower:
-                            filter_ids['button_strip'] = value
+
                         elif 'body' in key_lower:
                             filter_ids['body'] = value
         except Item.DoesNotExist:
@@ -487,21 +486,7 @@ def designs_view(request):
         component_label = 'Button Types'
         total_items = ButtonType.objects.count()
 
-    elif component_type == 'button_strips':
-        items = ButtonStripType.objects.order_by('-timestamp')
-        # If order filter is active
-        if order_item_id:
-            if filter_ids.get('button_strip'):
-                items = items.filter(id=filter_ids['button_strip'])
-            else:
-                items = items.none()
-        if search_query:
-            items = items.filter(
-                Q(button_strip_type_name_eng__icontains=search_query) |
-                Q(button_strip_type_name_arb__icontains=search_query)
-            )
-        component_label = 'Button Strip Types'
-        total_items = ButtonStripType.objects.count()
+
 
     elif component_type == 'body':
         items = BodyType.objects.order_by('-timestamp')
@@ -537,7 +522,7 @@ def designs_view(request):
         'sleeves': SleevesType.objects.count(),
         'pockets': PocketType.objects.count(),
         'buttons': ButtonType.objects.count(),
-        'button_strips': ButtonStripType.objects.count(),
+
         'body': BodyType.objects.count(),
     }
 
@@ -651,22 +636,10 @@ def get_design_item(request, component_type, item_id):
                 'cover_url': item.cover.url if item.cover else None,
                 'cover_option_url': item.cover_option.url if item.cover_option else None,
             }
-        elif component_type == 'button_strips':
-            item = ButtonStripType.objects.get(id=item_id)
-            data = {
-                'priority': item.priority,
-                'name_eng': item.button_strip_type_name_eng,
-                'name_arb': item.button_strip_type_name_arb,
-                'initial_price': float(item.initial_price),
-                'fabric_type_id': item.fabric_type.id if item.fabric_type else None,
-                'fabric_color_id': item.fabric_color.id if item.fabric_color else None,
-                'cover_url': item.cover.url if item.cover else None,
-                'cover_option_url': item.cover_option.url if item.cover_option else None,
-            }
+
         elif component_type == 'body':
             item = BodyType.objects.get(id=item_id)
             data = {
-                'priority': item.priority,
                 'name_eng': item.body_type_name_eng,
                 'name_arb': item.body_type_name_arb,
                 'initial_price': float(item.initial_price),
@@ -753,16 +726,7 @@ def update_design_item(request):
             fabric_color_id = request.POST.get('fabric_color_id')
             item.fabric_type = FabricType.objects.get(id=fabric_type_id) if fabric_type_id else None
             item.fabric_color = FabricColor.objects.get(id=fabric_color_id) if fabric_color_id else None
-        elif component_type == 'button_strips':
-            item = ButtonStripType.objects.get(id=item_id)
-            item.button_strip_type_name_eng = name_eng
-            item.button_strip_type_name_arb = name_arb
-            item.initial_price = price
-            # Handle fabric type and color
-            fabric_type_id = request.POST.get('fabric_type_id')
-            fabric_color_id = request.POST.get('fabric_color_id')
-            item.fabric_type = FabricType.objects.get(id=fabric_type_id) if fabric_type_id else None
-            item.fabric_color = FabricColor.objects.get(id=fabric_color_id) if fabric_color_id else None
+
         elif component_type == 'body':
             item = BodyType.objects.get(id=item_id)
             item.body_type_name_eng = name_eng
@@ -784,7 +748,8 @@ def update_design_item(request):
         if 'cover_option' in request.FILES and hasattr(item, 'cover_option'):
             item.cover_option = request.FILES['cover_option']
 
-        item.priority = priority
+        if hasattr(item, 'priority'):
+            item.priority = priority
         item.save()
 
         # Clear design cache so API returns fresh data
@@ -820,8 +785,7 @@ def delete_design_item(request):
             item = PocketType.objects.get(id=item_id)
         elif component_type == 'buttons':
             item = ButtonType.objects.get(id=item_id)
-        elif component_type == 'button_strips':
-            item = ButtonStripType.objects.get(id=item_id)
+
         elif component_type == 'body':
             item = BodyType.objects.get(id=item_id)
         else:
@@ -940,27 +904,12 @@ def create_design_item(request):
             if 'cover_option' in request.FILES:
                 item.cover_option = request.FILES['cover_option']
             item.save()
-        elif component_type == 'button_strips':
-            fabric_type_id = request.POST.get('fabric_type_id')
-            fabric_color_id = request.POST.get('fabric_color_id')
-            item = ButtonStripType.objects.create(
-                priority=priority,
-                button_strip_type_name_eng=name_eng,
-                button_strip_type_name_arb=name_arb,
-                initial_price=price,
-                fabric_type=FabricType.objects.get(id=fabric_type_id) if fabric_type_id else None,
-                fabric_color=FabricColor.objects.get(id=fabric_color_id) if fabric_color_id else None
-            )
-            if 'cover' in request.FILES:
-                item.cover = request.FILES['cover']
-            if 'cover_option' in request.FILES:
-                item.cover_option = request.FILES['cover_option']
-            item.save()
+
         elif component_type == 'body':
             fabric_type_id = request.POST.get('fabric_type_id')
             fabric_color_id = request.POST.get('fabric_color_id')
             item = BodyType.objects.create(
-                priority=priority,
+
                 body_type_name_eng=name_eng,
                 body_type_name_arb=name_arb,
                 initial_price=price,
@@ -1060,9 +1009,7 @@ def update_fabric_relation(request):
         elif component_type == 'buttons':
             item = ButtonType.objects.get(id=item_id)
             item_name = item.button_type_name_eng
-        elif component_type == 'button_strips':
-            item = ButtonStripType.objects.get(id=item_id)
-            item_name = item.button_strip_type_name_eng
+
         elif component_type == 'body':
             item = BodyType.objects.get(id=item_id)
             item_name = item.body_type_name_eng
@@ -1126,9 +1073,7 @@ def update_image(request):
         elif component_type == 'buttons':
             item = ButtonType.objects.get(id=item_id)
             item_name = item.button_type_name_eng
-        elif component_type == 'button_strips':
-            item = ButtonStripType.objects.get(id=item_id)
-            item_name = item.button_strip_type_name_eng
+
         elif component_type == 'body':
             item = BodyType.objects.get(id=item_id)
             item_name = item.body_type_name_eng
@@ -1181,9 +1126,7 @@ def delete_image(request):
         elif component_type == 'buttons':
             item = ButtonType.objects.get(id=item_id)
             item_name = item.button_type_name_eng
-        elif component_type == 'button_strips':
-            item = ButtonStripType.objects.get(id=item_id)
-            item_name = item.button_strip_type_name_eng
+
         elif component_type == 'body':
             item = BodyType.objects.get(id=item_id)
             item_name = item.body_type_name_eng
@@ -1843,7 +1786,6 @@ def user_designs_view(request):
         'selected_sleeve_right_type',
         'selected_pocket_type',
         'selected_button_type',
-        'selected_button_strip_type',
         'selected_body_type'
     ).annotate(
         count=Count('id')
@@ -1858,7 +1800,6 @@ def user_designs_view(request):
         'selected_sleeve_right_type',
         'selected_pocket_type',
         'selected_button_type',
-        'selected_button_strip_type',
         'selected_body_type'
     ).distinct().count()
 

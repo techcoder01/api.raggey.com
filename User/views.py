@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from .models import Address, Profile
 from django.contrib.auth.models import User
 from django.db import transaction
-from Design.models import UserDesign, HomePageSelectionCategory, FabricColor, GholaType, SleevesType, PocketType, ButtonType, ButtonStripType, BodyType
+from Design.models import UserDesign, HomePageSelectionCategory, FabricColor, GholaType, SleevesType, PocketType, ButtonType, BodyType
 from Sizes.models import Sizes
 
 # Create your views here.
@@ -189,7 +189,7 @@ class SaveDesignAPIView(APIView):
         "selected_sleeve_right_type_id": 4,
         "selected_pocket_id": 1,
         "selected_button_id": 2,
-        "selected_button_strip_id": 1,
+
         "selected_body_type_id": 6,
         "design_total": 25.500
     }
@@ -221,7 +221,7 @@ class SaveDesignAPIView(APIView):
             sleeve_right = SleevesType.objects.filter(id=data.get('selected_sleeve_right_type_id')).first() if data.get('selected_sleeve_right_type_id') else None
             pocket = PocketType.objects.filter(id=data.get('selected_pocket_id')).first() if data.get('selected_pocket_id') else None
             button = ButtonType.objects.filter(id=data.get('selected_button_id')).first() if data.get('selected_button_id') else None
-            button_strip = ButtonStripType.objects.filter(id=data.get('selected_button_strip_id')).first() if data.get('selected_button_strip_id') else None
+
             body = BodyType.objects.filter(id=data.get('selected_body_type_id')).first() if data.get('selected_body_type_id') else None
 
             # Check if identical design already exists
@@ -234,7 +234,7 @@ class SaveDesignAPIView(APIView):
                 'selected_sleeve_right_type': sleeve_right,
                 'selected_pocket_type': pocket,
                 'selected_button_type': button,
-                'selected_button_strip_type': button_strip,
+
                 'selected_body_type': body,
             }
 
@@ -264,7 +264,7 @@ class SaveDesignAPIView(APIView):
                     selected_sleeve_right_type=sleeve_right,
                     selected_pocket_type=pocket,
                     selected_button_type=button,
-                    selected_button_strip_type=button_strip,
+
                     selected_body_type=body,
                     design_Total=data.get('design_total', 0.0)
                 )
@@ -431,7 +431,7 @@ class BulkSaveCartDataAPIView(APIView):
                 "selected_sleeve_right_type_id": 4,
                 "selected_pocket_id": 1,
                 "selected_button_id": 2,
-                "selected_button_strip_id": 1,
+
                 "selected_body_type_id": 6 // Optional - body type selection
             }
         ]
@@ -601,7 +601,7 @@ class BulkSaveCartDataAPIView(APIView):
                         sleeve_right = SleevesType.objects.filter(id=item_data.get('selected_sleeve_right_type_id')).first() if item_data.get('selected_sleeve_right_type_id') else None
                         pocket = PocketType.objects.filter(id=item_data.get('selected_pocket_id')).first() if item_data.get('selected_pocket_id') else None
                         button = ButtonType.objects.filter(id=item_data.get('selected_button_id')).first() if item_data.get('selected_button_id') else None
-                        button_strip = ButtonStripType.objects.filter(id=item_data.get('selected_button_strip_id')).first() if item_data.get('selected_button_strip_id') else None
+
                         body = BodyType.objects.filter(id=item_data.get('selected_body_type_id')).first() if item_data.get('selected_body_type_id') else None
 
                         # All components are nullable - save even incomplete designs
@@ -616,7 +616,7 @@ class BulkSaveCartDataAPIView(APIView):
                             'selected_sleeve_right_type': sleeve_right,
                             'selected_pocket_type': pocket,
                             'selected_button_type': button,
-                            'selected_button_strip_type': button_strip,
+
                             'selected_body_type': body,
                         }
 
@@ -644,7 +644,7 @@ class BulkSaveCartDataAPIView(APIView):
                                 selected_sleeve_right_type=sleeve_right,
                                 selected_pocket_type=pocket,
                                 selected_button_type=button,
-                                selected_button_strip_type=button_strip,
+
                                 selected_body_type=body,
                                 design_Total=design_total  # Read from Flutter request
                             )

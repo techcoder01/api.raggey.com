@@ -4,9 +4,9 @@ from .views import (
     FabricTypeAdminSideAPIView, FabricColorAdminSideAPIView,
     GholaTypeAdminSideAPIView,
     SleevesTypeAdminSideAPIView, PocketTypeAdminSideAPIView, ButtonTypeAdminSideAPIView,
-    ButtonStripTypeAdminSideAPIView, BodyTypeAdminSideAPIView, MainCatogeryAdminSideAPIView, MainCatogeryUserSideAPIView,
+    ButtonTypeAdminSideAPIView, BodyTypeAdminSideAPIView, MainCatogeryAdminSideAPIView, MainCatogeryUserSideAPIView,
     FetchFabricAPIView, FetchFabricDetailAPIView, FetchFabricColorsAPIView_New, FetchCollerAPIView, UserDesignAPIView, FetchSleevesRightAPIView,
-    FetchSleevesLeftAPIView, FetchPocketAPIView, FetchButtonAPIView, FetchButtonStripAPIView, FetchBodyAPIView,
+    FetchSleevesLeftAPIView, FetchPocketAPIView, FetchButtonAPIView, FetchBodyAPIView,
     CalculateDesignPriceAPIView, DesignSummaryPreviewAPIView,
     LowStockAlertAPIView, BulkUpdateInventoryAPIView, InventoryHistoryAPIView,
     UploadDesignScreenshotAPIView
@@ -28,8 +28,7 @@ urlpatterns = [
     path('fetch/pocket/', FetchPocketAPIView.as_view()),
     #============ Button END-USER SIDE =======================================
     path('fetch/button/', FetchButtonAPIView.as_view()),
-    #============ Button Strip END-USER SIDE =======================================
-    path('fetch/button-strip/', FetchButtonStripAPIView.as_view()),
+
     #============ Body END-USER SIDE =======================================
     path('fetch/body/', FetchBodyAPIView.as_view()),
     #============ Design END-USER SIDE =======================================
@@ -85,11 +84,7 @@ urlpatterns = [
     path('update/button/<int:pk>/', ButtonTypeAdminSideAPIView.as_view()),
     path('delete/button/<int:pk>/', ButtonTypeAdminSideAPIView.as_view()),
 
-    #============ ButtonStripTYPE ADMIN SIDE =======================================
-    path('detail/button-strip/<int:pk>/', ButtonStripTypeAdminSideAPIView.as_view()),
-    path('create/button-strip/', ButtonStripTypeAdminSideAPIView.as_view()),
-    path('update/button-strip/<int:pk>/', ButtonStripTypeAdminSideAPIView.as_view()),
-    path('delete/button-strip/<int:pk>/', ButtonStripTypeAdminSideAPIView.as_view()),
+
 
     #============ BodyTYPE ADMIN SIDE =======================================
     path('detail/body/<int:pk>/', BodyTypeAdminSideAPIView.as_view()),

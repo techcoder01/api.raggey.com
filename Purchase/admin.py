@@ -244,7 +244,6 @@ class ItemAdmin(admin.ModelAdmin):
             ('Sleeve Right', 'sleeve_right_price'),
             ('Pocket', 'pocket_price'),
             ('Button', 'button_price'),
-            ('Button Strip', 'button_strip_price'),
             ('Body', 'body_price'),
         ]
 

@@ -69,15 +69,7 @@ def check_stock_availability(user_design):
                 'available_quantity': fabric.quantity
             })
 
-    # Check button strip fabric
-    if user_design.selected_button_strip_type and user_design.selected_button_strip_type.fabric_color:
-        fabric = user_design.selected_button_strip_type.fabric_color
-        if not fabric.inStock or fabric.quantity < 1:
-            out_of_stock_items.append({
-                'component': 'Button Strip Fabric',
-                'name': fabric.color_name_eng,
-                'available_quantity': fabric.quantity
-            })
+
 
     is_available = len(out_of_stock_items) == 0
     return is_available, out_of_stock_items
@@ -109,8 +101,7 @@ def deduct_inventory(user_design, order_invoice_number=None):
     if user_design.selected_button_type and user_design.selected_button_type.fabric_color:
         fabric_colors_to_deduct.append(user_design.selected_button_type.fabric_color)
 
-    if user_design.selected_button_strip_type and user_design.selected_button_strip_type.fabric_color:
-        fabric_colors_to_deduct.append(user_design.selected_button_strip_type.fabric_color)
+
 
     # Deduct inventory for each unique fabric color
     deducted_fabrics = set()  # Track unique fabrics to avoid double deduction
@@ -166,8 +157,7 @@ def restore_inventory(user_design, order_invoice_number=None):
     if user_design.selected_button_type and user_design.selected_button_type.fabric_color:
         fabric_colors_to_restore.append(user_design.selected_button_type.fabric_color)
 
-    if user_design.selected_button_strip_type and user_design.selected_button_strip_type.fabric_color:
-        fabric_colors_to_restore.append(user_design.selected_button_strip_type.fabric_color)
+
 
     # Restore inventory for each unique fabric color
     restored_fabrics = set()  # Track unique fabrics to avoid double restoration

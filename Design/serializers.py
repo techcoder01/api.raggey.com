@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (
     FabricType, FabricColor,
-    GholaType, SleevesType, PocketType, ButtonType, ButtonStripType, BodyType,
+    GholaType, SleevesType, PocketType, ButtonType, BodyType,
     HomePageSelectionCategory, UserDesign
 )
 from Purchase.models import Item
@@ -202,24 +202,7 @@ class ButtonTypeSerializer(serializers.ModelSerializer):
             return obj.cover_option.url
         return None
 
-class ButtonStripTypeSerializer(serializers.ModelSerializer):
-    cover = serializers.SerializerMethodField()
-    cover_option = serializers.SerializerMethodField()
 
-    class Meta:
-        model = ButtonStripType
-        fields = "__all__"
-        read_only_fields = ['id']
-
-    def get_cover(self, obj):
-        if obj.cover:
-            return obj.cover.url
-        return None
-
-    def get_cover_option(self, obj):
-        if obj.cover_option:
-            return obj.cover_option.url
-        return None
 
 class BodyTypeSerializer(serializers.ModelSerializer):
     cover = serializers.SerializerMethodField()
@@ -264,7 +247,7 @@ class UserDesignSerializer(serializers.ModelSerializer):
     selected_sleeve_right_type = SleevesTypeSerializer()
     selected_pocket_type = PocketTypeSerializer()
     selected_button_type = ButtonTypeSerializer()
-    selected_button_strip_type = ButtonStripTypeSerializer()
+
     selected_body_type = BodyTypeSerializer()
 
     class Meta:

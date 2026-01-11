@@ -17,13 +17,13 @@ class CsrfExemptSessionAuthentication(SessionAuthentication):
 from .serializers import (
     FabricTypeSerializer, FabricColorSerializer, FabricColorDetailSerializer,
     GholaTypeSerializer, SleevesTypeSerializer, PocketTypeSerializer,
-    ButtonTypeSerializer, ButtonStripTypeSerializer, BodyTypeSerializer,
+    ButtonTypeSerializer, BodyTypeSerializer,
     HomePageSelectionCategorySerializer, UserDesignSerializer
 )
 from django.contrib.auth.models import User
 from .models import (
     FabricType, FabricColor,
-    SleevesType, GholaType, PocketType, ButtonType, ButtonStripType, BodyType,
+    SleevesType, GholaType, PocketType, ButtonType, BodyType,
     HomePageSelectionCategory, UserDesign, InventoryTransaction
 )
 from .utils import hableImageUpload
@@ -230,23 +230,7 @@ class FetchButtonAPIView(APIView):
         serializer = ButtonTypeSerializer(queryset, context={'request': request}, many=True)
         return Response(serializer.data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
 
-class FetchButtonStripAPIView(APIView):
-    """
-    Fetch button strip options. Can filter by fabric_type_id (FabricType ID).
-    Returns all button strips for all colors of the specified fabric type.
-    ✅ CACHED: 10 minutes per fabric_type_id
-    """
-    @method_decorator(cache_page(60 * 10))  # Cache for 10 minutes
-    def get(self, request, pk=None, format=None):
-        fabric_type_id = request.GET.get('fabric_type_id', None)
 
-        queryset = ButtonStripType.objects.all()
-
-        if fabric_type_id:
-            queryset = queryset.filter(fabric_type_id=fabric_type_id)
-
-        serializer = ButtonStripTypeSerializer(queryset, context={'request': request}, many=True)
-        return Response(serializer.data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
 
 class FetchBodyAPIView(APIView):
     """
@@ -288,10 +272,10 @@ class UserDesignAPIView(APIView):
             selected_sleeve_left_type = SleevesType.objects.get(id=data['selected_sleeve_left_type_id'])
             selected_sleeve_right_type = SleevesType.objects.get(id=data['selected_sleeve_right_type_id'])
 
-            # FIX ISSUE 1 & 5: Add pocket, button, and button strip
+            # FIX ISSUE 1 & 5: Add pocket and button
             selected_pocket = PocketType.objects.get(id=data['selected_pocket_id'])
             selected_button = ButtonType.objects.get(id=data['selected_button_id'])
-            selected_button_strip = ButtonStripType.objects.get(id=data['selected_button_strip_id'])
+
 
             # Get optional design name
             design_name = data.get('design_name', None)
@@ -305,7 +289,7 @@ class UserDesignAPIView(APIView):
                 selected_sleeve_right_type=selected_sleeve_right_type,
                 selected_pocket_type=selected_pocket,
                 selected_button_type=selected_button,
-                selected_button_strip_type=selected_button_strip
+
             ).first()
 
             # If design configuration already exists, return existing design
@@ -327,7 +311,7 @@ class UserDesignAPIView(APIView):
                 selected_sleeve_right_type=selected_sleeve_right_type,
                 selected_pocket_type=selected_pocket,
                 selected_button_type=selected_button,
-                selected_button_strip_type=selected_button_strip
+
             )
 
             # FIX ISSUE 5: Complete price calculation
@@ -338,8 +322,7 @@ class UserDesignAPIView(APIView):
                 selected_sleeve_left_type.initial_price +
                 selected_sleeve_right_type.initial_price +
                 selected_pocket.initial_price +
-                selected_button.initial_price +
-                selected_button_strip.initial_price
+                selected_button.initial_price
             )
             user_design.save()
 
@@ -359,10 +342,10 @@ class UserDesignAPIView(APIView):
             selected_sleeve_left_type = SleevesType.objects.get(id=data['selected_sleeve_left_type_id'])
             selected_sleeve_right_type = SleevesType.objects.get(id=data['selected_sleeve_right_type_id'])
 
-            # FIX ISSUE 1 & 5: Add pocket, button, and button strip
+            # FIX ISSUE 1 & 5: Add pocket and button
             selected_pocket = PocketType.objects.get(id=data['selected_pocket_id'])
             selected_button = ButtonType.objects.get(id=data['selected_button_id'])
-            selected_button_strip = ButtonStripType.objects.get(id=data['selected_button_strip_id'])
+
 
             design = UserDesign.objects.get(id=pk)
             if design:
@@ -377,7 +360,7 @@ class UserDesignAPIView(APIView):
                 design.selected_sleeve_right_type = selected_sleeve_right_type
                 design.selected_pocket_type = selected_pocket
                 design.selected_button_type = selected_button
-                design.selected_button_strip_type = selected_button_strip
+
 
                 # FIX ISSUE 5: Complete price calculation
                 design.design_Total = (
@@ -387,8 +370,7 @@ class UserDesignAPIView(APIView):
                     selected_sleeve_left_type.initial_price +
                     selected_sleeve_right_type.initial_price +
                     selected_pocket.initial_price +
-                    selected_button.initial_price +
-                    selected_button_strip.initial_price
+                    selected_button.initial_price
                 )
 
                 design.save()
@@ -1123,94 +1105,7 @@ class ButtonTypeAdminSideAPIView(APIView):
                     return Response('Button Type Deleted', status=HTTP_200_OK, content_type='application/json; charset=utf-8')
         return Response('Something went wrong', status=HTTP_400_BAD_REQUEST)
 
-#================== ADMIN SIDE BUTTON STRIP TYPE ====================================================
-class ButtonStripTypeAdminSideAPIView(APIView):
-    # Get Button Strip Type Detail
-    def get(self, request, pk=None, format=None):
-        user = self.request.user
-        if user.is_authenticated:
-            if (user.profile.premission == "Admin" or user.profile.premission == "Partner" or user.profile.premission == "Data-Entry"):
-                button_strip_type = ButtonStripType.objects.get(id=pk)
-                if button_strip_type:
-                    serializer = ButtonStripTypeSerializer(
-                        button_strip_type, context={'request': request})
-                    return Response(serializer.data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
-        return Response('Something went wrong', status=HTTP_400_BAD_REQUEST)
 
-    # Create a Button Strip Type
-    def post(self, request, pk=None, format=None):
-        user = self.request.user
-        if user.is_authenticated:
-            if (user.profile.premission == "Admin" or user.profile.premission == "Partner" or user.profile.premission == "Data-Entry"):
-                data = request.data
-                image_obtain = None
-
-                # Get FabricColor
-                fabric_color = FabricColor.objects.get(id=int(data['fabric_color_id']))
-
-                if fabric_color:
-                    if data.get('cover'):
-                        image_obtain = hableImageUpload(data['cover'])
-
-                    button_strip = ButtonStripType.objects.create(
-                        button_strip_type_name_eng=data['button_strip_type_name_eng'],
-                        button_strip_type_name_arb=data['button_strip_type_name_arb'],
-                        initial_price=Decimal(data['initial_price']),
-                        cover=image_obtain,
-                        fabric_type=fabric_color.fabric_type,
-                        fabric_color=fabric_color
-                    )
-                    # Clear cache so new button strip appears immediately
-                    clear_fabric_cache()
-                    serializer = ButtonStripTypeSerializer(button_strip, context={'request': request})
-                    return Response(serializer.data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
-        return Response('Something went wrong', status=HTTP_400_BAD_REQUEST)
-
-    # Update a Button Strip Type
-    def put(self, request, pk=None, format=None):
-        user = self.request.user
-        if user.is_authenticated:
-            if (user.profile.premission == "Admin" or user.profile.premission == "Partner" or user.profile.premission == "Data-Entry"):
-                data = request.data
-                image_obtain = None
-
-                # Get FabricColor
-                fabric_color = FabricColor.objects.get(id=int(data['fabric_color_id']))
-
-                if fabric_color:
-                    button_strip_type = ButtonStripType.objects.get(id=pk)
-                    if button_strip_type:
-                        button_strip_type.button_strip_type_name_eng = data['button_strip_type_name_eng']
-                        button_strip_type.button_strip_type_name_arb = data['button_strip_type_name_arb']
-                        button_strip_type.initial_price = Decimal(data['initial_price'])
-                        button_strip_type.fabric_type = fabric_color.fabric_type
-                        button_strip_type.fabric_color = fabric_color
-
-                        if data.get('cover'):
-                            if isinstance(data['cover'], Dict):
-                                image_obtain = hableImageUpload(data['cover'])
-                                button_strip_type.cover = image_obtain
-                        elif data.get('cover') is None:
-                            button_strip_type.cover = None
-                        button_strip_type.save()
-                        # Clear cache so updated button strip appears immediately
-                        clear_fabric_cache()
-                        serializer = ButtonStripTypeSerializer(button_strip_type, context={'request': request})
-                        return Response(serializer.data, status=HTTP_200_OK, content_type='application/json; charset=utf-8')
-        return Response('Something went wrong', status=HTTP_400_BAD_REQUEST)
-
-    # Delete Button Strip Type
-    def delete(self, request, pk=None, format=None):
-        user = self.request.user
-        if user.is_authenticated:
-            if (user.profile.premission == "Admin" or user.profile.premission == "Partner" or user.profile.premission == "Data-Entry"):
-                button_strip_type = ButtonStripType.objects.get(id=pk)
-                if button_strip_type:
-                    button_strip_type.delete()
-                    # Clear cache so deleted button strip disappears immediately
-                    clear_fabric_cache()
-                    return Response('Button Strip Type Deleted', status=HTTP_200_OK, content_type='application/json; charset=utf-8')
-        return Response('Something went wrong', status=HTTP_400_BAD_REQUEST)
 
 #================== BODY TYPE ADMIN SIDE API ====================================================
 class BodyTypeAdminSideAPIView(APIView):
@@ -1393,16 +1288,7 @@ class CalculateDesignPriceAPIView(APIView):
                         'message': f"Button with ID {data['button_id']} does not exist"
                     }, status=HTTP_400_BAD_REQUEST)
 
-            # Add button strip price if provided
-            if data.get('button_strip_id'):
-                try:
-                    button_strip = ButtonStripType.objects.get(id=data['button_strip_id'])
-                    total_price += button_strip.initial_price
-                except ButtonStripType.DoesNotExist:
-                    return Response({
-                        'error': 'Button strip not found',
-                        'message': f"Button strip with ID {data['button_strip_id']} does not exist"
-                    }, status=HTTP_400_BAD_REQUEST)
+
 
             # Add body price if provided
             if data.get('body_id'):
@@ -1444,7 +1330,6 @@ class DesignSummaryPreviewAPIView(APIView):
             sleeve_right = SleevesType.objects.get(id=data['sleeve_right_id'])
             pocket = PocketType.objects.get(id=data['pocket_id'])
             button = ButtonType.objects.get(id=data['button_id'])
-            button_strip = ButtonStripType.objects.get(id=data['button_strip_id'])
 
             # Calculate total price
             total_price = (
@@ -1454,8 +1339,7 @@ class DesignSummaryPreviewAPIView(APIView):
                 sleeve_left.initial_price +
                 sleeve_right.initial_price +
                 pocket.initial_price +
-                button.initial_price +
-                button_strip.initial_price
+                button.initial_price
             )
 
             # Build comprehensive summary
@@ -1516,14 +1400,7 @@ class DesignSummaryPreviewAPIView(APIView):
                     'price': str(button.initial_price),
                     'image': button.cover.url if button.cover else None
                 },
-                'button_strip': {
-                    'id': button_strip.id,
-                    'name_eng': button_strip.button_strip_type_name_eng,
-                    'name_arb': button_strip.button_strip_type_name_arb,
-                    'color': button_strip.color,
-                    'price': str(button_strip.initial_price),
-                    'image': button_strip.cover.url if button_strip.cover else None
-                },
+
                 'pricing': {
                     'category_price': str(category.initial_price),
                     'fabric_price': str(fabric.initial_price),
@@ -1532,7 +1409,6 @@ class DesignSummaryPreviewAPIView(APIView):
                     'sleeve_right_price': str(sleeve_right.initial_price),
                     'pocket_price': str(pocket.initial_price),
                     'button_price': str(button.initial_price),
-                    'button_strip_price': str(button_strip.initial_price),
                     'total_price': str(total_price)
                 },
                 'estimated_delivery': category.duration_delivery_period
@@ -1552,8 +1428,7 @@ class DesignSummaryPreviewAPIView(APIView):
             return Response({'error': 'Pocket not found'}, status=HTTP_400_BAD_REQUEST)
         except ButtonType.DoesNotExist:
             return Response({'error': 'Button not found'}, status=HTTP_400_BAD_REQUEST)
-        except ButtonStripType.DoesNotExist:
-            return Response({'error': 'Button strip not found'}, status=HTTP_400_BAD_REQUEST)
+
         except Exception as e:
             return Response({'error': str(e)}, status=HTTP_400_BAD_REQUEST)
 
@@ -1761,7 +1636,6 @@ class UploadDesignScreenshotAPIView(APIView):
             sleeve_right_id = request.data.get('sleeve_right_id')
             pocket_id = request.data.get('pocket_id')
             button_id = request.data.get('button_id')
-            button_strip_id = request.data.get('button_strip_id')
             body_id = request.data.get('body_id')
 
             # Create hash from component IDs to identify unique design configurations
@@ -1773,7 +1647,6 @@ class UploadDesignScreenshotAPIView(APIView):
                 str(sleeve_right_id) if sleeve_right_id else 'none',
                 str(pocket_id) if pocket_id else 'none',
                 str(button_id) if button_id else 'none',
-                str(button_strip_id) if button_strip_id else 'none',
                 str(body_id) if body_id else 'none',
             ]
 
@@ -1840,7 +1713,6 @@ class UploadDesignScreenshotAPIView(APIView):
                     sleeve_right_id=sleeve_right_id,
                     pocket_id=pocket_id,
                     button_id=button_id,
-                    button_strip_id=button_strip_id,
                     body_id=body_id,
                     times_reused=0
                 )

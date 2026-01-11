@@ -40,22 +40,29 @@
 <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6 mb-6">
     <form method="GET" class="flex flex-col md:flex-row gap-2">
         <div class="flex-1 relative">
-            <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#ADB2B0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#ADB2B0]" fill="none"
+                stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            <input type="text" name="search" value="{{ search_query }}" placeholder="Search by design name or user..." class="w-full pl-10 pr-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+            <input type="text" name="search" value="{{ search_query }}" placeholder="Search by design name or user..."
+                class="w-full pl-10 pr-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
         </div>
-        <select name="user" class="px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+        <select name="user"
+            class="px-3 py-2 text-sm bg-[#F5F6F6] border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
             <option value="">All Users</option>
             {% for user in users_with_designs %}
-            <option value="{{ user.id }}" {% if user_filter == user.id|stringformat:"s" %}selected{% endif %}>{{ user.username }}</option>
+            <option value="{{ user.id }}" {% if user_filter==user.id|stringformat:"s" %}selected{% endif %}>{{
+                user.username }}</option>
             {% endfor %}
         </select>
-        <button type="submit" class="px-5 py-2 bg-[#0D1210] text-white rounded-lg text-sm font-medium hover:bg-[#1a2420] transition-colors">
+        <button type="submit"
+            class="px-5 py-2 bg-[#0D1210] text-white rounded-lg text-sm font-medium hover:bg-[#1a2420] transition-colors">
             Filter
         </button>
         {% if search_query or user_filter %}
-        <a href="/dashboard/user-designs/" class="px-5 py-2 bg-[#F5F6F6] text-[#0D1210] rounded-lg text-sm font-medium hover:bg-[#E6E8E7] transition-colors">
+        <a href="/dashboard/user-designs/"
+            class="px-5 py-2 bg-[#F5F6F6] text-[#0D1210] rounded-lg text-sm font-medium hover:bg-[#E6E8E7] transition-colors">
             Clear
         </a>
         {% endif %}
@@ -68,13 +75,20 @@
         <table class="w-full table-auto">
             <thead class="bg-[#F5F6F6]">
                 <tr>
-                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">ID</th>
-                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Design Name</th>
-                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">User</th>
-                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Fabric Color</th>
-                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Total Price</th>
-                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Created</th>
-                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">Actions</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">
+                        ID</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">
+                        Design Name</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">
+                        User</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">
+                        Fabric Color</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">
+                        Total Price</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">
+                        Created</th>
+                    <th class="px-3 py-2.5 text-left text-xs font-semibold text-[#6A736E] uppercase whitespace-nowrap">
+                        Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-[#E6E8E7]">
@@ -84,20 +98,22 @@
                         <p class="text-sm font-mono text-[#6A736E]">#{{ design.id }}</p>
                     </td>
                     <td class="px-3 py-2.5">
-                        <p class="text-sm font-semibold text-[#0D1210]">{{ design.design_name|default:"Unnamed Design" }}</p>
+                        <p class="text-sm font-semibold text-[#0D1210]">{{ design.design_name|default:"Unnamed Design"
+                            }}</p>
                     </td>
                     <td class="px-3 py-2.5 whitespace-nowrap">
-                        <a href="/dashboard/users/{{ design.user.id }}/" class="text-sm text-[#0B5D35] hover:text-[#0D1210] font-medium">
+                        <a href="/dashboard/users/{{ design.user.id }}/"
+                            class="text-sm text-[#0B5D35] hover:text-[#0D1210] font-medium">
                             {{ design.user.username }}
                         </a>
                         <p class="text-xs text-[#6A736E]">{{ design.user.email|default:"-" }}</p>
                     </td>
                     <td class="px-3 py-2.5 whitespace-nowrap">
                         {% if design.main_body_fabric_color %}
-                            <p class="text-sm text-[#0D1210]">{{ design.main_body_fabric_color.color_name_eng }}</p>
-                            <p class="text-xs text-[#6A736E]">{{ design.main_body_fabric_color.color_name_arb }}</p>
+                        <p class="text-sm text-[#0D1210]">{{ design.main_body_fabric_color.color_name_eng }}</p>
+                        <p class="text-xs text-[#6A736E]">{{ design.main_body_fabric_color.color_name_arb }}</p>
                         {% else %}
-                            <p class="text-sm text-[#ADB2B0]">-</p>
+                        <p class="text-sm text-[#ADB2B0]">-</p>
                         {% endif %}
                     </td>
                     <td class="px-3 py-2.5 whitespace-nowrap">
@@ -109,16 +125,35 @@
                     </td>
                     <td class="px-3 py-2.5 whitespace-nowrap">
                         <div class="flex gap-1">
-                            <button onclick="viewDesignDetails({{ design.id }}, '{{ design.design_name|default:"Unnamed Design"|escapejs }}', '{{ design.user.username|escapejs }}', '{{ design.user.email|default:"-"|escapejs }}', '{{ design.initial_size_selected.main_category_name_eng|default:"-"|escapejs }}', '{{ design.main_body_fabric_color.color_name_eng|default:"-"|escapejs }}', '{{ design.main_body_fabric_color.color_name_arb|default:"-"|escapejs }}', '{{ design.selected_coller_type.ghola_type_name_eng|default:"-"|escapejs }}', '{{ design.selected_sleeve_left_type.sleeves_type_name_eng|default:"-"|escapejs }}', '{{ design.selected_sleeve_right_type.sleeves_type_name_eng|default:"-"|escapejs }}', '{{ design.selected_pocket_type.pocket_type_name_eng|default:"-"|escapejs }}', '{{ design.selected_button_type.button_type_name_eng|default:"-"|escapejs }}', '{{ design.selected_button_strip_type.button_strip_type_name_eng|default:"-"|escapejs }}', '{{ design.selected_body_type.body_type_name_eng|default:"-"|escapejs }}', '{{ design.design_Total|floatformat:3|escapejs }}', '{{ design.timestamp|date:"d M Y H:i"|escapejs }}')" class="inline-flex items-center px-2.5 py-1 bg-[#0B5D35] text-white rounded-lg text-xs font-medium hover:bg-[#0D1210] transition-colors">
+                            <button onclick="viewDesignDetails({{ design.id }}, '{{ design.design_name|default:" Unnamed
+                                Design"|escapejs }}', '{{ design.user.username|escapejs }}'
+                                , '{{ design.user.email|default:"-"|escapejs }}'
+                                , '{{ design.initial_size_selected.main_category_name_eng|default:"-"|escapejs }}'
+                                , '{{ design.main_body_fabric_color.color_name_eng|default:"-"|escapejs }}'
+                                , '{{ design.main_body_fabric_color.color_name_arb|default:"-"|escapejs }}'
+                                , '{{ design.selected_coller_type.ghola_type_name_eng|default:"-"|escapejs }}'
+                                , '{{ design.selected_sleeve_left_type.sleeves_type_name_eng|default:"-"|escapejs }}'
+                                , '{{ design.selected_sleeve_right_type.sleeves_type_name_eng|default:"-"|escapejs }}'
+                                , '{{ design.selected_pocket_type.pocket_type_name_eng|default:"-"|escapejs }}'
+                                , '{{ design.selected_button_type.button_type_name_eng|default:"-"|escapejs }}'
+                                , '{{ design.selected_body_type.body_type_name_eng|default:"-"|escapejs }}'
+                                , '{{ design.design_Total|floatformat:3|escapejs }}'
+                                , '{{ design.timestamp|date:"d M Y H:i"|escapejs }}' )"
+                                class="inline-flex items-center px-2.5 py-1 bg-[#0B5D35] text-white rounded-lg text-xs font-medium hover:bg-[#0D1210] transition-colors">
                                 <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                 </svg>
                                 View
                             </button>
-                            <button onclick="openDeleteDesignModal({{ design.id }}, '{{ design.design_name|default:"Unnamed Design"|escapejs }}')" class="inline-flex items-center px-2.5 py-1 bg-[#BF3636] text-white rounded-lg text-xs font-medium hover:bg-[#0D1210] transition-colors">
+                            <button onclick="openDeleteDesignModal({{ design.id }}, '{{ design.design_name|default:"
+                                Unnamed Design"|escapejs }}')"
+                                class="inline-flex items-center px-2.5 py-1 bg-[#BF3636] text-white rounded-lg text-xs font-medium hover:bg-[#0D1210] transition-colors">
                                 <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
                                 Delete
                             </button>
@@ -128,8 +163,10 @@
                 {% empty %}
                 <tr>
                     <td colspan="7" class="px-6 py-12 text-center">
-                        <svg class="w-12 h-12 mx-auto text-[#ADB2B0] mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
+                        <svg class="w-12 h-12 mx-auto text-[#ADB2B0] mb-3" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
                         </svg>
                         <p class="text-[#6A736E] text-sm font-medium">No designs found</p>
                         {% if search_query or user_filter %}
@@ -150,7 +187,7 @@
             <h2 class="text-xl font-bold text-[#0D1210]">Design Details</h2>
             <button onclick="closeDesignModal()" class="text-[#6A736E] hover:text-[#0D1210]">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
         </div>
@@ -216,10 +253,7 @@
                 <p class="text-xs text-[#6A736E] mb-1">Button Type</p>
                 <p class="text-sm font-semibold text-[#0D1210]" id="modal_button"></p>
             </div>
-            <div class="border border-[#E6E8E7] rounded-lg p-3">
-                <p class="text-xs text-[#6A736E] mb-1">Button Strip</p>
-                <p class="text-sm font-semibold text-[#0D1210]" id="modal_button_strip"></p>
-            </div>
+
             <div class="border border-[#E6E8E7] rounded-lg p-3">
                 <p class="text-xs text-[#6A736E] mb-1">Body Type</p>
                 <p class="text-sm font-semibold text-[#0D1210]" id="modal_body_type"></p>
@@ -231,7 +265,8 @@
         </div>
 
         <div class="flex justify-end">
-            <button onclick="closeDesignModal()" class="px-5 py-2 bg-[#F5F6F6] text-[#0D1210] rounded-lg text-sm font-medium hover:bg-[#E6E8E7] transition-colors">
+            <button onclick="closeDesignModal()"
+                class="px-5 py-2 bg-[#F5F6F6] text-[#0D1210] rounded-lg text-sm font-medium hover:bg-[#E6E8E7] transition-colors">
                 Close
             </button>
         </div>
@@ -245,7 +280,7 @@
             <h2 class="text-xl font-bold text-[#0D1210]">Delete Design</h2>
             <button onclick="closeDeleteDesignModal()" class="text-[#6A736E] hover:text-[#0D1210]">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
         </div>
@@ -253,21 +288,25 @@
         <div class="mb-6">
             <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-[#FDECEC] rounded-full">
                 <svg class="w-6 h-6 text-[#BF3636]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
             </div>
             <p class="text-center text-[#0D1210] font-semibold mb-2">Are you sure you want to delete this design?</p>
-            <p class="text-center text-sm text-[#6A736E]">Design: <span id="delete_design_name" class="font-bold text-[#0D1210]"></span></p>
+            <p class="text-center text-sm text-[#6A736E]">Design: <span id="delete_design_name"
+                    class="font-bold text-[#0D1210]"></span></p>
             <p class="text-center text-sm text-[#BF3636] mt-2">This action cannot be undone.</p>
         </div>
 
         <form id="deleteDesignForm" method="POST">
             {% csrf_token %}
             <div class="flex gap-2 justify-end">
-                <button type="button" onclick="closeDeleteDesignModal()" class="px-5 py-2 bg-[#F5F6F6] text-[#0D1210] rounded-lg text-sm font-medium hover:bg-[#E6E8E7] transition-colors">
+                <button type="button" onclick="closeDeleteDesignModal()"
+                    class="px-5 py-2 bg-[#F5F6F6] text-[#0D1210] rounded-lg text-sm font-medium hover:bg-[#E6E8E7] transition-colors">
                     Cancel
                 </button>
-                <button type="submit" class="px-5 py-2 bg-[#BF3636] text-white rounded-lg text-sm font-medium hover:bg-[#0D1210] transition-colors">
+                <button type="submit"
+                    class="px-5 py-2 bg-[#BF3636] text-white rounded-lg text-sm font-medium hover:bg-[#0D1210] transition-colors">
                     Delete Design
                 </button>
             </div>
@@ -276,56 +315,56 @@
 </div>
 
 <script>
-function viewDesignDetails(id, designName, username, email, initialSize, fabricEn, fabricAr, collar, sleeveLeft, sleeveRight, pocket, button, buttonStrip, bodyType, totalPrice, created) {
-    document.getElementById('modal_design_name').textContent = designName;
-    document.getElementById('modal_username').textContent = username;
-    document.getElementById('modal_email').textContent = email;
-    document.getElementById('modal_initial_size').textContent = initialSize;
-    document.getElementById('modal_fabric_en').textContent = fabricEn;
-    document.getElementById('modal_fabric_ar').textContent = fabricAr;
-    document.getElementById('modal_collar').textContent = collar;
-    document.getElementById('modal_sleeve_left').textContent = sleeveLeft;
-    document.getElementById('modal_sleeve_right').textContent = sleeveRight;
-    document.getElementById('modal_pocket').textContent = pocket;
-    document.getElementById('modal_button').textContent = button;
-    document.getElementById('modal_button_strip').textContent = buttonStrip;
-    document.getElementById('modal_body_type').textContent = bodyType;
-    document.getElementById('modal_total_price').textContent = totalPrice + ' KD';
-    document.getElementById('modal_created').textContent = created;
+    function viewDesignDetails(id, designName, username, email, initialSize, fabricEn, fabricAr, collar, sleeveLeft, sleeveRight, pocket, button, bodyType, totalPrice, created) {
+        document.getElementById('modal_design_name').textContent = designName;
+        document.getElementById('modal_username').textContent = username;
+        document.getElementById('modal_email').textContent = email;
+        document.getElementById('modal_initial_size').textContent = initialSize;
+        document.getElementById('modal_fabric_en').textContent = fabricEn;
+        document.getElementById('modal_fabric_ar').textContent = fabricAr;
+        document.getElementById('modal_collar').textContent = collar;
+        document.getElementById('modal_sleeve_left').textContent = sleeveLeft;
+        document.getElementById('modal_sleeve_right').textContent = sleeveRight;
+        document.getElementById('modal_pocket').textContent = pocket;
+        document.getElementById('modal_button').textContent = button;
 
-    document.getElementById('designModal').classList.remove('hidden');
-    document.getElementById('designModal').classList.add('flex');
-}
+        document.getElementById('modal_body_type').textContent = bodyType;
+        document.getElementById('modal_total_price').textContent = totalPrice + ' KD';
+        document.getElementById('modal_created').textContent = created;
 
-function closeDesignModal() {
-    document.getElementById('designModal').classList.add('hidden');
-    document.getElementById('designModal').classList.remove('flex');
-}
-
-document.getElementById('designModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeDesignModal();
+        document.getElementById('designModal').classList.remove('hidden');
+        document.getElementById('designModal').classList.add('flex');
     }
-});
 
-// Delete Design Modal Functions
-function openDeleteDesignModal(id, designName) {
-    document.getElementById('delete_design_name').textContent = designName;
-    document.getElementById('deleteDesignForm').action = `/dashboard/user-designs/${id}/delete/`;
-    document.getElementById('deleteDesignModal').classList.remove('hidden');
-    document.getElementById('deleteDesignModal').classList.add('flex');
-}
-
-function closeDeleteDesignModal() {
-    document.getElementById('deleteDesignModal').classList.add('hidden');
-    document.getElementById('deleteDesignModal').classList.remove('flex');
-}
-
-document.getElementById('deleteDesignModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeDeleteDesignModal();
+    function closeDesignModal() {
+        document.getElementById('designModal').classList.add('hidden');
+        document.getElementById('designModal').classList.remove('flex');
     }
-});
+
+    document.getElementById('designModal').addEventListener('click', function (e) {
+        if (e.target === this) {
+            closeDesignModal();
+        }
+    });
+
+    // Delete Design Modal Functions
+    function openDeleteDesignModal(id, designName) {
+        document.getElementById('delete_design_name').textContent = designName;
+        document.getElementById('deleteDesignForm').action = `/dashboard/user-designs/${id}/delete/`;
+        document.getElementById('deleteDesignModal').classList.remove('hidden');
+        document.getElementById('deleteDesignModal').classList.add('flex');
+    }
+
+    function closeDeleteDesignModal() {
+        document.getElementById('deleteDesignModal').classList.add('hidden');
+        document.getElementById('deleteDesignModal').classList.remove('flex');
+    }
+
+    document.getElementById('deleteDesignModal').addEventListener('click', function (e) {
+        if (e.target === this) {
+            closeDeleteDesignModal();
+        }
+    });
 </script>
 
 {% endblock %}

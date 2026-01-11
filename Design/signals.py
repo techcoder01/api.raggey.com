@@ -11,7 +11,7 @@ import logging
 from .models import (
     FabricType, FabricColor,
     GholaType, SleevesType, PocketType,
-    ButtonType, ButtonStripType, BodyType
+    ButtonType, BodyType
 )
 
 logger = logging.getLogger(__name__)
@@ -125,12 +125,7 @@ def button_changed(sender, instance, **kwargs):
     invalidate_all_design_cache()
 
 
-@receiver(post_save, sender=ButtonStripType)
-@receiver(post_delete, sender=ButtonStripType)
-def button_strip_changed(sender, instance, **kwargs):
-    """Clear cache when ButtonStrip is modified"""
-    logger.info(f"📝 ButtonStrip changed: {instance.button_strip_type_name_eng}")
-    invalidate_all_design_cache()
+
 
 
 @receiver(post_save, sender=BodyType)

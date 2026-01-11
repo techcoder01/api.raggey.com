@@ -23,7 +23,7 @@ PARTS_WITH_STYLES = {
 }
 
 # Parts without style folders (direct image)
-PARTS_WITHOUT_STYLES = ["button_strip", "body"]
+PARTS_WITHOUT_STYLES = ["body"]
 
 
 def create_folder_structure(base_path=BASE_PATH):
@@ -50,7 +50,7 @@ def create_folder_structure(base_path=BASE_PATH):
     │       │   └── style_X/
     │       │       ├── cover.png
     │       │       └── option.png
-    │       ├── button_strip/
+
     │       │   └── cover.png (direct, no folder)
     │       └── body/
     │           └── cover.png (direct, no folder)
