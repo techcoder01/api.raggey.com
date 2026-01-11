@@ -75,6 +75,10 @@
             class="px-4 py-2 rounded-lg font-medium transition-colors {% if component_type == 'body' %}bg-[#5D0B33] text-white{% else %}bg-[#F5F6F6] text-[#6A736E] hover:bg-[#E6E8E7]{% endif %}">
             Body ({{ component_counts.body }})
         </a>
+        <a href="?type=main_categories{% if search_query %}&search={{ search_query }}{% endif %}{% if order_item_id %}&order_item={{ order_item_id }}{% endif %}"
+            class="px-4 py-2 rounded-lg font-medium transition-colors {% if component_type == 'main_categories' %}bg-[#5D0B33] text-white{% else %}bg-[#F5F6F6] text-[#6A736E] hover:bg-[#E6E8E7]{% endif %}">
+            Main Categories ({{ component_counts.main_categories }})
+        </a>
     </div>
 
     <!-- Search -->
@@ -122,7 +126,7 @@
                     </th>
                     <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Price
                     </th>
-                    {% elif component_type == 'fabric_types' %}
+                    {% elif component_type == 'fabric_types' or component_type == 'main_categories' %}
                     <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Base
                         Price</th>
                     {% else %}
@@ -257,6 +261,7 @@
                             {% elif component_type == 'buttons' %}{{ item.button_type_name_eng }}
 
                             {% elif component_type == 'body' %}{{ item.body_type_name_eng }}
+                            {% elif component_type == 'main_categories' %}{{ item.main_category_name_eng }}
                             {% endif %}
                         </p>
                     </td>
@@ -270,6 +275,7 @@
                             {% elif component_type == 'buttons' %}{{ item.button_type_name_arb }}
 
                             {% elif component_type == 'body' %}{{ item.body_type_name_arb }}
+                            {% elif component_type == 'main_categories' %}{{ item.main_category_name_arb }}
                             {% endif %}
                         </p>
                     </td>
@@ -380,7 +386,6 @@
                                 </option>
                             </select>
                         </form>
-                        {% else %}
                         <span
                             class="inline-block px-3 py-1 text-xs font-medium rounded-full bg-[#E9F9EF] text-[#1B9E4B]">Active</span>
                         {% endif %}
@@ -599,6 +604,27 @@
                         <input type="checkbox" name="inStock_button" id="edit_inStock_button"
                             class="rounded border-gray-300 text-[#5D0B33] focus:ring-[#5D0B33]">
                         <span class="ml-2 text-sm text-[#0D1210]">In Stock</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Main Category specific fields -->
+            <div id="main_category_fields" class="hidden">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Delivery Duration</label>
+                    <input type="text" name="duration_delivery_period" id="edit_duration_delivery_period"
+                        class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" name="isHidden" id="edit_isHidden_cat"
+                            class="rounded border-gray-300 text-[#5D0B33] focus:ring-[#5D0B33]">
+                        <span class="ml-2 text-sm text-[#0D1210]">Hidden</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" name="is_comming_soon" id="edit_is_comming_soon"
+                            class="rounded border-gray-300 text-[#5D0B33] focus:ring-[#5D0B33]">
+                        <span class="ml-2 text-sm text-[#0D1210]">Coming Soon</span>
                     </label>
                 </div>
             </div>
@@ -834,6 +860,27 @@
                 </div>
             </div>
 
+            <!-- Main Category specific fields -->
+            <div id="add_main_category_fields" class="hidden">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Delivery Duration</label>
+                    <input type="text" name="duration_delivery_period" id="add_duration_delivery_period"
+                        class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" name="isHidden" id="add_isHidden_cat"
+                            class="rounded border-gray-300 text-[#5D0B33] focus:ring-[#5D0B33]">
+                        <span class="ml-2 text-sm text-[#0D1210]">Hidden</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" name="is_comming_soon" id="add_is_comming_soon"
+                            class="rounded border-gray-300 text-[#5D0B33] focus:ring-[#5D0B33]">
+                        <span class="ml-2 text-sm text-[#0D1210]">Coming Soon</span>
+                    </label>
+                </div>
+            </div>
+
             <!-- Image uploads -->
             <div id="add_image_fields" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 hidden">
                 <div id="add_cover_field">
@@ -1024,6 +1071,14 @@
                             document.getElementById('edit_fabric_color_id').value = data.fabric_color_id || '';
                         });
                     }
+                } else if (componentType === 'main_categories') {
+                    document.getElementById('image_fields').classList.remove('hidden');
+                    document.getElementById('main_category_fields').classList.remove('hidden');
+                    priceLabel.textContent = 'Base Price (KD)';
+                    priceField.value = data.initial_price || 0;
+                    document.getElementById('edit_duration_delivery_period').value = data.duration_delivery_period || '';
+                    document.getElementById('edit_isHidden_cat').checked = data.isHidden || false;
+                    document.getElementById('edit_is_comming_soon').checked = data.is_comming_soon || false;
                 } else {
                     document.getElementById('design_fabric_fields').classList.remove('hidden');
                     document.getElementById('image_fields').classList.remove('hidden');
@@ -1098,6 +1153,12 @@
             document.getElementById('add_button_fields').classList.remove('hidden');
             document.getElementById('add_cover_option_field').classList.remove('hidden');
             priceLabel.textContent = 'Price (KD) *';
+            priceField.value = '0';
+            coverField.setAttribute('required', 'required');
+        } else if (componentType === 'main_categories') {
+            document.getElementById('add_image_fields').classList.remove('hidden');
+            document.getElementById('add_main_category_fields').classList.remove('hidden');
+            priceLabel.textContent = 'Base Price (KD) *';
             priceField.value = '0';
             coverField.setAttribute('required', 'required');
         } else {

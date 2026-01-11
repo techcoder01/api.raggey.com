@@ -20,6 +20,11 @@ class HomePageSelectionCategory(models.Model):
     def __str__(self):
         return self.main_category_name_eng
 
+    class Meta:
+        ordering = ['priority', '-timestamp']
+        verbose_name = "Home Page Selection Category"
+        verbose_name_plural = "Home Page Selection Categories"
+
 # ================Category such us Fabric, buttons , Ghola================
 
 #================ FABRIC TYPE (Base Fabric) ================
@@ -232,7 +237,6 @@ class BodyType(models.Model):
 
     # FK to FabricColor (specific color from that fabric's colors)
     fabric_color = models.ForeignKey(FabricColor, on_delete=models.CASCADE, null=True, blank=True, related_name="body_types")
-
 
     timestamp = models.DateTimeField(auto_now_add=True)
     initial_price = models.DecimalField(max_digits=9, decimal_places=3)

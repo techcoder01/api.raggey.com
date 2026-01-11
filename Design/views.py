@@ -429,6 +429,7 @@ class MainCatogeryAdminSideAPIView(APIView):
             initial_price=Decimal(str(data['initial_price'])),
             isHidden=data.get('isHidden', False),
             is_comming_soon=data.get('is_comming_soon', False),
+            priority=int(data.get('priority', 0)),
             cover=image_obtain)
         serializer = HomePageSelectionCategorySerializer(
             category, context={'request': request})
@@ -447,6 +448,7 @@ class MainCatogeryAdminSideAPIView(APIView):
                     category.initial_price=Decimal(data['initial_price'],)
                     category.isHidden = data['isHidden']
                     category.is_comming_soon = data['is_comming_soon']
+                    category.priority = int(data.get('priority', 0))
                     if data['cover']:
                         if isinstance(data['cover'], Dict):
                             image_obtain = hableImageUpload(data['cover'])

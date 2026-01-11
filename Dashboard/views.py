@@ -397,9 +397,10 @@ def designs_view(request):
             )
         component_label = 'Fabric Colors'
         total_items = FabricColor.objects.count()
+        items = items.order_by('priority', '-timestamp')
 
     elif component_type == 'fabric_types':
-        items = FabricType.objects.order_by('-timestamp')
+        items = FabricType.objects.all()
         # If order filter is active
         if order_item_id:
             if filter_ids.get('fabric_color'):
@@ -421,9 +422,10 @@ def designs_view(request):
             )
         component_label = 'Fabric Types'
         total_items = FabricType.objects.count()
+        items = items.order_by('priority', '-timestamp')
 
     elif component_type == 'collars':
-        items = GholaType.objects.order_by('-timestamp')
+        items = GholaType.objects.all()
         # If order filter is active
         if order_item_id:
             if filter_ids.get('collar'):
@@ -437,9 +439,10 @@ def designs_view(request):
             )
         component_label = 'Collar Types'
         total_items = GholaType.objects.count()
+        items = items.order_by('priority', '-timestamp')
 
     elif component_type == 'sleeves':
-        items = SleevesType.objects.order_by('-timestamp')
+        items = SleevesType.objects.all()
         # If order filter is active
         if order_item_id:
             if filter_ids.get('sleeves'):
@@ -453,9 +456,10 @@ def designs_view(request):
             )
         component_label = 'Sleeve Types'
         total_items = SleevesType.objects.count()
+        items = items.order_by('priority', '-timestamp')
 
     elif component_type == 'pockets':
-        items = PocketType.objects.order_by('-timestamp')
+        items = PocketType.objects.all()
         # If order filter is active
         if order_item_id:
             if filter_ids.get('pocket'):
@@ -469,9 +473,10 @@ def designs_view(request):
             )
         component_label = 'Pocket Types'
         total_items = PocketType.objects.count()
+        items = items.order_by('priority', '-timestamp')
 
     elif component_type == 'buttons':
-        items = ButtonType.objects.order_by('-timestamp')
+        items = ButtonType.objects.all()
         # If order filter is active
         if order_item_id:
             if filter_ids.get('button'):
@@ -485,11 +490,12 @@ def designs_view(request):
             )
         component_label = 'Button Types'
         total_items = ButtonType.objects.count()
+        items = items.order_by('priority', '-timestamp')
 
 
 
     elif component_type == 'body':
-        items = BodyType.objects.order_by('-timestamp')
+        items = BodyType.objects.all()
         # If order filter is active
         if order_item_id:
             if filter_ids.get('body'):
@@ -503,8 +509,20 @@ def designs_view(request):
             )
         component_label = 'Body Types'
         total_items = BodyType.objects.count()
+        items = items.order_by('-timestamp')
+
+    elif component_type == 'main_categories':
+        items = HomePageSelectionCategory.objects.all()
+        if search_query:
+            items = items.filter(
+                Q(main_category_name_eng__icontains=search_query) |
+                Q(main_category_name_arb__icontains=search_query)
+            )
+        component_label = 'Main Categories'
+        total_items = HomePageSelectionCategory.objects.count()
+        items = items.order_by('priority', '-timestamp')
     else:
-        items = FabricColor.objects.select_related('fabric_type').order_by('-timestamp')
+        items = FabricColor.objects.select_related('fabric_type').order_by('priority', '-timestamp')
         # If order filter is active
         if order_item_id:
             if filter_ids.get('fabric_color'):
@@ -524,6 +542,7 @@ def designs_view(request):
         'buttons': ButtonType.objects.count(),
 
         'body': BodyType.objects.count(),
+        'main_categories': HomePageSelectionCategory.objects.count(),
     }
 
     # Get all fabric types for the add modal dropdown
@@ -648,6 +667,18 @@ def get_design_item(request, component_type, item_id):
                 'cover_url': item.cover.url if item.cover else None,
                 'cover_option_url': item.cover_option.url if item.cover_option else None,
             }
+        elif component_type == 'main_categories':
+            item = HomePageSelectionCategory.objects.get(id=item_id)
+            data = {
+                'priority': item.priority,
+                'name_eng': item.main_category_name_eng,
+                'name_arb': item.main_category_name_arb,
+                'initial_price': float(item.initial_price),
+                'duration_delivery_period': item.duration_delivery_period,
+                'isHidden': item.isHidden,
+                'is_comming_soon': item.is_comming_soon,
+                'cover_url': item.cover.url if item.cover else None,
+            }
         else:
             return JsonResponse({'error': 'Invalid component type'}, status=400)
 
@@ -679,12 +710,14 @@ def update_design_item(request):
             item.hex_color = request.POST.get('hex_color', '#FFFFFF')
             item.quantity = request.POST.get('quantity', 0)
             item.inStock = 'inStock' in request.POST
+            item.priority = priority
         elif component_type == 'fabric_types':
             item = FabricType.objects.get(id=item_id)
             item.fabric_name_eng = name_eng
             item.fabric_name_arb = name_arb
             item.base_price = price
             item.isHidden = 'isHidden' in request.POST
+            item.priority = priority
         elif component_type == 'collars':
             item = GholaType.objects.get(id=item_id)
             item.ghola_type_name_eng = name_eng
@@ -695,6 +728,7 @@ def update_design_item(request):
             fabric_color_id = request.POST.get('fabric_color_id')
             item.fabric_type = FabricType.objects.get(id=fabric_type_id) if fabric_type_id else None
             item.fabric_color = FabricColor.objects.get(id=fabric_color_id) if fabric_color_id else None
+            item.priority = priority
         elif component_type == 'sleeves':
             item = SleevesType.objects.get(id=item_id)
             item.sleeves_type_name_eng = name_eng
@@ -705,6 +739,7 @@ def update_design_item(request):
             fabric_color_id = request.POST.get('fabric_color_id')
             item.fabric_type = FabricType.objects.get(id=fabric_type_id) if fabric_type_id else None
             item.fabric_color = FabricColor.objects.get(id=fabric_color_id) if fabric_color_id else None
+            item.priority = priority
         elif component_type == 'pockets':
             item = PocketType.objects.get(id=item_id)
             item.pocket_type_name_eng = name_eng
@@ -715,6 +750,7 @@ def update_design_item(request):
             fabric_color_id = request.POST.get('fabric_color_id')
             item.fabric_type = FabricType.objects.get(id=fabric_type_id) if fabric_type_id else None
             item.fabric_color = FabricColor.objects.get(id=fabric_color_id) if fabric_color_id else None
+            item.priority = priority
         elif component_type == 'buttons':
             item = ButtonType.objects.get(id=item_id)
             item.button_type_name_eng = name_eng
@@ -726,6 +762,7 @@ def update_design_item(request):
             fabric_color_id = request.POST.get('fabric_color_id')
             item.fabric_type = FabricType.objects.get(id=fabric_type_id) if fabric_type_id else None
             item.fabric_color = FabricColor.objects.get(id=fabric_color_id) if fabric_color_id else None
+            item.priority = priority
 
         elif component_type == 'body':
             item = BodyType.objects.get(id=item_id)
@@ -737,6 +774,16 @@ def update_design_item(request):
             fabric_color_id = request.POST.get('fabric_color_id')
             item.fabric_type = FabricType.objects.get(id=fabric_type_id) if fabric_type_id else None
             item.fabric_color = FabricColor.objects.get(id=fabric_color_id) if fabric_color_id else None
+
+        elif component_type == 'main_categories':
+            item = HomePageSelectionCategory.objects.get(id=item_id)
+            item.main_category_name_eng = name_eng
+            item.main_category_name_arb = name_arb
+            item.initial_price = price
+            item.priority = priority
+            item.duration_delivery_period = request.POST.get('duration_delivery_period', '')
+            item.isHidden = 'isHidden' in request.POST
+            item.is_comming_soon = 'is_comming_soon' in request.POST
         else:
             messages.error(request, 'Invalid component type')
             return redirect(f'/dashboard/designs/?type={component_type}')
@@ -788,6 +835,8 @@ def delete_design_item(request):
 
         elif component_type == 'body':
             item = BodyType.objects.get(id=item_id)
+        elif component_type == 'main_categories':
+            item = HomePageSelectionCategory.objects.get(id=item_id)
         else:
             messages.error(request, 'Invalid component type')
             return redirect(f'/dashboard/designs/?type={component_type}')
@@ -909,7 +958,6 @@ def create_design_item(request):
             fabric_type_id = request.POST.get('fabric_type_id')
             fabric_color_id = request.POST.get('fabric_color_id')
             item = BodyType.objects.create(
-
                 body_type_name_eng=name_eng,
                 body_type_name_arb=name_arb,
                 initial_price=price,
@@ -920,6 +968,19 @@ def create_design_item(request):
                 item.cover = request.FILES['cover']
             if 'cover_option' in request.FILES:
                 item.cover_option = request.FILES['cover_option']
+            item.save()
+        elif component_type == 'main_categories':
+            item = HomePageSelectionCategory.objects.create(
+                priority=priority,
+                main_category_name_eng=name_eng,
+                main_category_name_arb=name_arb,
+                initial_price=price,
+                duration_delivery_period=request.POST.get('duration_delivery_period', ''),
+                isHidden='isHidden' in request.POST,
+                is_comming_soon='is_comming_soon' in request.POST
+            )
+            if 'cover' in request.FILES:
+                item.cover = request.FILES['cover']
             item.save()
         else:
             messages.error(request, 'Invalid component type')
