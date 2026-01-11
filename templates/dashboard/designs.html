@@ -107,6 +107,7 @@
                     {% endif %}
                     <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Name (EN)</th>
                     <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Name (AR)</th>
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Priority</th>
                     {% if component_type == 'fabric_colors' %}
                     <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Fabric Type</th>
                     <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Color</th>
@@ -223,6 +224,9 @@
                                 {% elif component_type == 'body' %}{{ item.body_type_name_arb }}
                                 {% endif %}
                             </p>
+                        </td>
+                        <td class="px-6 py-4">
+                            <p class="text-sm font-semibold text-[#5D0B33]">{{ item.priority }}</p>
                         </td>
                         {% if component_type == 'fabric_colors' %}
                         <td class="px-6 py-4">

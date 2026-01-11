@@ -583,6 +583,7 @@ def get_design_item(request, component_type, item_id):
         if component_type == 'fabric_colors':
             item = FabricColor.objects.get(id=item_id)
             data = {
+                'priority': item.priority,
                 'name_eng': item.color_name_eng,
                 'name_arb': item.color_name_arb,
                 'price_adjustment': float(item.price_adjustment),
@@ -594,6 +595,7 @@ def get_design_item(request, component_type, item_id):
         elif component_type == 'fabric_types':
             item = FabricType.objects.get(id=item_id)
             data = {
+                'priority': item.priority,
                 'name_eng': item.fabric_name_eng,
                 'name_arb': item.fabric_name_arb,
                 'base_price': float(item.base_price),
@@ -603,6 +605,7 @@ def get_design_item(request, component_type, item_id):
         elif component_type == 'collars':
             item = GholaType.objects.get(id=item_id)
             data = {
+                'priority': item.priority,
                 'name_eng': item.ghola_type_name_eng,
                 'name_arb': item.ghola_type_name_arb,
                 'initial_price': float(item.initial_price),
@@ -614,6 +617,7 @@ def get_design_item(request, component_type, item_id):
         elif component_type == 'sleeves':
             item = SleevesType.objects.get(id=item_id)
             data = {
+                'priority': item.priority,
                 'name_eng': item.sleeves_type_name_eng,
                 'name_arb': item.sleeves_type_name_arb,
                 'initial_price': float(item.initial_price),
@@ -625,6 +629,7 @@ def get_design_item(request, component_type, item_id):
         elif component_type == 'pockets':
             item = PocketType.objects.get(id=item_id)
             data = {
+                'priority': item.priority,
                 'name_eng': item.pocket_type_name_eng,
                 'name_arb': item.pocket_type_name_arb,
                 'initial_price': float(item.initial_price),
@@ -636,6 +641,7 @@ def get_design_item(request, component_type, item_id):
         elif component_type == 'buttons':
             item = ButtonType.objects.get(id=item_id)
             data = {
+                'priority': item.priority,
                 'name_eng': item.button_type_name_eng,
                 'name_arb': item.button_type_name_arb,
                 'initial_price': float(item.initial_price),
@@ -648,6 +654,7 @@ def get_design_item(request, component_type, item_id):
         elif component_type == 'button_strips':
             item = ButtonStripType.objects.get(id=item_id)
             data = {
+                'priority': item.priority,
                 'name_eng': item.button_strip_type_name_eng,
                 'name_arb': item.button_strip_type_name_arb,
                 'initial_price': float(item.initial_price),
@@ -659,6 +666,7 @@ def get_design_item(request, component_type, item_id):
         elif component_type == 'body':
             item = BodyType.objects.get(id=item_id)
             data = {
+                'priority': item.priority,
                 'name_eng': item.body_type_name_eng,
                 'name_arb': item.body_type_name_arb,
                 'initial_price': float(item.initial_price),
@@ -687,6 +695,7 @@ def update_design_item(request):
         name_eng = request.POST.get('name_eng')
         name_arb = request.POST.get('name_arb')
         price = request.POST.get('price')
+        priority = request.POST.get('priority', 0)
 
         # Get the item
         if component_type == 'fabric_colors':
@@ -775,6 +784,7 @@ def update_design_item(request):
         if 'cover_option' in request.FILES and hasattr(item, 'cover_option'):
             item.cover_option = request.FILES['cover_option']
 
+        item.priority = priority
         item.save()
 
         # Clear design cache so API returns fresh data
@@ -841,12 +851,14 @@ def create_design_item(request):
         name_eng = request.POST.get('name_eng')
         name_arb = request.POST.get('name_arb')
         price = request.POST.get('price')
+        priority = request.POST.get('priority', 0)
 
         # Create the item based on component type
         if component_type == 'fabric_colors':
             fabric_type_id = request.POST.get('fabric_type')
             fabric_type = FabricType.objects.get(id=fabric_type_id)
             item = FabricColor.objects.create(
+                priority=priority,
                 color_name_eng=name_eng,
                 color_name_arb=name_arb,
                 fabric_type=fabric_type,
@@ -857,6 +869,7 @@ def create_design_item(request):
             )
         elif component_type == 'fabric_types':
             item = FabricType.objects.create(
+                priority=priority,
                 fabric_name_eng=name_eng,
                 fabric_name_arb=name_arb,
                 base_price=price,
@@ -866,6 +879,7 @@ def create_design_item(request):
             fabric_type_id = request.POST.get('fabric_type_id')
             fabric_color_id = request.POST.get('fabric_color_id')
             item = GholaType.objects.create(
+                priority=priority,
                 ghola_type_name_eng=name_eng,
                 ghola_type_name_arb=name_arb,
                 initial_price=price,
@@ -881,6 +895,7 @@ def create_design_item(request):
             fabric_type_id = request.POST.get('fabric_type_id')
             fabric_color_id = request.POST.get('fabric_color_id')
             item = SleevesType.objects.create(
+                priority=priority,
                 sleeves_type_name_eng=name_eng,
                 sleeves_type_name_arb=name_arb,
                 initial_price=price,
@@ -896,6 +911,7 @@ def create_design_item(request):
             fabric_type_id = request.POST.get('fabric_type_id')
             fabric_color_id = request.POST.get('fabric_color_id')
             item = PocketType.objects.create(
+                priority=priority,
                 pocket_type_name_eng=name_eng,
                 pocket_type_name_arb=name_arb,
                 initial_price=price,
@@ -911,6 +927,7 @@ def create_design_item(request):
             fabric_type_id = request.POST.get('fabric_type_id')
             fabric_color_id = request.POST.get('fabric_color_id')
             item = ButtonType.objects.create(
+                priority=priority,
                 button_type_name_eng=name_eng,
                 button_type_name_arb=name_arb,
                 initial_price=price,
@@ -927,6 +944,7 @@ def create_design_item(request):
             fabric_type_id = request.POST.get('fabric_type_id')
             fabric_color_id = request.POST.get('fabric_color_id')
             item = ButtonStripType.objects.create(
+                priority=priority,
                 button_strip_type_name_eng=name_eng,
                 button_strip_type_name_arb=name_arb,
                 initial_price=price,
@@ -942,6 +960,7 @@ def create_design_item(request):
             fabric_type_id = request.POST.get('fabric_type_id')
             fabric_color_id = request.POST.get('fabric_color_id')
             item = BodyType.objects.create(
+                priority=priority,
                 body_type_name_eng=name_eng,
                 body_type_name_arb=name_arb,
                 initial_price=price,
