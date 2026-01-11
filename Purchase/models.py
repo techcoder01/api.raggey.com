@@ -92,7 +92,7 @@ class Item(models.Model):
 
     # NEW: Link to selected size
     selected_size = models.ForeignKey(
-        Sizes, on_delete=models.CASCADE, null=True, blank=True)
+        Sizes, on_delete=models.SET_NULL, null=True, blank=True)
 
     product_code = models.CharField(max_length=255, null=True, blank=True)
     product_id = models.IntegerField(null=True, blank=True)  # Made nullable for custom designs

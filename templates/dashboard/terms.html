@@ -87,17 +87,6 @@
     <p class="text-sm text-[#6A736E]">Manage your Terms and Conditions page content</p>
 </div>
 
-<!-- Display Messages -->
-{% if messages %}
-<div class="mb-6">
-    {% for message in messages %}
-    <div class="p-4 rounded-lg {% if message.tags == 'success' %}bg-[#E9F9EF] text-[#1B9E4B]{% elif message.tags == 'error' %}bg-[#FDECEC] text-[#BF3636]{% else %}bg-[#F5F6F6] text-[#0D1210]{% endif %}">
-        {{ message }}
-    </div>
-    {% endfor %}
-</div>
-{% endif %}
-
 <!-- Terms and Conditions Content Form -->
 <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
     <form id="termsForm" method="POST" action="/dashboard/terms/update/">

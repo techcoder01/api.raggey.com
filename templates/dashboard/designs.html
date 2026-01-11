@@ -3,6 +3,88 @@
 {% block title %}Designs - Raggey Admin{% endblock %}
 
 {% block content %}
+<style>
+/* Toast Notification Styles */
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    max-width: 400px;
+}
+
+.toast {
+    margin-bottom: 10px;
+    padding: 16px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideIn 0.3s ease-out;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.toast.success {
+    background: #E9F9EF;
+    color: #1B9E4B;
+    border-left: 4px solid #1B9E4B;
+}
+
+.toast.error {
+    background: #FDECEC;
+    color: #BF3636;
+    border-left: 4px solid #BF3636;
+}
+
+.toast-icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+}
+
+.toast-message {
+    flex: 1;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+</style>
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<!-- Hidden Messages Data -->
+<div id="django-messages" style="display: none;">
+    {% if messages %}
+        {% for message in messages %}
+            {% if 'image' in message|lower or 'cloudinary' in message|lower or 'upload' in message|lower or 'size' in message|lower or 'format' in message|lower %}
+                <div data-message="{{ message|escapejs }}" data-type="{% if message.tags == 'error' %}error{% else %}success{% endif %}"></div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+</div>
+
 <!-- Page Header -->
 <div class="mb-6">
     <h1 class="text-3xl font-bold text-[#0D1210] mb-2">Design Components</h1>
@@ -108,8 +190,10 @@
                     {% if component_type not in 'fabric_colors,fabric_types' %}
                     <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Cover
                     </th>
+                    {% if component_type not in 'main_categories,body' %}
                     <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Cover
                         Option</th>
+                    {% endif %}
                     {% endif %}
                     <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Name
                         (EN)</th>
@@ -134,9 +218,7 @@
                     {% endif %}
                     {% else %}
                     <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Fabric
-                        Type</th>
-                    <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Fabric
-                        Color</th>
+                        Type & Color</th>
                     <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Price
                     </th>
                     {% endif %}
@@ -145,8 +227,14 @@
                     <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">
                         Priority</th>
                     {% endif %}
+                    {% if component_type == 'collars' %}
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Button Hidden
+                    </th>
+                    {% endif %}
+                    {% if component_type not in 'collars,sleeves,pockets,body' %}
                     <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Status
                     </th>
+                    {% endif %}
                     <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">
                         Actions</th>
                 </tr>
@@ -206,6 +294,7 @@
                         </div>
                         {% endif %}
                     </td>
+                    {% if component_type not in 'main_categories,body' %}
                     <td class="px-6 py-4">
                         {% if item.cover_option %}
                         <div class="relative group">
@@ -253,6 +342,7 @@
                         </div>
                         {% endif %}
                     </td>
+                    {% endif %}
                     {% endif %}
                     <td class="px-6 py-4">
                         <p class="text-sm font-medium text-[#0D1210]">
@@ -328,38 +418,21 @@
                     </td>
                     {% else %}
                     <td class="px-6 py-4">
-                        <form method="POST" action="/dashboard/designs/update-fabric-relation/" class="inline-block">
-                            {% csrf_token %}
-                            <input type="hidden" name="component_type" value="{{ component_type }}">
-                            <input type="hidden" name="item_id" value="{{ item.id }}">
-                            <input type="hidden" name="field" value="fabric_type">
-                            <select name="value" onchange="this.form.submit()"
-                                class="text-xs px-2 py-1.5 bg-[#F5F6F6] border border-[#E6E8E7] rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0D1210]/20 hover:border-[#0D1210]/40 transition-colors">
-                                <option value="">-- None --</option>
-                                {% for fabric_type in all_fabric_types %}
-                                <option value="{{ fabric_type.id }}" {% if item.fabric_type and
-                                    item.fabric_type.id==fabric_type.id %}selected{% endif %}>
-                                    {{ fabric_type.fabric_name_eng }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </form>
-                    </td>
-                    <td class="px-6 py-4">
-                        <form method="POST" action="/dashboard/designs/update-fabric-relation/"
-                            class="inline-block fabric-color-form" data-item-id="{{ item.id }}">
+                        <form method="POST" action="/dashboard/designs/update-fabric-relation/" class="inline-block w-full">
                             {% csrf_token %}
                             <input type="hidden" name="component_type" value="{{ component_type }}">
                             <input type="hidden" name="item_id" value="{{ item.id }}">
                             <input type="hidden" name="field" value="fabric_color">
                             <select name="value" onchange="this.form.submit()"
-                                class="text-xs px-2 py-1.5 bg-[#F5F6F6] border border-[#E6E8E7] rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0D1210]/20 hover:border-[#0D1210]/40 transition-colors fabric-color-select"
-                                data-current-color="{{ item.fabric_color.id|default:'' }}">
-                                <option value="">-- None --</option>
-                                {% if item.fabric_color %}
-                                <option value="{{ item.fabric_color.id }}" selected>{{ item.fabric_color.color_name_eng
-                                    }}</option>
-                                {% endif %}
+                                class="w-full text-xs px-2 py-1.5 bg-[#F5F6F6] border border-[#E6E8E7] rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0D1210]/20 hover:border-[#0D1210]/40 transition-colors">
+                                <option value="">-- Select Fabric --</option>
+                                {% for fabric_type in all_fabric_types %}
+                                    {% for color in fabric_type.colors.all %}
+                                    <option value="{{ color.id }}" {% if item.fabric_color and item.fabric_color.id == color.id %}selected{% endif %}>
+                                        {{ fabric_type.fabric_name_eng }} - {{ color.color_name_eng }}
+                                    </option>
+                                    {% endfor %}
+                                {% endfor %}
                             </select>
                         </form>
                     </td>
@@ -372,6 +445,21 @@
                         <p class="text-sm font-medium text-[#0D1210]">{{ item.priority }}</p>
                     </td>
                     {% endif %}
+                    {% if component_type == 'collars' %}
+                    <td class="px-6 py-4">
+                        <form method="POST" action="/dashboard/designs/update-button-hidden/" class="inline-block">
+                            {% csrf_token %}
+                            <input type="hidden" name="component_type" value="collars">
+                            <input type="hidden" name="item_id" value="{{ item.id }}">
+                            <select name="isButtonHidden" onchange="this.form.submit()"
+                                class="px-3 py-1 text-xs font-medium rounded-full border-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#5D0B33] {% if item.isButtonHidden %}bg-[#FDECEC] text-[#BF3636]{% else %}bg-[#E9F9EF] text-[#1B9E4B]{% endif %}">
+                                <option value="false" {% if not item.isButtonHidden %}selected{% endif %}>Visible</option>
+                                <option value="true" {% if item.isButtonHidden %}selected{% endif %}>Hidden</option>
+                            </select>
+                        </form>
+                    </td>
+                    {% endif %}
+                    {% if component_type not in 'collars,sleeves,pockets,body' %}
                     <td class="px-6 py-4">
                         {% if component_type == 'fabric_colors' %}
                         <form method="POST" action="/dashboard/designs/update-status/" class="inline-block">
@@ -407,19 +495,21 @@
                                 <option value="out_of_stock" {% if not item.inStock %}selected{% endif %}>Out of Stock
                                 </option>
                             </select>
-                            {% elif component_type == 'main_categories' %}
-                            <form method="POST" action="/dashboard/designs/update-status/" class="inline-block">
-                                {% csrf_token %}
-                                <input type="hidden" name="component_type" value="main_categories">
-                                <input type="hidden" name="item_id" value="{{ item.id }}">
-                                <select name="status" onchange="this.form.submit()"
-                                    class="px-3 py-1 text-xs font-medium rounded-full border-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#5D0B33] {% if item.isHidden %}bg-[#FDECEC] text-[#BF3636]{% else %}bg-[#E9F9EF] text-[#1B9E4B]{% endif %}">
-                                    <option value="active" {% if not item.isHidden %}selected{% endif %}>Active</option>
-                                    <option value="hidden" {% if item.isHidden %}selected{% endif %}>Hidden</option>
-                                </select>
-                            </form>
-                            {% endif %}
+                        </form>
+                        {% elif component_type == 'main_categories' %}
+                        <form method="POST" action="/dashboard/designs/update-status/" class="inline-block">
+                            {% csrf_token %}
+                            <input type="hidden" name="component_type" value="main_categories">
+                            <input type="hidden" name="item_id" value="{{ item.id }}">
+                            <select name="status" onchange="this.form.submit()"
+                                class="px-3 py-1 text-xs font-medium rounded-full border-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#5D0B33] {% if item.isHidden %}bg-[#FDECEC] text-[#BF3636]{% else %}bg-[#E9F9EF] text-[#1B9E4B]{% endif %}">
+                                <option value="active" {% if not item.isHidden %}selected{% endif %}>Active</option>
+                                <option value="hidden" {% if item.isHidden %}selected{% endif %}>Hidden</option>
+                            </select>
+                        </form>
+                        {% endif %}
                     </td>
+                    {% endif %}
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex items-center gap-2">
                             <button onclick="openEditModal({{ item.id }})"
@@ -437,7 +527,7 @@
                 {% endfor %}
                 {% else %}
                 <tr>
-                    <td colspan="{% if component_type == 'fabric_colors' %}10{% elif component_type == 'fabric_types' %}7{% elif component_type == 'main_categories' %}10{% else %}11{% endif %}"
+                    <td colspan="{% if component_type == 'fabric_colors' %}10{% elif component_type == 'fabric_types' %}7{% elif component_type == 'main_categories' %}10{% elif component_type == 'collars' %}12{% else %}11{% endif %}"
                         class="px-6 py-12 text-center">
                         <p class="text-[#6A736E]">No {{ component_label|lower }} found</p>
                     </td>
@@ -634,6 +724,17 @@
                         <input type="checkbox" name="inStock_button" id="edit_inStock_button"
                             class="rounded border-gray-300 text-[#5D0B33] focus:ring-[#5D0B33]">
                         <span class="ml-2 text-sm text-[#0D1210]">In Stock</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Collar specific fields -->
+            <div id="collar_fields" class="hidden">
+                <div class="mb-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" name="isButtonHidden" id="edit_isButtonHidden_collar"
+                            class="rounded border-gray-300 text-[#5D0B33] focus:ring-[#5D0B33]">
+                        <span class="ml-2 text-sm text-[#0D1210]">Hide Buttons</span>
                     </label>
                 </div>
             </div>
@@ -904,6 +1005,17 @@
                 </div>
             </div>
 
+            <!-- Collar specific fields -->
+            <div id="add_collar_fields" class="hidden">
+                <div class="mb-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" name="isButtonHidden" id="add_isButtonHidden_collar"
+                            class="rounded border-gray-300 text-[#5D0B33] focus:ring-[#5D0B33]">
+                        <span class="ml-2 text-sm text-[#0D1210]">Hide Buttons</span>
+                    </label>
+                </div>
+            </div>
+
             <!-- Main Category specific fields -->
             <div id="add_main_category_fields" class="hidden">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -1072,6 +1184,32 @@
 </div>
 
 <script>
+    // Toast Notification Function
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+
+        const icon = type === 'success'
+            ? '<svg class="toast-icon" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>'
+            : '<svg class="toast-icon" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>';
+
+        toast.innerHTML = `
+            ${icon}
+            <span class="toast-message">${message}</span>
+        `;
+
+        container.appendChild(toast);
+
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => {
+                container.removeChild(toast);
+            }, 300);
+        }, 5000);
+    }
+
     const componentType = '{{ component_type }}';
 
     function openEditModal(id) {
@@ -1090,6 +1228,7 @@
                 document.getElementById('fabric_color_fields').classList.add('hidden');
                 document.getElementById('fabric_type_fields').classList.add('hidden');
                 document.getElementById('button_fields').classList.add('hidden');
+                document.getElementById('collar_fields').classList.add('hidden');
                 document.getElementById('image_fields').classList.add('hidden');
                 document.getElementById('cover_option_field').classList.add('hidden');
                 document.getElementById('design_fabric_fields').classList.add('hidden');
@@ -1139,6 +1278,35 @@
                     document.getElementById('edit_review_count').value = data.review_count || 0;
                     document.getElementById('edit_isHidden_cat').checked = data.isHidden || false;
                     document.getElementById('edit_is_comming_soon').checked = data.is_comming_soon || false;
+                } else if (componentType === 'body') {
+                    document.getElementById('design_fabric_fields').classList.remove('hidden');
+                    document.getElementById('image_fields').classList.remove('hidden');
+                    priceLabel.textContent = 'Price (KD)';
+                    priceField.value = data.initial_price || 0;
+                    document.getElementById('edit_fabric_type_id').value = data.fabric_type_id || '';
+
+                    // Load fabric colors if fabric type is set
+                    if (data.fabric_type_id) {
+                        fetchFabricColors(data.fabric_type_id, 'edit_fabric_color_id').then(() => {
+                            document.getElementById('edit_fabric_color_id').value = data.fabric_color_id || '';
+                        });
+                    }
+                } else if (componentType === 'collars') {
+                    document.getElementById('design_fabric_fields').classList.remove('hidden');
+                    document.getElementById('image_fields').classList.remove('hidden');
+                    document.getElementById('cover_option_field').classList.remove('hidden');
+                    document.getElementById('collar_fields').classList.remove('hidden');
+                    priceLabel.textContent = 'Price (KD)';
+                    priceField.value = data.initial_price || 0;
+                    document.getElementById('edit_isButtonHidden_collar').checked = data.isButtonHidden || false;
+                    document.getElementById('edit_fabric_type_id').value = data.fabric_type_id || '';
+
+                    // Load fabric colors if fabric type is set
+                    if (data.fabric_type_id) {
+                        fetchFabricColors(data.fabric_type_id, 'edit_fabric_color_id').then(() => {
+                            document.getElementById('edit_fabric_color_id').value = data.fabric_color_id || '';
+                        });
+                    }
                 } else {
                     document.getElementById('design_fabric_fields').classList.remove('hidden');
                     document.getElementById('image_fields').classList.remove('hidden');
@@ -1189,6 +1357,7 @@
         document.getElementById('add_fabric_color_fields').classList.add('hidden');
         document.getElementById('add_fabric_type_fields').classList.add('hidden');
         document.getElementById('add_button_fields').classList.add('hidden');
+        document.getElementById('add_collar_fields').classList.add('hidden');
         document.getElementById('add_image_fields').classList.add('hidden');
         document.getElementById('add_cover_option_field').classList.add('hidden');
         document.getElementById('add_design_fabric_fields').classList.add('hidden');
@@ -1219,6 +1388,20 @@
             document.getElementById('add_image_fields').classList.remove('hidden');
             document.getElementById('add_main_category_fields').classList.remove('hidden');
             priceLabel.textContent = 'Base Price (KD) *';
+            priceField.value = '0';
+            coverField.setAttribute('required', 'required');
+        } else if (componentType === 'body') {
+            document.getElementById('add_design_fabric_fields').classList.remove('hidden');
+            document.getElementById('add_image_fields').classList.remove('hidden');
+            priceLabel.textContent = 'Price (KD) *';
+            priceField.value = '0';
+            coverField.setAttribute('required', 'required');
+        } else if (componentType === 'collars') {
+            document.getElementById('add_design_fabric_fields').classList.remove('hidden');
+            document.getElementById('add_image_fields').classList.remove('hidden');
+            document.getElementById('add_cover_option_field').classList.remove('hidden');
+            document.getElementById('add_collar_fields').classList.remove('hidden');
+            priceLabel.textContent = 'Price (KD) *';
             priceField.value = '0';
             coverField.setAttribute('required', 'required');
         } else {
@@ -1455,4 +1638,20 @@
         });
     }
 </script>
+
+<script>
+    // Show Django messages as toasts (only for cloudinary/image errors)
+    document.addEventListener('DOMContentLoaded', function() {
+        const messagesContainer = document.getElementById('django-messages');
+        if (messagesContainer) {
+            const messageDivs = messagesContainer.querySelectorAll('[data-message]');
+            messageDivs.forEach(function(div) {
+                const message = div.getAttribute('data-message');
+                const type = div.getAttribute('data-type');
+                showToast(message, type);
+            });
+        }
+    });
+</script>
+
 {% endblock %}

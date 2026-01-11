@@ -120,10 +120,10 @@ class GholaType(models.Model):
     ghola_type_name_arb = models.CharField(max_length=300)
 
     # FK to FabricType (Cotton, Silk, etc.) - for filtering
-    fabric_type = models.ForeignKey(FabricType, on_delete=models.CASCADE, null=True, blank=True, related_name="ghola_types")
+    fabric_type = models.ForeignKey(FabricType, on_delete=models.SET_NULL, null=True, blank=True, related_name="ghola_types")
 
     # FK to FabricColor (specific color from that fabric's colors)
-    fabric_color = models.ForeignKey(FabricColor, on_delete=models.CASCADE, null=True, blank=True, related_name="ghola_types")
+    fabric_color = models.ForeignKey(FabricColor, on_delete=models.SET_NULL, null=True, blank=True, related_name="ghola_types")
 
     priority = models.IntegerField(default=0, help_text="Lower value = higher priority (appears first)")
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -149,10 +149,10 @@ class SleevesType(models.Model):
     sleeves_type_name_arb = models.CharField(max_length=300)
 
     # FK to FabricType (Cotton, Silk, etc.) - for filtering
-    fabric_type = models.ForeignKey(FabricType, on_delete=models.CASCADE, null=True, blank=True, related_name="sleeve_types")
+    fabric_type = models.ForeignKey(FabricType, on_delete=models.SET_NULL, null=True, blank=True, related_name="sleeve_types")
 
     # FK to FabricColor (specific color from that fabric's colors)
-    fabric_color = models.ForeignKey(FabricColor, on_delete=models.CASCADE, null=True, blank=True, related_name="sleeve_types")
+    fabric_color = models.ForeignKey(FabricColor, on_delete=models.SET_NULL, null=True, blank=True, related_name="sleeve_types")
 
     is_right_side = models.BooleanField(default=False)
     priority = models.IntegerField(default=0, help_text="Lower value = higher priority (appears first)")
@@ -177,10 +177,10 @@ class PocketType(models.Model):
     pocket_type_name_arb = models.CharField(max_length=300)
 
     # FK to FabricType (Cotton, Silk, etc.) - for filtering
-    fabric_type = models.ForeignKey(FabricType, on_delete=models.CASCADE, null=True, blank=True, related_name="pocket_types")
+    fabric_type = models.ForeignKey(FabricType, on_delete=models.SET_NULL, null=True, blank=True, related_name="pocket_types")
 
     # FK to FabricColor (specific color from that fabric's colors)
-    fabric_color = models.ForeignKey(FabricColor, on_delete=models.CASCADE, null=True, blank=True, related_name="pocket_types")
+    fabric_color = models.ForeignKey(FabricColor, on_delete=models.SET_NULL, null=True, blank=True, related_name="pocket_types")
 
     priority = models.IntegerField(default=0, help_text="Lower value = higher priority (appears first)")
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -204,10 +204,10 @@ class ButtonType(models.Model):
     button_type_name_arb = models.CharField(max_length=300)
 
     # FK to FabricType (Cotton, Silk, etc.) - for filtering
-    fabric_type = models.ForeignKey(FabricType, on_delete=models.CASCADE, null=True, blank=True, related_name="button_types")
+    fabric_type = models.ForeignKey(FabricType, on_delete=models.SET_NULL, null=True, blank=True, related_name="button_types")
 
     # FK to FabricColor (specific color from that fabric's colors)
-    fabric_color = models.ForeignKey(FabricColor, on_delete=models.CASCADE, null=True, blank=True, related_name="button_types")
+    fabric_color = models.ForeignKey(FabricColor, on_delete=models.SET_NULL, null=True, blank=True, related_name="button_types")
 
     priority = models.IntegerField(default=0, help_text="Lower value = higher priority (appears first)")
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -234,10 +234,10 @@ class BodyType(models.Model):
     body_type_name_arb = models.CharField(max_length=300)
 
     # FK to FabricType (Cotton, Silk, etc.) - for filtering
-    fabric_type = models.ForeignKey(FabricType, on_delete=models.CASCADE, null=True, blank=True, related_name="body_types")
+    fabric_type = models.ForeignKey(FabricType, on_delete=models.SET_NULL, null=True, blank=True, related_name="body_types")
 
     # FK to FabricColor (specific color from that fabric's colors)
-    fabric_color = models.ForeignKey(FabricColor, on_delete=models.CASCADE, null=True, blank=True, related_name="body_types")
+    fabric_color = models.ForeignKey(FabricColor, on_delete=models.SET_NULL, null=True, blank=True, related_name="body_types")
 
     timestamp = models.DateTimeField(auto_now_add=True)
     initial_price = models.DecimalField(max_digits=9, decimal_places=3)
@@ -261,17 +261,17 @@ class UserDesign(models.Model):
     initial_size_selected = models.ForeignKey(HomePageSelectionCategory, on_delete=models.CASCADE, null=True, blank=True, related_name="user_designs_category")
 
     # FK to FabricColor - all design components are nullable to allow incomplete designs
-    main_body_fabric_color = models.ForeignKey(FabricColor, on_delete=models.CASCADE, null=True, blank=True, related_name="user_designs")
+    main_body_fabric_color = models.ForeignKey(FabricColor, on_delete=models.SET_NULL, null=True, blank=True, related_name="user_designs")
 
-    selected_coller_type = models.ForeignKey(GholaType, on_delete=models.CASCADE, null=True, blank=True, related_name="selected_collar_designs")
-    selected_sleeve_left_type = models.ForeignKey(SleevesType, on_delete=models.CASCADE, null=True, blank=True, related_name="selected_sleeve_left_type")
-    selected_sleeve_right_type = models.ForeignKey(SleevesType, on_delete=models.CASCADE, null=True, blank=True)
+    selected_coller_type = models.ForeignKey(GholaType, on_delete=models.SET_NULL, null=True, blank=True, related_name="selected_collar_designs")
+    selected_sleeve_left_type = models.ForeignKey(SleevesType, on_delete=models.SET_NULL, null=True, blank=True, related_name="selected_sleeve_left_type")
+    selected_sleeve_right_type = models.ForeignKey(SleevesType, on_delete=models.SET_NULL, null=True, blank=True)
 
     # FIX ISSUE 1: Add pocket and button selections
-    selected_pocket_type = models.ForeignKey(PocketType, on_delete=models.CASCADE, null=True, blank=True, related_name="selected_pocket_designs")
-    selected_button_type = models.ForeignKey(ButtonType, on_delete=models.CASCADE, null=True, blank=True, related_name="selected_button_designs")
+    selected_pocket_type = models.ForeignKey(PocketType, on_delete=models.SET_NULL, null=True, blank=True, related_name="selected_pocket_designs")
+    selected_button_type = models.ForeignKey(ButtonType, on_delete=models.SET_NULL, null=True, blank=True, related_name="selected_button_designs")
 
-    selected_body_type = models.ForeignKey(BodyType, on_delete=models.CASCADE, null=True, blank=True, related_name="selected_body_designs")
+    selected_body_type = models.ForeignKey(BodyType, on_delete=models.SET_NULL, null=True, blank=True, related_name="selected_body_designs")
 
     design_Total = models.DecimalField(max_digits=9, decimal_places=3, default=0.000)
 

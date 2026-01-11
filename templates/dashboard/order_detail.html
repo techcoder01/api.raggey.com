@@ -291,28 +291,45 @@
         {% if not order.is_pick_up %}
         <div class="bg-white border border-[#E6E8E7] rounded-2xl p-6">
             <h2 class="text-xl font-bold text-[#0D1210] mb-4">Delivery Address</h2>
-            <div class="bg-[#F5F6F6] rounded-xl p-4">
-                {% if order.selected_address %}
-                    <p class="text-sm font-semibold text-[#0D1210] mb-1">{{ order.selected_address.address_name }}</p>
-                    <p class="text-sm text-[#6A736E]">
-                        {{ order.selected_address.Area }}, Block {{ order.selected_address.block }}<br>
-                        Street {{ order.selected_address.street }}, House {{ order.selected_address.house }}
-                        {% if order.selected_address.apartment %}, Apartment {{ order.selected_address.apartment }}{% endif %}
-                        {% if order.selected_address.floor %}, Floor {{ order.selected_address.floor }}{% endif %}
-                    </p>
-                {% else %}
-                    {% if order.address_name %}
-                        <p class="text-sm font-semibold text-[#0D1210] mb-1">{{ order.address_name }}</p>
+            {% if order.selected_address %}
+            <a href="/dashboard/addresses/?user={{ order.user.id }}" class="block bg-[#F5F6F6] rounded-xl p-4 hover:bg-[#E6E8E7] transition-colors">
+                <div class="flex items-start justify-between mb-3">
+                    <h3 class="font-semibold text-[#0D1210]">{{ order.selected_address.address_name }}</h3>
+                    {% if order.selected_address.is_default %}
+                    <span class="px-2 py-1 text-xs font-medium bg-[#E9F9EF] text-[#1B9E4B] rounded-full">Default</span>
                     {% endif %}
-                    <p class="text-sm text-[#6A736E]">
-                        {{ order.Area }}, Block {{ order.block }}<br>
-                        Street {{ order.street }}, House {{ order.house }}
-                        {% if order.apartment %}, Apartment {{ order.apartment }}{% endif %}
-                        {% if order.floor %}, Floor {{ order.floor }}{% endif %}
+                </div>
+                <div class="space-y-1 text-sm text-[#6A736E]">
+                    <p><span class="font-medium">Full Name:</span> {{ order.selected_address.full_name|default:"-" }}</p>
+                    <p><span class="font-medium">Phone:</span> {{ order.phone_number }}</p>
+                    <p><span class="font-medium">Governorate:</span> {{ order.selected_address.governorate|default:"-" }}</p>
+                    <p><span class="font-medium">Area:</span> {{ order.selected_address.Area }}</p>
+                    <p><span class="font-medium">Block:</span> {{ order.selected_address.block }}, <span class="font-medium">Street:</span> {{ order.selected_address.street }}, <span class="font-medium">Building:</span> {{ order.selected_address.house }}</p>
+                    {% if order.selected_address.apartment or order.selected_address.floor %}
+                    <p>
+                        {% if order.selected_address.apartment %}<span class="font-medium">Apartment:</span> {{ order.selected_address.apartment }}{% endif %}
+                        {% if order.selected_address.floor %}{% if order.selected_address.apartment %}, {% endif %}<span class="font-medium">Floor:</span> {{ order.selected_address.floor }}{% endif %}
                     </p>
+                    {% endif %}
+                    {% if order.selected_address.full_address %}
+                    <p><span class="font-medium">Full Address:</span> {{ order.selected_address.full_address }}</p>
+                    {% endif %}
+                </div>
+            </a>
+            {% else %}
+            <div class="bg-[#F5F6F6] rounded-xl p-4">
+                {% if order.address_name %}
+                    <p class="text-sm font-semibold text-[#0D1210] mb-1">{{ order.address_name }}</p>
                 {% endif %}
+                <p class="text-sm text-[#6A736E]">
+                    {{ order.Area }}, Block {{ order.block }}<br>
+                    Street {{ order.street }}, House {{ order.house }}
+                    {% if order.apartment %}, Apartment {{ order.apartment }}{% endif %}
+                    {% if order.floor %}, Floor {{ order.floor }}{% endif %}
+                </p>
                 <p class="text-sm text-[#0D1210] font-medium mt-2">{{ order.phone_number }}</p>
             </div>
+            {% endif %}
         </div>
         {% endif %}
     </div>

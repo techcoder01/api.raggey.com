@@ -16,7 +16,7 @@ from decimal import Decimal
 from Purchase.models import Purchase, Payment
 from Design.models import (
     FabricColor, FabricType, GholaType, SleevesType,
-    PocketType, ButtonType, BodyType
+    PocketType, ButtonType, BodyType, HomePageSelectionCategory
 )
 from Design.views import clear_design_cache
 from Coupon.models import Coupon
@@ -338,7 +338,7 @@ def order_detail_view(request, order_id):
 @user_passes_test(is_staff_user, login_url='/dashboard/login/')
 def designs_view(request):
     # Get component type filter
-    component_type = request.GET.get('type', 'fabric_colors')
+    component_type = request.GET.get('type', 'main_categories')
     search_query = request.GET.get('search', '')
 
     # Check for order item filter
@@ -792,12 +792,39 @@ def update_design_item(request):
             messages.error(request, 'Invalid component type')
             return redirect(f'/dashboard/designs/?type={component_type}')
 
-        # Handle file uploads
-        if 'cover' in request.FILES:
-            item.cover = request.FILES['cover']
+        # Handle file uploads with validation
+        MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB in bytes
+        ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp']
 
-        if 'cover_option' in request.FILES and hasattr(item, 'cover_option'):
-            item.cover_option = request.FILES['cover_option']
+        try:
+            if 'cover' in request.FILES:
+                cover_file = request.FILES['cover']
+                # Validate file size
+                if cover_file.size > MAX_FILE_SIZE:
+                    messages.error(request, f'Cover image size exceeds 5MB limit. Current size: {cover_file.size / (1024 * 1024):.2f}MB')
+                    return redirect(f'/dashboard/designs/?type={component_type}')
+                # Validate file extension
+                file_ext = cover_file.name.split('.')[-1].lower()
+                if file_ext not in ALLOWED_EXTENSIONS:
+                    messages.error(request, f'Invalid cover image format. Allowed: {", ".join(ALLOWED_EXTENSIONS)}')
+                    return redirect(f'/dashboard/designs/?type={component_type}')
+                item.cover = cover_file
+
+            if 'cover_option' in request.FILES and hasattr(item, 'cover_option'):
+                cover_option_file = request.FILES['cover_option']
+                # Validate file size
+                if cover_option_file.size > MAX_FILE_SIZE:
+                    messages.error(request, f'Cover option image size exceeds 5MB limit. Current size: {cover_option_file.size / (1024 * 1024):.2f}MB')
+                    return redirect(f'/dashboard/designs/?type={component_type}')
+                # Validate file extension
+                file_ext = cover_option_file.name.split('.')[-1].lower()
+                if file_ext not in ALLOWED_EXTENSIONS:
+                    messages.error(request, f'Invalid cover option image format. Allowed: {", ".join(ALLOWED_EXTENSIONS)}')
+                    return redirect(f'/dashboard/designs/?type={component_type}')
+                item.cover_option = cover_option_file
+        except AttributeError as e:
+            messages.error(request, f'File upload error: This component does not support image uploads')
+            return redirect(f'/dashboard/designs/?type={component_type}')
 
         if hasattr(item, 'priority'):
             item.priority = priority
@@ -870,6 +897,24 @@ def create_design_item(request):
         price = request.POST.get('price')
         priority = request.POST.get('priority', 0)
 
+        # File upload validation constants
+        MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB in bytes
+        ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp']
+
+        # Validate files before processing
+        for file_field in ['cover', 'cover_option']:
+            if file_field in request.FILES:
+                uploaded_file = request.FILES[file_field]
+                # Validate file size
+                if uploaded_file.size > MAX_FILE_SIZE:
+                    messages.error(request, f'{file_field.replace("_", " ").title()} size exceeds 5MB limit. Current size: {uploaded_file.size / (1024 * 1024):.2f}MB')
+                    return redirect(f'/dashboard/designs/?type={component_type}')
+                # Validate file extension
+                file_ext = uploaded_file.name.split('.')[-1].lower()
+                if file_ext not in ALLOWED_EXTENSIONS:
+                    messages.error(request, f'Invalid {file_field.replace("_", " ")} format. Allowed: {", ".join(ALLOWED_EXTENSIONS)}')
+                    return redirect(f'/dashboard/designs/?type={component_type}')
+
         # Create the item based on component type
         if component_type == 'fabric_colors':
             fabric_type_id = request.POST.get('fabric_type')
@@ -903,11 +948,16 @@ def create_design_item(request):
                 fabric_type=FabricType.objects.get(id=fabric_type_id) if fabric_type_id else None,
                 fabric_color=FabricColor.objects.get(id=fabric_color_id) if fabric_color_id else None
             )
-            if 'cover' in request.FILES:
-                item.cover = request.FILES['cover']
-            if 'cover_option' in request.FILES:
-                item.cover_option = request.FILES['cover_option']
-            item.save()
+            try:
+                if 'cover' in request.FILES:
+                    item.cover = request.FILES['cover']
+                if 'cover_option' in request.FILES:
+                    item.cover_option = request.FILES['cover_option']
+                item.save()
+            except AttributeError as e:
+                item.delete()
+                messages.error(request, f'Image upload error: This component does not support the uploaded image type')
+                return redirect(f'/dashboard/designs/?type={component_type}')
         elif component_type == 'sleeves':
             fabric_type_id = request.POST.get('fabric_type_id')
             fabric_color_id = request.POST.get('fabric_color_id')
@@ -919,11 +969,16 @@ def create_design_item(request):
                 fabric_type=FabricType.objects.get(id=fabric_type_id) if fabric_type_id else None,
                 fabric_color=FabricColor.objects.get(id=fabric_color_id) if fabric_color_id else None
             )
-            if 'cover' in request.FILES:
-                item.cover = request.FILES['cover']
-            if 'cover_option' in request.FILES:
-                item.cover_option = request.FILES['cover_option']
-            item.save()
+            try:
+                if 'cover' in request.FILES:
+                    item.cover = request.FILES['cover']
+                if 'cover_option' in request.FILES:
+                    item.cover_option = request.FILES['cover_option']
+                item.save()
+            except AttributeError as e:
+                item.delete()
+                messages.error(request, f'Image upload error: This component does not support the uploaded image type')
+                return redirect(f'/dashboard/designs/?type={component_type}')
         elif component_type == 'pockets':
             fabric_type_id = request.POST.get('fabric_type_id')
             fabric_color_id = request.POST.get('fabric_color_id')
@@ -935,11 +990,16 @@ def create_design_item(request):
                 fabric_type=FabricType.objects.get(id=fabric_type_id) if fabric_type_id else None,
                 fabric_color=FabricColor.objects.get(id=fabric_color_id) if fabric_color_id else None
             )
-            if 'cover' in request.FILES:
-                item.cover = request.FILES['cover']
-            if 'cover_option' in request.FILES:
-                item.cover_option = request.FILES['cover_option']
-            item.save()
+            try:
+                if 'cover' in request.FILES:
+                    item.cover = request.FILES['cover']
+                if 'cover_option' in request.FILES:
+                    item.cover_option = request.FILES['cover_option']
+                item.save()
+            except AttributeError as e:
+                item.delete()
+                messages.error(request, f'Image upload error: This component does not support the uploaded image type')
+                return redirect(f'/dashboard/designs/?type={component_type}')
         elif component_type == 'buttons':
             fabric_type_id = request.POST.get('fabric_type_id')
             fabric_color_id = request.POST.get('fabric_color_id')
@@ -952,11 +1012,16 @@ def create_design_item(request):
                 fabric_type=FabricType.objects.get(id=fabric_type_id) if fabric_type_id else None,
                 fabric_color=FabricColor.objects.get(id=fabric_color_id) if fabric_color_id else None
             )
-            if 'cover' in request.FILES:
-                item.cover = request.FILES['cover']
-            if 'cover_option' in request.FILES:
-                item.cover_option = request.FILES['cover_option']
-            item.save()
+            try:
+                if 'cover' in request.FILES:
+                    item.cover = request.FILES['cover']
+                if 'cover_option' in request.FILES:
+                    item.cover_option = request.FILES['cover_option']
+                item.save()
+            except AttributeError as e:
+                item.delete()
+                messages.error(request, f'Image upload error: This component does not support the uploaded image type')
+                return redirect(f'/dashboard/designs/?type={component_type}')
 
         elif component_type == 'body':
             fabric_type_id = request.POST.get('fabric_type_id')
@@ -968,11 +1033,16 @@ def create_design_item(request):
                 fabric_type=FabricType.objects.get(id=fabric_type_id) if fabric_type_id else None,
                 fabric_color=FabricColor.objects.get(id=fabric_color_id) if fabric_color_id else None
             )
-            if 'cover' in request.FILES:
-                item.cover = request.FILES['cover']
-            if 'cover_option' in request.FILES:
-                item.cover_option = request.FILES['cover_option']
-            item.save()
+            try:
+                if 'cover' in request.FILES:
+                    item.cover = request.FILES['cover']
+                if 'cover_option' in request.FILES:
+                    item.cover_option = request.FILES['cover_option']
+                item.save()
+            except AttributeError as e:
+                item.delete()
+                messages.error(request, f'Image upload error: This component does not support the uploaded image type')
+                return redirect(f'/dashboard/designs/?type={component_type}')
         elif component_type == 'main_categories':
             item = HomePageSelectionCategory.objects.create(
                 priority=priority,
@@ -985,9 +1055,14 @@ def create_design_item(request):
                 isHidden='isHidden' in request.POST,
                 is_comming_soon='is_comming_soon' in request.POST
             )
-            if 'cover' in request.FILES:
-                item.cover = request.FILES['cover']
-            item.save()
+            try:
+                if 'cover' in request.FILES:
+                    item.cover = request.FILES['cover']
+                item.save()
+            except AttributeError as e:
+                item.delete()
+                messages.error(request, f'Image upload error: This component does not support the uploaded image type')
+                return redirect(f'/dashboard/designs/?type={component_type}')
         else:
             messages.error(request, 'Invalid component type')
             return redirect(f'/dashboard/designs/?type={component_type}')
@@ -1137,6 +1212,19 @@ def update_image(request):
             messages.error(request, 'No image file provided')
             return redirect(f'/dashboard/designs/?type={component_type}')
 
+        # Validate file size and type
+        MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB in bytes
+        ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp']
+
+        if image_file.size > MAX_FILE_SIZE:
+            messages.error(request, f'Image size exceeds 5MB limit. Current size: {image_file.size / (1024 * 1024):.2f}MB')
+            return redirect(f'/dashboard/designs/?type={component_type}')
+
+        file_ext = image_file.name.split('.')[-1].lower()
+        if file_ext not in ALLOWED_EXTENSIONS:
+            messages.error(request, f'Invalid image format. Allowed: {", ".join(ALLOWED_EXTENSIONS)}')
+            return redirect(f'/dashboard/designs/?type={component_type}')
+
         # Get the appropriate model
         if component_type == 'collars':
             item = GholaType.objects.get(id=item_id)
@@ -1158,18 +1246,28 @@ def update_image(request):
             messages.error(request, 'Invalid component type')
             return redirect(f'/dashboard/designs/?type={component_type}')
 
-        # Update the image field
-        if image_field == 'cover':
-            item.cover = image_file
-            messages.success(request, f'{item_name} cover image updated successfully')
-        elif image_field == 'cover_option':
-            item.cover_option = image_file
-            messages.success(request, f'{item_name} cover option image updated successfully')
-        else:
-            messages.error(request, 'Invalid image field')
-            return redirect(f'/dashboard/designs/?type={component_type}')
+        # Update the image field with attribute error handling
+        try:
+            if image_field == 'cover':
+                if not hasattr(item, 'cover'):
+                    messages.error(request, f'This component does not support cover images')
+                    return redirect(f'/dashboard/designs/?type={component_type}')
+                item.cover = image_file
+                messages.success(request, f'{item_name} cover image updated successfully')
+            elif image_field == 'cover_option':
+                if not hasattr(item, 'cover_option'):
+                    messages.error(request, f'This component does not support cover option images')
+                    return redirect(f'/dashboard/designs/?type={component_type}')
+                item.cover_option = image_file
+                messages.success(request, f'{item_name} cover option image updated successfully')
+            else:
+                messages.error(request, 'Invalid image field')
+                return redirect(f'/dashboard/designs/?type={component_type}')
 
-        item.save()
+            item.save()
+        except AttributeError as e:
+            messages.error(request, f'Image upload error: This component does not support this image type')
+            return redirect(f'/dashboard/designs/?type={component_type}')
 
         # Clear design cache so API returns fresh data
         clear_design_cache()

@@ -210,58 +210,44 @@
 
     <!-- User Addresses -->
     <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
-        <h2 class="text-xl font-bold text-[#0D1210] mb-4">Saved Addresses</h2>
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-[#0D1210]">Saved Addresses</h2>
+            <a href="/dashboard/addresses/?user={{ user.id }}" class="text-sm text-[#0B5D35] hover:text-[#0D1210] font-medium">
+                View All →
+            </a>
+        </div>
 
         {% if addresses %}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             {% for address in addresses %}
-            <div class="border border-[#E6E8E7] rounded-xl p-4">
-                <div class="flex items-start justify-between mb-2">
+            <a href="/dashboard/addresses/?user={{ user.id }}" class="block border border-[#E6E8E7] rounded-xl p-4 hover:border-[#0B5D35] hover:bg-[#F5F6F6]/50 transition-all">
+                <div class="flex items-start justify-between mb-3">
                     <h3 class="font-semibold text-[#0D1210]">{{ address.address_name }}</h3>
                     {% if address.is_default %}
                     <span class="px-2 py-1 text-xs font-medium bg-[#E9F9EF] text-[#1B9E4B] rounded-full">Default</span>
                     {% endif %}
                 </div>
-                <p class="text-sm text-[#6A736E] mb-1">{{ address.Area }}</p>
-                <p class="text-sm text-[#6A736E]">Block {{ address.block }}, Street {{ address.street }}, House {{ address.house }}</p>
-                {% if address.apartment %}
-                <p class="text-sm text-[#6A736E]">Apt {{ address.apartment }}, Floor {{ address.floor }}</p>
-                {% endif %}
-            </div>
+                <div class="space-y-1 text-sm text-[#6A736E]">
+                    <p><span class="font-medium">Full Name:</span> {{ address.full_name|default:"-" }}</p>
+                    <p><span class="font-medium">Phone:</span> {{ address.phone_number|default:"-" }}</p>
+                    <p><span class="font-medium">Governorate:</span> {{ address.governorate|default:"-" }}</p>
+                    <p><span class="font-medium">Area:</span> {{ address.Area }}</p>
+                    <p><span class="font-medium">Block:</span> {{ address.block }}, <span class="font-medium">Street:</span> {{ address.street }}, <span class="font-medium">Building:</span> {{ address.house }}</p>
+                    {% if address.apartment or address.floor %}
+                    <p>
+                        {% if address.apartment %}<span class="font-medium">Apartment:</span> {{ address.apartment }}{% endif %}
+                        {% if address.floor %}{% if address.apartment %}, {% endif %}<span class="font-medium">Floor:</span> {{ address.floor }}{% endif %}
+                    </p>
+                    {% endif %}
+                    {% if address.full_address %}
+                    <p class="text-xs"><span class="font-medium">Full Address:</span> {{ address.full_address }}</p>
+                    {% endif %}
+                </div>
+            </a>
             {% endfor %}
         </div>
         {% else %}
         <p class="text-center text-[#6A736E] py-8">No saved addresses</p>
-        {% endif %}
-    </div>
-
-    <!-- User Designs -->
-    <div class="bg-white rounded-2xl shadow-sm p-6">
-        <div class="flex items-center justify-between mb-4">
-            <h2 class="text-xl font-bold text-[#0D1210]">Custom Designs</h2>
-        </div>
-
-        {% if designs %}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {% for design in designs %}
-            <div class="border border-[#E6E8E7] rounded-xl p-4">
-                <h3 class="font-semibold text-[#0D1210] mb-2">{{ design.design_name|default:"Untitled Design" }}</h3>
-                <p class="text-sm text-[#6A736E] mb-1">
-                    {% if design.main_body_fabric_color %}
-                        {{ design.main_body_fabric_color.fabric_type.fabric_name_eng }} - {{ design.main_body_fabric_color.color_name_eng }}
-                    {% else %}
-                        No fabric selected
-                    {% endif %}
-                </p>
-                <div class="flex items-center justify-between mt-3">
-                    <p class="text-sm font-bold text-[#5D0B33]">{{ design.design_Total|floatformat:3 }} KD</p>
-                    <p class="text-xs text-[#ADB2B0]">{{ design.timestamp|date:"d M Y" }}</p>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <p class="text-center text-[#6A736E] py-8">No custom designs created</p>
         {% endif %}
     </div>
 </div>
