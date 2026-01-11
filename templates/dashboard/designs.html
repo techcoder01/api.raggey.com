@@ -129,6 +129,10 @@
                     {% elif component_type == 'fabric_types' or component_type == 'main_categories' %}
                     <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Base
                         Price</th>
+                    {% if component_type == 'main_categories' %}
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">
+                        Reviews</th>
+                    {% endif %}
                     {% else %}
                     <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Fabric
                         Type</th>
@@ -304,6 +308,25 @@
                     <td class="px-6 py-4">
                         <p class="text-sm font-bold text-[#5D0B33]">{{ item.base_price|floatformat:3 }} KD</p>
                     </td>
+                    {% elif component_type == 'main_categories' %}
+                    <td class="px-6 py-4">
+                        <p class="text-sm font-bold text-[#5D0B33]">{{ item.initial_price|floatformat:3 }} KD</p>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex flex-col gap-1">
+                            <div class="flex items-center gap-1">
+                                <span class="text-sm font-bold text-[#0D1210]">{{ item.review_rate }}</span>
+                                <div class="flex text-amber-400">
+                                    {% if item.review_rate >= 1 %}★{% else %}☆{% endif %}
+                                    {% if item.review_rate >= 2 %}★{% else %}☆{% endif %}
+                                    {% if item.review_rate >= 3 %}★{% else %}☆{% endif %}
+                                    {% if item.review_rate >= 4 %}★{% else %}☆{% endif %}
+                                    {% if item.review_rate >= 5 %}★{% else %}☆{% endif %}
+                                </div>
+                            </div>
+                            <span class="text-xs text-[#6A736E]">{{ item.review_count }} reviews</span>
+                        </div>
+                    </td>
                     {% else %}
                     <td class="px-6 py-4">
                         <form method="POST" action="/dashboard/designs/update-fabric-relation/" class="inline-block">
@@ -385,10 +408,18 @@
                                 <option value="out_of_stock" {% if not item.inStock %}selected{% endif %}>Out of Stock
                                 </option>
                             </select>
-                        </form>
-                        <span
-                            class="inline-block px-3 py-1 text-xs font-medium rounded-full bg-[#E9F9EF] text-[#1B9E4B]">Active</span>
-                        {% endif %}
+                            {% elif component_type == 'main_categories' %}
+                            <form method="POST" action="/dashboard/designs/update-status/" class="inline-block">
+                                {% csrf_token %}
+                                <input type="hidden" name="component_type" value="main_categories">
+                                <input type="hidden" name="item_id" value="{{ item.id }}">
+                                <select name="status" onchange="this.form.submit()"
+                                    class="px-3 py-1 text-xs font-medium rounded-full border-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#5D0B33] {% if item.isHidden %}bg-[#FDECEC] text-[#BF3636]{% else %}bg-[#E9F9EF] text-[#1B9E4B]{% endif %}">
+                                    <option value="active" {% if not item.isHidden %}selected{% endif %}>Active</option>
+                                    <option value="hidden" {% if item.isHidden %}selected{% endif %}>Hidden</option>
+                                </select>
+                            </form>
+                            {% endif %}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex items-center gap-2">
@@ -407,7 +438,7 @@
                 {% endfor %}
                 {% else %}
                 <tr>
-                    <td colspan="{% if component_type == 'fabric_colors' %}10{% elif component_type == 'fabric_types' %}7{% else %}11{% endif %}"
+                    <td colspan="{% if component_type == 'fabric_colors' %}10{% elif component_type == 'fabric_types' %}7{% elif component_type == 'main_categories' %}10{% else %}11{% endif %}"
                         class="px-6 py-12 text-center">
                         <p class="text-[#6A736E]">No {{ component_label|lower }} found</p>
                     </td>
@@ -610,10 +641,24 @@
 
             <!-- Main Category specific fields -->
             <div id="main_category_fields" class="hidden">
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Delivery Duration</label>
-                    <input type="text" name="duration_delivery_period" id="edit_duration_delivery_period"
-                        class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Delivery Duration</label>
+                        <input type="text" name="duration_delivery_period" id="edit_duration_delivery_period"
+                            class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Review Rate (1-5)</label>
+                        <input type="number" name="review_rate" id="edit_review_rate" min="1" max="5"
+                            class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Review Count</label>
+                        <input type="number" name="review_count" id="edit_review_count"
+                            class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                    </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <label class="flex items-center">
@@ -862,10 +907,24 @@
 
             <!-- Main Category specific fields -->
             <div id="add_main_category_fields" class="hidden">
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Delivery Duration</label>
-                    <input type="text" name="duration_delivery_period" id="add_duration_delivery_period"
-                        class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Delivery Duration</label>
+                        <input type="text" name="duration_delivery_period" id="add_duration_delivery_period"
+                            class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Review Rate (1-5)</label>
+                        <input type="number" name="review_rate" id="add_review_rate" min="1" max="5" value="5"
+                            class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Review Count</label>
+                        <input type="number" name="review_count" id="add_review_count" value="0"
+                            class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                    </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <label class="flex items-center">
@@ -1077,6 +1136,8 @@
                     priceLabel.textContent = 'Base Price (KD)';
                     priceField.value = data.initial_price || 0;
                     document.getElementById('edit_duration_delivery_period').value = data.duration_delivery_period || '';
+                    document.getElementById('edit_review_rate').value = data.review_rate || 5;
+                    document.getElementById('edit_review_count').value = data.review_count || 0;
                     document.getElementById('edit_isHidden_cat').checked = data.isHidden || false;
                     document.getElementById('edit_is_comming_soon').checked = data.is_comming_soon || false;
                 } else {

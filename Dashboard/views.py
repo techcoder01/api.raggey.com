@@ -675,6 +675,8 @@ def get_design_item(request, component_type, item_id):
                 'name_arb': item.main_category_name_arb,
                 'initial_price': float(item.initial_price),
                 'duration_delivery_period': item.duration_delivery_period,
+                'review_rate': item.review_rate,
+                'review_count': item.review_count,
                 'isHidden': item.isHidden,
                 'is_comming_soon': item.is_comming_soon,
                 'cover_url': item.cover.url if item.cover else None,
@@ -782,6 +784,8 @@ def update_design_item(request):
             item.initial_price = price
             item.priority = priority
             item.duration_delivery_period = request.POST.get('duration_delivery_period', '')
+            item.review_rate = request.POST.get('review_rate', 5)
+            item.review_count = request.POST.get('review_count', 0)
             item.isHidden = 'isHidden' in request.POST
             item.is_comming_soon = 'is_comming_soon' in request.POST
         else:
@@ -976,6 +980,8 @@ def create_design_item(request):
                 main_category_name_arb=name_arb,
                 initial_price=price,
                 duration_delivery_period=request.POST.get('duration_delivery_period', ''),
+                review_rate=request.POST.get('review_rate', 5),
+                review_count=request.POST.get('review_count', 0),
                 isHidden='isHidden' in request.POST,
                 is_comming_soon='is_comming_soon' in request.POST
             )
@@ -1037,6 +1043,16 @@ def update_design_status(request):
 
             status_text = 'In Stock' if item.inStock else 'Out of Stock'
             messages.success(request, f'{item.button_type_name_eng} status updated to {status_text}')
+        elif component_type == 'main_categories':
+            item = HomePageSelectionCategory.objects.get(id=item_id)
+            item.isHidden = (status == 'hidden')
+            item.save()
+
+            # Clear design cache so API returns fresh data
+            clear_design_cache()
+
+            status_text = 'Hidden' if item.isHidden else 'Active'
+            messages.success(request, f'{item.main_category_name_eng} status updated to {status_text}')
         else:
             messages.error(request, 'Invalid component type')
 
