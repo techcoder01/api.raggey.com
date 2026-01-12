@@ -303,8 +303,8 @@
                     <p><span class="font-medium">Full Name:</span> {{ order.selected_address.full_name|default:"-" }}</p>
                     <p><span class="font-medium">Phone:</span> {{ order.phone_number }}</p>
                     <p><span class="font-medium">Governorate:</span> {{ order.selected_address.governorate|default:"-" }}</p>
-                    <p><span class="font-medium">Area:</span> {{ order.selected_address.Area }}</p>
-                    <p><span class="font-medium">Block:</span> {{ order.selected_address.block }}, <span class="font-medium">Street:</span> {{ order.selected_address.street }}, <span class="font-medium">Building:</span> {{ order.selected_address.house }}</p>
+                    <p><span class="font-medium">Area:</span> {{ order.selected_address.area|default:"-" }}</p>
+                    <p><span class="font-medium">Block:</span> {{ order.selected_address.block }}, <span class="font-medium">Street:</span> {{ order.selected_address.street }}, <span class="font-medium">Building:</span> {{ order.selected_address.building|default:"-" }}</p>
                     {% if order.selected_address.apartment or order.selected_address.floor %}
                     <p>
                         {% if order.selected_address.apartment %}<span class="font-medium">Apartment:</span> {{ order.selected_address.apartment }}{% endif %}

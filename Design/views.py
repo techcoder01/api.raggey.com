@@ -276,6 +276,10 @@ class UserDesignAPIView(APIView):
             selected_pocket = PocketType.objects.get(id=data['selected_pocket_id'])
             selected_button = ButtonType.objects.get(id=data['selected_button_id'])
 
+            # Add body type (optional)
+            selected_body = None
+            if data.get('selected_body_id'):
+                selected_body = BodyType.objects.get(id=data['selected_body_id'])
 
             # Get optional design name
             design_name = data.get('design_name', None)
@@ -289,6 +293,7 @@ class UserDesignAPIView(APIView):
                 selected_sleeve_right_type=selected_sleeve_right_type,
                 selected_pocket_type=selected_pocket,
                 selected_button_type=selected_button,
+                selected_body_type=selected_body,
 
             ).first()
 
@@ -311,10 +316,12 @@ class UserDesignAPIView(APIView):
                 selected_sleeve_right_type=selected_sleeve_right_type,
                 selected_pocket_type=selected_pocket,
                 selected_button_type=selected_button,
+                selected_body_type=selected_body,
 
             )
 
             # FIX ISSUE 5: Complete price calculation
+            body_price = selected_body.initial_price if selected_body else 0
             user_design.design_Total = (
                 initial_size_selected.initial_price +
                 main_body_fabric_color.total_price +
@@ -322,7 +329,8 @@ class UserDesignAPIView(APIView):
                 selected_sleeve_left_type.initial_price +
                 selected_sleeve_right_type.initial_price +
                 selected_pocket.initial_price +
-                selected_button.initial_price
+                selected_button.initial_price +
+                body_price
             )
             user_design.save()
 
@@ -346,6 +354,10 @@ class UserDesignAPIView(APIView):
             selected_pocket = PocketType.objects.get(id=data['selected_pocket_id'])
             selected_button = ButtonType.objects.get(id=data['selected_button_id'])
 
+            # Add body type (optional)
+            selected_body = None
+            if data.get('selected_body_id'):
+                selected_body = BodyType.objects.get(id=data['selected_body_id'])
 
             design = UserDesign.objects.get(id=pk)
             if design:
@@ -360,17 +372,20 @@ class UserDesignAPIView(APIView):
                 design.selected_sleeve_right_type = selected_sleeve_right_type
                 design.selected_pocket_type = selected_pocket
                 design.selected_button_type = selected_button
+                design.selected_body_type = selected_body
 
 
                 # FIX ISSUE 5: Complete price calculation
+                body_price = selected_body.initial_price if selected_body else 0
                 design.design_Total = (
                     initial_size_selected.initial_price +
-                    main_body_fabric.initial_price +
+                    main_body_fabric_color.total_price +
                     selected_coller_type.initial_price +
                     selected_sleeve_left_type.initial_price +
                     selected_sleeve_right_type.initial_price +
                     selected_pocket.initial_price +
-                    selected_button.initial_price
+                    selected_button.initial_price +
+                    body_price
                 )
 
                 design.save()

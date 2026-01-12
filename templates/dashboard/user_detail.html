@@ -231,8 +231,8 @@
                     <p><span class="font-medium">Full Name:</span> {{ address.full_name|default:"-" }}</p>
                     <p><span class="font-medium">Phone:</span> {{ address.phone_number|default:"-" }}</p>
                     <p><span class="font-medium">Governorate:</span> {{ address.governorate|default:"-" }}</p>
-                    <p><span class="font-medium">Area:</span> {{ address.Area }}</p>
-                    <p><span class="font-medium">Block:</span> {{ address.block }}, <span class="font-medium">Street:</span> {{ address.street }}, <span class="font-medium">Building:</span> {{ address.house }}</p>
+                    <p><span class="font-medium">Area:</span> {{ address.area|default:"-" }}</p>
+                    <p><span class="font-medium">Block:</span> {{ address.block }}, <span class="font-medium">Street:</span> {{ address.street }}, <span class="font-medium">Building:</span> {{ address.building|default:"-" }}</p>
                     {% if address.apartment or address.floor %}
                     <p>
                         {% if address.apartment %}<span class="font-medium">Apartment:</span> {{ address.apartment }}{% endif %}

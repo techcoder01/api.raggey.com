@@ -151,6 +151,14 @@ class CreateOrderAPIView(APIView):
                 design_details = cart_item.get('design_details')
                 size_details = cart_item.get('size_details')
 
+                # Add fabric_type_id to design_details if design_color_id exists
+                if design_details and design_details.get('design_color_id'):
+                    try:
+                        fabric_color = FabricColor.objects.get(id=design_details['design_color_id'])
+                        design_details['design_fabric_type_id'] = fabric_color.fabric_type.id
+                    except (FabricColor.DoesNotExist, AttributeError):
+                        pass  # If fabric color not found or has no fabric type, skip
+
                 # NOTE: Sizes and UserDesign entries are created via BulkSaveCartData API (from cart screen)
                 # Order creation only stores data in JSON fields (design_details, size_details)
                 print(f"📦 Order Item: {product_name} - Storing in JSON only (no UserDesign/Sizes tables)")
