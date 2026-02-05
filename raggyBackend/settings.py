@@ -319,3 +319,29 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 # Static files caching - browser will cache static files
 if not DEBUG:
     STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
+
+# ================== EMAIL CONFIGURATION (OTP) ==================
+# Email settings for OTP verification
+# Use environment variables for production security
+
+EMAIL_BACKEND = config(
+    'EMAIL_BACKEND', 
+    default='django.core.mail.backends.console.EmailBackend' if DEBUG else 'django.core.mail.backends.smtp.EmailBackend'
+)
+
+# SMTP Configuration (for production - e.g., Gmail, SendGrid, Mailgun)
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+
+# Default "From" address for emails
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='Raggey <noreply@raggey.com>')
+
+# OTP Settings
+OTP_EXPIRY_MINUTES = config('OTP_EXPIRY_MINUTES', default=5, cast=int)
+OTP_MAX_ATTEMPTS = config('OTP_MAX_ATTEMPTS', default=3, cast=int)
+OTP_RATE_LIMIT_PER_HOUR = config('OTP_RATE_LIMIT_PER_HOUR', default=5, cast=int)
+OTP_RESEND_INTERVAL_SECONDS = config('OTP_RESEND_INTERVAL_SECONDS', default=60, cast=int)

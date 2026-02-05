@@ -5,12 +5,24 @@ from .views import (
     BulkSaveCartDataAPIView, SaveDesignAPIView, SaveMeasurementAPIView
 )
 from .auth_views import UserSignupAPIView, UserLoginAPIView, UserLogoutAPIView
+from .otp_views import (
+    SendEmailOTPAPIView, 
+    VerifyEmailOTPAPIView, 
+    ResendEmailOTPAPIView,
+    CheckOTPStatusAPIView
+)
 
 urlpatterns = [
     # ================ AUTHENTICATION ================
     path('auth/signup/', UserSignupAPIView.as_view(), name='signup'),
     path('auth/login/', UserLoginAPIView.as_view(), name='login'),
     path('auth/logout/', UserLogoutAPIView.as_view(), name='logout'),
+
+    # ================ OTP AUTHENTICATION ================
+    path('auth/otp/send/', SendEmailOTPAPIView.as_view(), name='otp-send'),
+    path('auth/otp/verify/', VerifyEmailOTPAPIView.as_view(), name='otp-verify'),
+    path('auth/otp/resend/', ResendEmailOTPAPIView.as_view(), name='otp-resend'),
+    path('auth/otp/status/', CheckOTPStatusAPIView.as_view(), name='otp-status'),
 
     # ================ ADDRESS MANAGEMENT ================
     path('list/address/', AddressAPIView.as_view()),
@@ -35,3 +47,4 @@ urlpatterns = [
 ]
 
 app_name = 'User-api'
+
