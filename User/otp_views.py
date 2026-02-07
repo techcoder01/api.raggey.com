@@ -7,7 +7,7 @@ import hashlib
 from datetime import timedelta
 from django.utils import timezone
 from django.core.cache import cache
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -134,16 +134,19 @@ class SendEmailOTPAPIView(APIView):
         
         # Send email
         subject = self._get_email_subject(purpose)
-        message = self._get_email_message(otp, purpose)
-        
+        plain_message = self._get_email_message(otp, purpose)
+        html_message = self._render_html_email(otp, purpose)
+
         try:
-            send_mail(
+            msg = EmailMultiAlternatives(
                 subject=subject,
-                message=message,
+                body=plain_message,
                 from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[email],
-                fail_silently=False,
+                to=[email],
             )
+            if html_message:
+                msg.attach_alternative(html_message, "text/html")
+            msg.send(fail_silently=False)
         except Exception as e:
             print(f"❌ Failed to send OTP email: {e}")
             # In development, print OTP to console
@@ -211,6 +214,34 @@ The Raggey Team
             """
         }
         return messages.get(purpose, f"Your verification code is: {otp}")
+
+    def _render_html_email(self, otp: str, purpose: str) -> str:
+        """Render HTML email template for OTP"""
+        template_map = {
+            'login': 'emails/otp_login.html',
+            'signup': 'emails/otp_signup.html',
+        }
+        template_name = template_map.get(purpose)
+        if not template_name:
+            return None
+
+        from datetime import datetime
+        context = {
+            'otp_code': otp,
+            'otp_1': otp[0],
+            'otp_2': otp[1],
+            'otp_3': otp[2],
+            'otp_4': otp[3],
+            'otp_5': otp[4],
+            'otp_6': otp[5],
+            'expiry_minutes': OTP_EXPIRY_MINUTES,
+            'current_year': datetime.now().year,
+        }
+        try:
+            return render_to_string(template_name, context)
+        except Exception as e:
+            print(f"⚠️ Failed to render HTML email template: {e}")
+            return None
 
 
 class VerifyEmailOTPAPIView(APIView):
