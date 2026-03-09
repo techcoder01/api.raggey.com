@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path
 from django.urls import path, include
 from django.conf import settings
+from django.views.generic.base import RedirectView
 from django.conf.urls.static import static
 from django.http import JsonResponse
 
@@ -29,6 +30,7 @@ def home(request):
 
 urlpatterns = [
     path('', home),
+    path('favicon.ico', RedirectView.as_view(url='/static/favicon.ico', permanent=True)),
     path('admin/', admin.site.urls),
     path('admin-dashboard/', include('AdminDashboard.urls', namespace='admin_dashboard')),
     path('dashboard/', include('Dashboard.urls', namespace='dashboard')),
@@ -41,6 +43,7 @@ urlpatterns = [
     path("purchase/", include('Purchase.urls',  namespace='Purchase-api')),
     path("api/", include('Coupon.urls')),
     path("banners/", include('Banner.urls')),
+    path('unity/', include('Unity.urls', namespace='unity')),
 ]
 
 # Serve media files in development

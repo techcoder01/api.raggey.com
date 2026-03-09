@@ -53,6 +53,7 @@ class FabricTypeSerializer(serializers.ModelSerializer):
 class FabricColorSerializer(serializers.ModelSerializer):
     """Serializer for fabric color variant"""
     cover = serializers.SerializerMethodField()
+    texture_image = serializers.SerializerMethodField()
     inStock = serializers.SerializerMethodField()
     total_price = serializers.SerializerMethodField()
     fabric_name_eng = serializers.CharField(source='fabric_type.fabric_name_eng', read_only=True)
@@ -75,6 +76,16 @@ class FabricColorSerializer(serializers.ModelSerializer):
             return str(obj.cover)
         return None
 
+    def get_texture_image(self, obj):
+        if obj.texture_image:
+            if hasattr(obj.texture_image, 'url'):
+                return obj.texture_image.url
+            elif isinstance(obj.texture_image, str):
+                from cloudinary import CloudinaryImage
+                return CloudinaryImage(obj.texture_image).build_url()
+            return str(obj.texture_image)
+        return None
+
     def get_inStock(self, obj):
         """Check if color is in stock based on quantity"""
         if obj.quantity == 0 or obj.inStock == False:
@@ -92,6 +103,7 @@ class FabricColorSerializer(serializers.ModelSerializer):
 class FabricColorDetailSerializer(serializers.ModelSerializer):
     """Detailed serializer for fabric color with full fabric type details"""
     cover = serializers.SerializerMethodField()
+    texture_image = serializers.SerializerMethodField()
     inStock = serializers.SerializerMethodField()
     total_price = serializers.SerializerMethodField()
     fabric_type = FabricTypeSerializer(read_only=True)
@@ -103,13 +115,22 @@ class FabricColorDetailSerializer(serializers.ModelSerializer):
 
     def get_cover(self, obj):
         if obj.cover:
-            # Handle case where cover might be a string (public_id) or CloudinaryResource
             if hasattr(obj.cover, 'url'):
                 return obj.cover.url
             elif isinstance(obj.cover, str):
                 from cloudinary import CloudinaryImage
                 return CloudinaryImage(obj.cover).build_url()
             return str(obj.cover)
+        return None
+
+    def get_texture_image(self, obj):
+        if obj.texture_image:
+            if hasattr(obj.texture_image, 'url'):
+                return obj.texture_image.url
+            elif isinstance(obj.texture_image, str):
+                from cloudinary import CloudinaryImage
+                return CloudinaryImage(obj.texture_image).build_url()
+            return str(obj.texture_image)
         return None
 
     def get_inStock(self, obj):
@@ -127,6 +148,7 @@ class FabricColorDetailSerializer(serializers.ModelSerializer):
 class GholaTypeSerializer(serializers.ModelSerializer):
     cover = serializers.SerializerMethodField()
     cover_option = serializers.SerializerMethodField()
+    glb_model = serializers.SerializerMethodField()
 
     class Meta:
         model = GholaType
@@ -143,11 +165,18 @@ class GholaTypeSerializer(serializers.ModelSerializer):
             return obj.cover_option.url
         return None
 
+    def get_glb_model(self, obj):
+        if obj.glb_model:
+            if hasattr(obj.glb_model, 'url'):
+                return obj.glb_model.url
+        return None
+
 
 
 class SleevesTypeSerializer(serializers.ModelSerializer):
     cover = serializers.SerializerMethodField()
     cover_option = serializers.SerializerMethodField()
+    glb_model = serializers.SerializerMethodField()
 
     class Meta:
         model = SleevesType
@@ -164,9 +193,16 @@ class SleevesTypeSerializer(serializers.ModelSerializer):
             return obj.cover_option.url
         return None
 
+    def get_glb_model(self, obj):
+        if obj.glb_model:
+            if hasattr(obj.glb_model, 'url'):
+                return obj.glb_model.url
+        return None
+
 class PocketTypeSerializer(serializers.ModelSerializer):
     cover = serializers.SerializerMethodField()
     cover_option = serializers.SerializerMethodField()
+    glb_model = serializers.SerializerMethodField()
 
     class Meta:
         model = PocketType
@@ -183,9 +219,16 @@ class PocketTypeSerializer(serializers.ModelSerializer):
             return obj.cover_option.url
         return None
 
+    def get_glb_model(self, obj):
+        if obj.glb_model:
+            if hasattr(obj.glb_model, 'url'):
+                return obj.glb_model.url
+        return None
+
 class ButtonTypeSerializer(serializers.ModelSerializer):
     cover = serializers.SerializerMethodField()
     cover_option = serializers.SerializerMethodField()
+    glb_model = serializers.SerializerMethodField()
 
     class Meta:
         model = ButtonType
@@ -202,11 +245,18 @@ class ButtonTypeSerializer(serializers.ModelSerializer):
             return obj.cover_option.url
         return None
 
+    def get_glb_model(self, obj):
+        if obj.glb_model:
+            if hasattr(obj.glb_model, 'url'):
+                return obj.glb_model.url
+        return None
+
 
 
 class BodyTypeSerializer(serializers.ModelSerializer):
     cover = serializers.SerializerMethodField()
     cover_option = serializers.SerializerMethodField()
+    glb_model = serializers.SerializerMethodField()
 
     class Meta:
         model = BodyType
@@ -221,6 +271,12 @@ class BodyTypeSerializer(serializers.ModelSerializer):
     def get_cover_option(self, obj):
         if obj.cover_option:
             return obj.cover_option.url
+        return None
+
+    def get_glb_model(self, obj):
+        if obj.glb_model:
+            if hasattr(obj.glb_model, 'url'):
+                return obj.glb_model.url
         return None
 
 class HomePageSelectionCategorySerializer(serializers.ModelSerializer):

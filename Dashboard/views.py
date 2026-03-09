@@ -595,6 +595,9 @@ def get_design_item(request, component_type, item_id):
                 'quantity': item.quantity,
                 'inStock': item.inStock,
                 'cover_url': item.cover.url if item.cover else None,
+                'texture_image_url': item.texture_image.url if hasattr(item, 'texture_image') and item.texture_image else None,
+                'metallic': item.metallic if hasattr(item, 'metallic') else 0.0,
+                'smoothness': item.smoothness if hasattr(item, 'smoothness') else 0.5,
             }
         elif component_type == 'fabric_types':
             item = FabricType.objects.get(id=item_id)
@@ -617,6 +620,7 @@ def get_design_item(request, component_type, item_id):
                 'fabric_color_id': item.fabric_color.id if item.fabric_color else None,
                 'cover_url': item.cover.url if item.cover else None,
                 'cover_option_url': item.cover_option.url if item.cover_option else None,
+                'glb_model_url': item.glb_model.url if hasattr(item, 'glb_model') and item.glb_model else None,
             }
         elif component_type == 'sleeves':
             item = SleevesType.objects.get(id=item_id)
@@ -629,6 +633,7 @@ def get_design_item(request, component_type, item_id):
                 'fabric_color_id': item.fabric_color.id if item.fabric_color else None,
                 'cover_url': item.cover.url if item.cover else None,
                 'cover_option_url': item.cover_option.url if item.cover_option else None,
+                'glb_model_url': item.glb_model.url if hasattr(item, 'glb_model') and item.glb_model else None,
             }
         elif component_type == 'pockets':
             item = PocketType.objects.get(id=item_id)
@@ -641,6 +646,7 @@ def get_design_item(request, component_type, item_id):
                 'fabric_color_id': item.fabric_color.id if item.fabric_color else None,
                 'cover_url': item.cover.url if item.cover else None,
                 'cover_option_url': item.cover_option.url if item.cover_option else None,
+                'glb_model_url': item.glb_model.url if hasattr(item, 'glb_model') and item.glb_model else None,
             }
         elif component_type == 'buttons':
             item = ButtonType.objects.get(id=item_id)
@@ -654,6 +660,7 @@ def get_design_item(request, component_type, item_id):
                 'fabric_color_id': item.fabric_color.id if item.fabric_color else None,
                 'cover_url': item.cover.url if item.cover else None,
                 'cover_option_url': item.cover_option.url if item.cover_option else None,
+                'glb_model_url': item.glb_model.url if hasattr(item, 'glb_model') and item.glb_model else None,
             }
 
         elif component_type == 'body':
@@ -666,6 +673,7 @@ def get_design_item(request, component_type, item_id):
                 'fabric_color_id': item.fabric_color.id if item.fabric_color else None,
                 'cover_url': item.cover.url if item.cover else None,
                 'cover_option_url': item.cover_option.url if item.cover_option else None,
+                'glb_model_url': item.glb_model.url if hasattr(item, 'glb_model') and item.glb_model else None,
             }
         elif component_type == 'main_categories':
             item = HomePageSelectionCategory.objects.get(id=item_id)
@@ -822,6 +830,27 @@ def update_design_item(request):
                     messages.error(request, f'Invalid cover option image format. Allowed: {", ".join(ALLOWED_EXTENSIONS)}')
                     return redirect(f'/dashboard/designs/?type={component_type}')
                 item.cover_option = cover_option_file
+            
+            if 'texture_image' in request.FILES and hasattr(item, 'texture_image'):
+                texture_file = request.FILES['texture_image']
+                if texture_file.size > MAX_FILE_SIZE:
+                    messages.error(request, f'Texture image size exceeds 5MB limit.')
+                    return redirect(f'/dashboard/designs/?type={component_type}')
+                item.texture_image = texture_file
+
+            if 'glb_model' in request.FILES and hasattr(item, 'glb_model'):
+                glb_file = request.FILES['glb_model']
+                # GLB can be larger than 5MB, maybe 20MB? 
+                if glb_file.size > 20 * 1024 * 1024:
+                    messages.error(request, f'GLB model size exceeds 20MB limit.')
+                    return redirect(f'/dashboard/designs/?type={component_type}')
+                item.glb_model = glb_file
+            
+            if 'metallic' in request.POST and hasattr(item, 'metallic'):
+                item.metallic = request.POST.get('metallic')
+            if 'smoothness' in request.POST and hasattr(item, 'smoothness'):
+                item.smoothness = request.POST.get('smoothness')
+
         except AttributeError as e:
             messages.error(request, f'File upload error: This component does not support image uploads')
             return redirect(f'/dashboard/designs/?type={component_type}')
@@ -915,6 +944,23 @@ def create_design_item(request):
                     messages.error(request, f'Invalid {file_field.replace("_", " ")} format. Allowed: {", ".join(ALLOWED_EXTENSIONS)}')
                     return redirect(f'/dashboard/designs/?type={component_type}')
 
+        # Validate GLB files
+        if 'glb_model' in request.FILES:
+            glb_file = request.FILES['glb_model']
+            if glb_file.size > 20 * 1024 * 1024:
+                messages.error(request, f'GLB model size exceeds 20MB limit.')
+                return redirect(f'/dashboard/designs/?type={component_type}')
+            if not glb_file.name.endswith('.glb'):
+                messages.error(request, f'Invalid GLB format. Only .glb files are allowed.')
+                return redirect(f'/dashboard/designs/?type={component_type}')
+
+        # Validate Texture files
+        if 'texture_image' in request.FILES:
+            texture_file = request.FILES['texture_image']
+            if texture_file.size > MAX_FILE_SIZE:
+                messages.error(request, f'Texture image size exceeds 5MB limit.')
+                return redirect(f'/dashboard/designs/?type={component_type}')
+
         # Create the item based on component type
         if component_type == 'fabric_colors':
             fabric_type_id = request.POST.get('fabric_type')
@@ -927,8 +973,13 @@ def create_design_item(request):
                 price_adjustment=price,
                 hex_color=request.POST.get('hex_color', '#FFFFFF'),
                 quantity=request.POST.get('quantity', 0),
-                inStock='inStock' in request.POST
+                inStock='inStock' in request.POST,
+                metallic=request.POST.get('metallic', 0.0),
+                smoothness=request.POST.get('smoothness', 0.5)
             )
+            if 'texture_image' in request.FILES:
+                item.texture_image = request.FILES['texture_image']
+                item.save()
         elif component_type == 'fabric_types':
             item = FabricType.objects.create(
                 priority=priority,
@@ -953,6 +1004,8 @@ def create_design_item(request):
                     item.cover = request.FILES['cover']
                 if 'cover_option' in request.FILES:
                     item.cover_option = request.FILES['cover_option']
+                if 'glb_model' in request.FILES:
+                    item.glb_model = request.FILES['glb_model']
                 item.save()
             except AttributeError as e:
                 item.delete()
@@ -974,6 +1027,8 @@ def create_design_item(request):
                     item.cover = request.FILES['cover']
                 if 'cover_option' in request.FILES:
                     item.cover_option = request.FILES['cover_option']
+                if 'glb_model' in request.FILES:
+                    item.glb_model = request.FILES['glb_model']
                 item.save()
             except AttributeError as e:
                 item.delete()
@@ -995,6 +1050,8 @@ def create_design_item(request):
                     item.cover = request.FILES['cover']
                 if 'cover_option' in request.FILES:
                     item.cover_option = request.FILES['cover_option']
+                if 'glb_model' in request.FILES:
+                    item.glb_model = request.FILES['glb_model']
                 item.save()
             except AttributeError as e:
                 item.delete()
@@ -1017,6 +1074,8 @@ def create_design_item(request):
                     item.cover = request.FILES['cover']
                 if 'cover_option' in request.FILES:
                     item.cover_option = request.FILES['cover_option']
+                if 'glb_model' in request.FILES:
+                    item.glb_model = request.FILES['glb_model']
                 item.save()
             except AttributeError as e:
                 item.delete()
@@ -1038,6 +1097,8 @@ def create_design_item(request):
                     item.cover = request.FILES['cover']
                 if 'cover_option' in request.FILES:
                     item.cover_option = request.FILES['cover_option']
+                if 'glb_model' in request.FILES:
+                    item.glb_model = request.FILES['glb_model']
                 item.save()
             except AttributeError as e:
                 item.delete()

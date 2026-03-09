@@ -86,6 +86,10 @@ class FabricColor(models.Model):
     color_name_arb = models.CharField(max_length=100)
     hex_color = models.CharField(max_length=7, default='#FFFFFF', help_text="Hex color code (e.g., #FFFFFF)")
     cover = CloudinaryField('image', blank=True, null=True, folder="FabricColors")
+    texture_image = CloudinaryField('image', blank=True, null=True, folder="FabricTextures",
+        help_text="Seamless tileable texture image for 3D rendering (512x512 or 1024x1024)")
+    metallic = models.FloatField(default=0.0, help_text="Metallic value for 3D rendering (0=matte, 1=fully metallic)")
+    smoothness = models.FloatField(default=0.5, help_text="Smoothness value for 3D rendering (0=rough, 1=smooth)")
     quantity = models.IntegerField(default=0)
     inStock = models.BooleanField(default=True)
     price_adjustment = models.DecimalField(
@@ -130,6 +134,8 @@ class GholaType(models.Model):
     initial_price = models.DecimalField(max_digits=9, decimal_places=3)
     cover = CloudinaryField('image', blank=True, null=True, folder="GholaType", help_text="Image shown on dishdasha preview")
     cover_option = CloudinaryField('image', blank=True, null=True, folder="GholaType/Options", help_text="Image shown in selection cards/options")
+    glb_model = CloudinaryField('raw', blank=True, null=True, folder="GLB_Models/Collars",
+        help_text="3D GLB model file for Unity rendering")
     is_button_hidden = models.BooleanField(default=False, help_text="If True, button will be rendered below collar (hidden)")
 
     def __str__(self):
@@ -160,6 +166,8 @@ class SleevesType(models.Model):
     initial_price = models.DecimalField(max_digits=9, decimal_places=3)
     cover = CloudinaryField('image', blank=True, null=True, folder="SleevesType", help_text="Image shown on dishdasha preview")
     cover_option = CloudinaryField('image', blank=True, null=True, folder="SleevesType/Options", help_text="Image shown in selection cards/options")
+    glb_model = CloudinaryField('raw', blank=True, null=True, folder="GLB_Models/Cuffs",
+        help_text="3D GLB model file for Unity rendering")
 
     def __str__(self):
         color_name = self.fabric_color.color_name_eng if self.fabric_color else "No Color"
@@ -187,6 +195,8 @@ class PocketType(models.Model):
     initial_price = models.DecimalField(max_digits=9, decimal_places=3)
     cover = CloudinaryField('image', blank=True, null=True, folder="PocketType", help_text="Image shown on dishdasha preview")
     cover_option = CloudinaryField('image', blank=True, null=True, folder="PocketType/Options", help_text="Image shown in selection cards/options")
+    glb_model = CloudinaryField('raw', blank=True, null=True, folder="GLB_Models/Pockets",
+        help_text="3D GLB model file for Unity rendering")
 
     def __str__(self):
         color_name = self.fabric_color.color_name_eng if self.fabric_color else "No Color"
@@ -215,6 +225,8 @@ class ButtonType(models.Model):
     initial_price = models.DecimalField(max_digits=9, decimal_places=3)
     cover = CloudinaryField('image', blank=True, null=True, folder="ButtonType", help_text="Image shown on dishdasha preview")
     cover_option = CloudinaryField('image', blank=True, null=True, folder="ButtonType/Options", help_text="Image shown in selection cards/options")
+    glb_model = CloudinaryField('raw', blank=True, null=True, folder="GLB_Models/Buttons",
+        help_text="3D GLB model file for Unity rendering")
 
     def __str__(self):
         color_name = self.fabric_color.color_name_eng if self.fabric_color else "No Color"
@@ -243,6 +255,8 @@ class BodyType(models.Model):
     initial_price = models.DecimalField(max_digits=9, decimal_places=3)
     cover = CloudinaryField('image', blank=True, null=True, folder="BodyType", help_text="Image shown on dishdasha preview")
     cover_option = CloudinaryField('image', blank=True, null=True, folder="BodyType/Options", help_text="Image shown in selection cards/options")
+    glb_model = CloudinaryField('raw', blank=True, null=True, folder="GLB_Models/Body",
+        help_text="3D GLB model file for Unity rendering")
 
     def __str__(self):
         color_name = self.fabric_color.color_name_eng if self.fabric_color else "No Color"
