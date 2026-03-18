@@ -70,6 +70,10 @@ class FabricType(models.Model):
     composition_arb = models.CharField(max_length=200, blank=True, null=True, help_text="Fabric composition in Arabic")
     softness_grade = models.IntegerField(default=3, help_text="Softness to Solidness grade from 1 (Soft) to 5 (Solid)")
 
+    # Texture Model fields
+    texture_file = models.URLField(max_length=500, blank=True, null=True, help_text="Cloudinary URL of the texture image file")
+    texture_name = models.CharField(max_length=200, blank=True, null=True, help_text="Custom name for the texture file")
+
     def __str__(self):
         return self.fabric_name_eng
 
@@ -132,6 +136,11 @@ class GholaType(models.Model):
     cover_option = CloudinaryField('image', blank=True, null=True, folder="GholaType/Options", help_text="Image shown in selection cards/options")
     is_button_hidden = models.BooleanField(default=False, help_text="If True, button will be rendered below collar (hidden)")
 
+    # 3D Model fields
+    glb_model = models.URLField(max_length=500, blank=True, null=True, help_text="Cloudinary URL of the .glb file")
+    glb_name = models.CharField(max_length=200, blank=True, null=True, help_text="Custom name for the .glb file")
+    anchor_point = models.CharField(max_length=100, blank=True, null=True, help_text="Anchor point string/coordinates")
+
     def __str__(self):
         color_name = self.fabric_color.color_name_eng if self.fabric_color else "No Color"
         return f"{self.ghola_type_name_eng} - {color_name}"
@@ -161,6 +170,11 @@ class SleevesType(models.Model):
     cover = CloudinaryField('image', blank=True, null=True, folder="SleevesType", help_text="Image shown on dishdasha preview")
     cover_option = CloudinaryField('image', blank=True, null=True, folder="SleevesType/Options", help_text="Image shown in selection cards/options")
 
+    # 3D Model fields
+    glb_model = models.URLField(max_length=500, blank=True, null=True, help_text="Cloudinary URL of the .glb file")
+    glb_name = models.CharField(max_length=200, blank=True, null=True, help_text="Custom name for the .glb file")
+    anchor_point = models.CharField(max_length=100, blank=True, null=True, help_text="Anchor point string/coordinates")
+
     def __str__(self):
         color_name = self.fabric_color.color_name_eng if self.fabric_color else "No Color"
         return f"{self.sleeves_type_name_eng} - {color_name}"
@@ -187,6 +201,11 @@ class PocketType(models.Model):
     initial_price = models.DecimalField(max_digits=9, decimal_places=3)
     cover = CloudinaryField('image', blank=True, null=True, folder="PocketType", help_text="Image shown on dishdasha preview")
     cover_option = CloudinaryField('image', blank=True, null=True, folder="PocketType/Options", help_text="Image shown in selection cards/options")
+
+    # 3D Model fields
+    glb_model = models.URLField(max_length=500, blank=True, null=True, help_text="Cloudinary URL of the .glb file")
+    glb_name = models.CharField(max_length=200, blank=True, null=True, help_text="Custom name for the .glb file")
+    anchor_point = models.CharField(max_length=100, blank=True, null=True, help_text="Anchor point string/coordinates")
 
     def __str__(self):
         color_name = self.fabric_color.color_name_eng if self.fabric_color else "No Color"
@@ -216,6 +235,11 @@ class ButtonType(models.Model):
     cover = CloudinaryField('image', blank=True, null=True, folder="ButtonType", help_text="Image shown on dishdasha preview")
     cover_option = CloudinaryField('image', blank=True, null=True, folder="ButtonType/Options", help_text="Image shown in selection cards/options")
 
+    # 3D Model fields
+    glb_model = models.URLField(max_length=500, blank=True, null=True, help_text="Cloudinary URL of the .glb file")
+    glb_name = models.CharField(max_length=200, blank=True, null=True, help_text="Custom name for the .glb file")
+    anchor_point = models.CharField(max_length=100, blank=True, null=True, help_text="Anchor point string/coordinates")
+
     def __str__(self):
         color_name = self.fabric_color.color_name_eng if self.fabric_color else "No Color"
         return f"{self.button_type_name_eng} - {color_name}"
@@ -243,6 +267,11 @@ class BodyType(models.Model):
     initial_price = models.DecimalField(max_digits=9, decimal_places=3)
     cover = CloudinaryField('image', blank=True, null=True, folder="BodyType", help_text="Image shown on dishdasha preview")
     cover_option = CloudinaryField('image', blank=True, null=True, folder="BodyType/Options", help_text="Image shown in selection cards/options")
+
+    # 3D Model fields
+    glb_model = models.URLField(max_length=500, blank=True, null=True, help_text="Cloudinary URL of the .glb file")
+    glb_name = models.CharField(max_length=200, blank=True, null=True, help_text="Custom name for the .glb file")
+    anchor_point = models.CharField(max_length=100, blank=True, null=True, help_text="Anchor point string/coordinates")
 
     def __str__(self):
         color_name = self.fabric_color.color_name_eng if self.fabric_color else "No Color"

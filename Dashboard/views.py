@@ -605,6 +605,19 @@ def get_design_item(request, component_type, item_id):
                 'base_price': float(item.base_price),
                 'isHidden': item.isHidden,
                 'cover_url': item.cover.url if item.cover else None,
+                'texture_file': getattr(item, 'texture_file', None),
+                'texture_name': getattr(item, 'texture_name', None),
+                'originality': getattr(item, 'originality', ''),
+                'originality_arb': getattr(item, 'originality_arb', ''),
+                'season': getattr(item, 'season', 'all_season'),
+                'category_type': getattr(item, 'category_type', 'standard'),
+                'features': getattr(item, 'features', []),
+                'features_arb': getattr(item, 'features_arb', []),
+                'weight': getattr(item, 'weight', ''),
+                'weight_arb': getattr(item, 'weight_arb', ''),
+                'composition': getattr(item, 'composition', ''),
+                'composition_arb': getattr(item, 'composition_arb', ''),
+                'softness_grade': getattr(item, 'softness_grade', 3),
             }
         elif component_type == 'collars':
             item = GholaType.objects.get(id=item_id)
@@ -617,6 +630,9 @@ def get_design_item(request, component_type, item_id):
                 'fabric_color_id': item.fabric_color.id if item.fabric_color else None,
                 'cover_url': item.cover.url if item.cover else None,
                 'cover_option_url': item.cover_option.url if item.cover_option else None,
+                'glb_model': getattr(item, 'glb_model', None),
+                'glb_name': getattr(item, 'glb_name', None),
+                'anchor_point': getattr(item, 'anchor_point', None),
             }
         elif component_type == 'sleeves':
             item = SleevesType.objects.get(id=item_id)
@@ -629,6 +645,9 @@ def get_design_item(request, component_type, item_id):
                 'fabric_color_id': item.fabric_color.id if item.fabric_color else None,
                 'cover_url': item.cover.url if item.cover else None,
                 'cover_option_url': item.cover_option.url if item.cover_option else None,
+                'glb_model': getattr(item, 'glb_model', None),
+                'glb_name': getattr(item, 'glb_name', None),
+                'anchor_point': getattr(item, 'anchor_point', None),
             }
         elif component_type == 'pockets':
             item = PocketType.objects.get(id=item_id)
@@ -641,6 +660,9 @@ def get_design_item(request, component_type, item_id):
                 'fabric_color_id': item.fabric_color.id if item.fabric_color else None,
                 'cover_url': item.cover.url if item.cover else None,
                 'cover_option_url': item.cover_option.url if item.cover_option else None,
+                'glb_model': getattr(item, 'glb_model', None),
+                'glb_name': getattr(item, 'glb_name', None),
+                'anchor_point': getattr(item, 'anchor_point', None),
             }
         elif component_type == 'buttons':
             item = ButtonType.objects.get(id=item_id)
@@ -654,6 +676,9 @@ def get_design_item(request, component_type, item_id):
                 'fabric_color_id': item.fabric_color.id if item.fabric_color else None,
                 'cover_url': item.cover.url if item.cover else None,
                 'cover_option_url': item.cover_option.url if item.cover_option else None,
+                'glb_model': getattr(item, 'glb_model', None),
+                'glb_name': getattr(item, 'glb_name', None),
+                'anchor_point': getattr(item, 'anchor_point', None),
             }
 
         elif component_type == 'body':
@@ -666,6 +691,9 @@ def get_design_item(request, component_type, item_id):
                 'fabric_color_id': item.fabric_color.id if item.fabric_color else None,
                 'cover_url': item.cover.url if item.cover else None,
                 'cover_option_url': item.cover_option.url if item.cover_option else None,
+                'glb_model': getattr(item, 'glb_model', None),
+                'glb_name': getattr(item, 'glb_name', None),
+                'anchor_point': getattr(item, 'anchor_point', None),
             }
         elif component_type == 'main_categories':
             item = HomePageSelectionCategory.objects.get(id=item_id)
@@ -708,11 +736,19 @@ def update_design_item(request):
             item = FabricColor.objects.get(id=item_id)
             item.color_name_eng = name_eng
             item.color_name_arb = name_arb
-            item.price_adjustment = price
+            item.price_adjustment = price if price and str(price).strip() else 0
             item.hex_color = request.POST.get('hex_color', '#FFFFFF')
-            item.quantity = request.POST.get('quantity', 0)
+            item.priority = priority if priority and str(priority).strip() else 0
+            qty = request.POST.get('quantity', 0)
+            item.quantity = qty if qty and str(qty).strip() else 0
             item.inStock = 'inStock' in request.POST
-            item.priority = priority
+            
+            fabric_type_id = request.POST.get('fabric_type')
+            if fabric_type_id:
+                item.fabric_type_id = fabric_type_id
+                
+            if 'cover' in request.FILES:
+                item.cover = request.FILES['cover']
         elif component_type == 'fabric_types':
             item = FabricType.objects.get(id=item_id)
             item.fabric_name_eng = name_eng
@@ -720,6 +756,31 @@ def update_design_item(request):
             item.base_price = price
             item.isHidden = 'isHidden' in request.POST
             item.priority = priority
+            
+            # Additional FabricType fields
+            item.originality = request.POST.get('originality', '')
+            item.originality_arb = request.POST.get('originality_arb', '')
+            item.season = request.POST.get('season', 'all_season')
+            item.category_type = request.POST.get('category_type', 'standard')
+            item.weight = request.POST.get('weight', '')
+            item.weight_arb = request.POST.get('weight_arb', '')
+            item.composition = request.POST.get('composition', '')
+            item.composition_arb = request.POST.get('composition_arb', '')
+            item.softness_grade = request.POST.get('softness_grade', 3)
+            
+            # JSON Fields
+            import json
+            features_raw = request.POST.get('features', '[]')
+            try:
+                item.features = json.loads(features_raw) if features_raw.strip() else []
+            except Exception:
+                item.features = []
+                
+            features_arb_raw = request.POST.get('features_arb', '[]')
+            try:
+                item.features_arb = json.loads(features_arb_raw) if features_arb_raw.strip() else []
+            except Exception:
+                item.features_arb = []
         elif component_type == 'collars':
             item = GholaType.objects.get(id=item_id)
             item.ghola_type_name_eng = name_eng
@@ -828,6 +889,40 @@ def update_design_item(request):
 
         if hasattr(item, 'priority'):
             item.priority = priority
+
+        if hasattr(item, 'glb_model'):
+            if request.POST.get('glb_name') is not None:
+                item.glb_name = request.POST.get('glb_name')
+            if request.POST.get('anchor_point') is not None:
+                item.anchor_point = request.POST.get('anchor_point')
+            if 'glb_model_file' in request.FILES:
+                glb_file = request.FILES['glb_model_file']
+                import cloudinary.uploader
+                upload_result = cloudinary.uploader.upload(
+                    glb_file,
+                    resource_type="raw",
+                    public_id=item.glb_name or glb_file.name.split('.')[0],
+                    folder=f"{item.__class__.__name__}/GLB",
+                    use_filename=True,
+                    unique_filename=False
+                )
+                item.glb_model = upload_result['secure_url']
+
+        if hasattr(item, 'texture_file'):
+            if request.POST.get('texture_name') is not None:
+                item.texture_name = request.POST.get('texture_name')
+            if 'texture_file' in request.FILES:
+                texture_img = request.FILES['texture_file']
+                import cloudinary.uploader
+                upload_result = cloudinary.uploader.upload(
+                    texture_img,
+                    public_id=item.texture_name or texture_img.name.split('.')[0],
+                    folder=f"{item.__class__.__name__}/Texture",
+                    use_filename=True,
+                    unique_filename=False
+                )
+                item.texture_file = upload_result['secure_url']
+
         item.save()
 
         # Clear design cache so API returns fresh data
@@ -918,24 +1013,68 @@ def create_design_item(request):
         # Create the item based on component type
         if component_type == 'fabric_colors':
             fabric_type_id = request.POST.get('fabric_type')
+            if not fabric_type_id:
+                messages.error(request, 'Fabric Type is required')
+                return redirect(f'/dashboard/designs/?type={component_type}')
+                
             fabric_type = FabricType.objects.get(id=fabric_type_id)
+            
+            # Safe casting for numeric fields
+            safe_price = price if price and str(price).strip() else 0
+            safe_priority = priority if priority and str(priority).strip() else 0
+            safe_quantity = request.POST.get('quantity', 0)
+            safe_quantity = safe_quantity if safe_quantity and str(safe_quantity).strip() else 0
+            
             item = FabricColor.objects.create(
-                priority=priority,
+                priority=safe_priority,
                 color_name_eng=name_eng,
                 color_name_arb=name_arb,
                 fabric_type=fabric_type,
-                price_adjustment=price,
+                price_adjustment=safe_price,
                 hex_color=request.POST.get('hex_color', '#FFFFFF'),
-                quantity=request.POST.get('quantity', 0),
+                quantity=safe_quantity,
                 inStock='inStock' in request.POST
             )
+            try:
+                if 'cover' in request.FILES:
+                    item.cover = request.FILES['cover']
+                    item.save()
+            except AttributeError as e:
+                item.delete()
+                messages.error(request, f'Image upload error: {str(e)}')
+                return redirect(f'/dashboard/designs/?type={component_type}')
+
         elif component_type == 'fabric_types':
+            import json
+            features_raw = request.POST.get('features', '[]')
+            try:
+                features = json.loads(features_raw) if features_raw.strip() else []
+            except Exception:
+                features = []
+                
+            features_arb_raw = request.POST.get('features_arb', '[]')
+            try:
+                features_arb = json.loads(features_arb_raw) if features_arb_raw.strip() else []
+            except Exception:
+                features_arb = []
+                
             item = FabricType.objects.create(
                 priority=priority,
                 fabric_name_eng=name_eng,
                 fabric_name_arb=name_arb,
                 base_price=price,
-                isHidden='isHidden' in request.POST
+                isHidden='isHidden' in request.POST,
+                originality=request.POST.get('originality', ''),
+                originality_arb=request.POST.get('originality_arb', ''),
+                season=request.POST.get('season', 'all_season'),
+                category_type=request.POST.get('category_type', 'standard'),
+                weight=request.POST.get('weight', ''),
+                weight_arb=request.POST.get('weight_arb', ''),
+                composition=request.POST.get('composition', ''),
+                composition_arb=request.POST.get('composition_arb', ''),
+                softness_grade=request.POST.get('softness_grade', 3),
+                features=features,
+                features_arb=features_arb,
             )
         elif component_type == 'collars':
             fabric_type_id = request.POST.get('fabric_type_id')
@@ -1067,12 +1206,47 @@ def create_design_item(request):
             messages.error(request, 'Invalid component type')
             return redirect(f'/dashboard/designs/?type={component_type}')
 
+        if hasattr(item, 'glb_model'):
+            item.glb_name = request.POST.get('glb_name')
+            item.anchor_point = request.POST.get('anchor_point')
+            if 'glb_model_file' in request.FILES:
+                glb_file = request.FILES['glb_model_file']
+                import cloudinary.uploader
+                upload_result = cloudinary.uploader.upload(
+                    glb_file,
+                    resource_type="raw",
+                    public_id=item.glb_name or glb_file.name.split('.')[0],
+                    folder=f"{item.__class__.__name__}/GLB",
+                    use_filename=True,
+                    unique_filename=False
+                )
+                item.glb_model = upload_result['secure_url']
+
+        if hasattr(item, 'texture_file'):
+            item.texture_name = request.POST.get('texture_name')
+            if 'texture_file' in request.FILES:
+                texture_img = request.FILES['texture_file']
+                import cloudinary.uploader
+                upload_result = cloudinary.uploader.upload(
+                    texture_img,
+                    public_id=item.texture_name or texture_img.name.split('.')[0],
+                    folder=f"{item.__class__.__name__}/Texture",
+                    use_filename=True,
+                    unique_filename=False
+                )
+                item.texture_file = upload_result['secure_url']
+            
+        item.save()
+
         # Clear design cache so API returns fresh data
         clear_design_cache()
 
         messages.success(request, f'{name_eng} created successfully')
 
     except Exception as e:
+        import traceback
+        print(f"[CREATE ERROR] {str(e)}")
+        print(traceback.format_exc())
         messages.error(request, f'Error creating item: {str(e)}')
 
     return redirect(f'/dashboard/designs/?type={component_type}')

@@ -4,71 +4,73 @@
 
 {% block content %}
 <style>
-/* Toast Notification Styles */
-#toast-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 9999;
-    max-width: 400px;
-}
-
-.toast {
-    margin-bottom: 10px;
-    padding: 16px 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    animation: slideIn 0.3s ease-out;
-    font-size: 14px;
-    font-weight: 500;
-}
-
-.toast.success {
-    background: #E9F9EF;
-    color: #1B9E4B;
-    border-left: 4px solid #1B9E4B;
-}
-
-.toast.error {
-    background: #FDECEC;
-    color: #BF3636;
-    border-left: 4px solid #BF3636;
-}
-
-.toast-icon {
-    flex-shrink: 0;
-    width: 20px;
-    height: 20px;
-}
-
-.toast-message {
-    flex: 1;
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
+    /* Toast Notification Styles */
+    #toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        max-width: 400px;
     }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
 
-@keyframes slideOut {
-    from {
-        transform: translateX(0);
-        opacity: 1;
+    .toast {
+        margin-bottom: 10px;
+        padding: 16px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        animation: slideIn 0.3s ease-out;
+        font-size: 14px;
+        font-weight: 500;
     }
-    to {
-        transform: translateX(100%);
-        opacity: 0;
+
+    .toast.success {
+        background: #E9F9EF;
+        color: #1B9E4B;
+        border-left: 4px solid #1B9E4B;
     }
-}
+
+    .toast.error {
+        background: #FDECEC;
+        color: #BF3636;
+        border-left: 4px solid #BF3636;
+    }
+
+    .toast-icon {
+        flex-shrink: 0;
+        width: 20px;
+        height: 20px;
+    }
+
+    .toast-message {
+        flex: 1;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
 </style>
 
 <!-- Toast Container -->
@@ -77,11 +79,10 @@
 <!-- Hidden Messages Data -->
 <div id="django-messages" style="display: none;">
     {% if messages %}
-        {% for message in messages %}
-            {% if 'image' in message|lower or 'cloudinary' in message|lower or 'upload' in message|lower or 'size' in message|lower or 'format' in message|lower %}
-                <div data-message="{{ message|escapejs }}" data-type="{% if message.tags == 'error' %}error{% else %}success{% endif %}"></div>
-            {% endif %}
-        {% endfor %}
+    {% for message in messages %}
+    <div data-message="{{ message|escapejs }}"
+        data-type="{% if message.tags == 'error' %}error{% else %}success{% endif %}"></div>
+    {% endfor %}
     {% endif %}
 </div>
 
@@ -228,7 +229,8 @@
                         Priority</th>
                     {% endif %}
                     {% if component_type == 'collars' %}
-                    <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Button Hidden
+                    <th class="px-6 py-4 text-left text-xs font-semibold text-[#0D1210] uppercase tracking-wider">Button
+                        Hidden
                     </th>
                     {% endif %}
                     {% if component_type not in 'collars,sleeves,pockets,body' %}
@@ -418,7 +420,8 @@
                     </td>
                     {% else %}
                     <td class="px-6 py-4">
-                        <form method="POST" action="/dashboard/designs/update-fabric-relation/" class="inline-block w-full">
+                        <form method="POST" action="/dashboard/designs/update-fabric-relation/"
+                            class="inline-block w-full">
                             {% csrf_token %}
                             <input type="hidden" name="component_type" value="{{ component_type }}">
                             <input type="hidden" name="item_id" value="{{ item.id }}">
@@ -427,11 +430,11 @@
                                 class="w-full text-xs px-2 py-1.5 bg-[#F5F6F6] border border-[#E6E8E7] rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0D1210]/20 hover:border-[#0D1210]/40 transition-colors">
                                 <option value="">-- Select Fabric --</option>
                                 {% for fabric_type in all_fabric_types %}
-                                    {% for color in fabric_type.colors.all %}
-                                    <option value="{{ color.id }}" {% if item.fabric_color and item.fabric_color.id == color.id %}selected{% endif %}>
-                                        {{ fabric_type.fabric_name_eng }} - {{ color.color_name_eng }}
-                                    </option>
-                                    {% endfor %}
+                                {% for color in fabric_type.colors.all %}
+                                <option value="{{ color.id }}" {% if item.fabric_color and item.fabric_color.id == color.id %}selected{% endif %}>
+                                    {{ fabric_type.fabric_name_eng }} - {{ color.color_name_eng }}
+                                </option>
+                                {% endfor %}
                                 {% endfor %}
                             </select>
                         </form>
@@ -453,7 +456,8 @@
                             <input type="hidden" name="item_id" value="{{ item.id }}">
                             <select name="isButtonHidden" onchange="this.form.submit()"
                                 class="px-3 py-1 text-xs font-medium rounded-full border-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#5D0B33] {% if item.isButtonHidden %}bg-[#FDECEC] text-[#BF3636]{% else %}bg-[#E9F9EF] text-[#1B9E4B]{% endif %}">
-                                <option value="false" {% if not item.isButtonHidden %}selected{% endif %}>Visible</option>
+                                <option value="false" {% if not item.isButtonHidden %}selected{% endif %}>Visible
+                                </option>
                                 <option value="true" {% if item.isButtonHidden %}selected{% endif %}>Hidden</option>
                             </select>
                         </form>
@@ -715,6 +719,21 @@
                         <span class="ml-2 text-sm text-[#0D1210]">Hidden</span>
                     </label>
                 </div>
+                <!-- Texture uploads -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Texture Image (Optional)</label>
+                        <div class="mb-2 text-xs text-[#6A736E]" id="current_texture_preview"></div>
+                        <input type="file" name="texture_file" id="edit_texture_file" accept="image/*"
+                            class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Texture Name (Optional)</label>
+                        <input type="text" name="texture_name" id="edit_texture_name"
+                            placeholder="E.g. fabric_texture_01"
+                            class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                    </div>
+                </div>
             </div>
 
             <!-- Button specific fields -->
@@ -771,6 +790,28 @@
                             class="rounded border-gray-300 text-[#5D0B33] focus:ring-[#5D0B33]">
                         <span class="ml-2 text-sm text-[#0D1210]">Coming Soon</span>
                     </label>
+                </div>
+            </div>
+
+            <!-- 3D Model fields -->
+            <div id="glb_model_fields" class="hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">GLB Model File (Optional)</label>
+                        <div class="mb-2 text-xs text-[#6A736E]" id="current_glb_preview"></div>
+                        <input type="file" name="glb_model_file" id="edit_glb_model_file" accept=".glb"
+                            class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">GLB Name (Optional)</label>
+                        <input type="text" name="glb_name" id="edit_glb_name" placeholder="E.g. obj_name"
+                            class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Anchor Point</label>
+                    <input type="text" name="anchor_point" id="edit_anchor_point" placeholder="E.g. coordinates or name"
+                        class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
                 </div>
             </div>
 
@@ -992,6 +1033,20 @@
                         <span class="ml-2 text-sm text-[#0D1210]">Hidden</span>
                     </label>
                 </div>
+                <!-- Texture uploads -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Texture Image (Optional)</label>
+                        <input type="file" name="texture_file" id="add_texture_file" accept="image/*"
+                            class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">Texture Name (Optional)</label>
+                        <input type="text" name="texture_name" id="add_texture_name"
+                            placeholder="E.g. fabric_texture_01"
+                            class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                    </div>
+                </div>
             </div>
 
             <!-- Button specific fields -->
@@ -1048,6 +1103,27 @@
                             class="rounded border-gray-300 text-[#5D0B33] focus:ring-[#5D0B33]">
                         <span class="ml-2 text-sm text-[#0D1210]">Coming Soon</span>
                     </label>
+                </div>
+            </div>
+
+            <!-- 3D Model fields -->
+            <div id="add_glb_model_fields" class="hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">GLB Model File (Optional)</label>
+                        <input type="file" name="glb_model_file" id="add_glb_model_file" accept=".glb"
+                            class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-[#0D1210] mb-2">GLB Name (Optional)</label>
+                        <input type="text" name="glb_name" id="add_glb_name" placeholder="E.g. obj_name"
+                            class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-[#0D1210] mb-2">Anchor Point</label>
+                    <input type="text" name="anchor_point" id="add_anchor_point" placeholder="E.g. coordinates or name"
+                        class="w-full px-4 py-3 bg-[#F5F6F6] border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0D1210]">
                 </div>
             </div>
 
@@ -1232,6 +1308,14 @@
                 document.getElementById('image_fields').classList.add('hidden');
                 document.getElementById('cover_option_field').classList.add('hidden');
                 document.getElementById('design_fabric_fields').classList.add('hidden');
+                document.getElementById('glb_model_fields').classList.add('hidden');
+
+                document.getElementById('edit_glb_name').value = data.glb_name || '';
+                document.getElementById('edit_anchor_point').value = data.anchor_point || '';
+
+                if (['collars', 'sleeves', 'pockets', 'buttons', 'body'].includes(componentType)) {
+                    document.getElementById('glb_model_fields').classList.remove('hidden');
+                }
 
                 // Set price field label and value
                 const priceLabel = document.getElementById('price_label');
@@ -1240,17 +1324,46 @@
 
                 if (componentType === 'fabric_colors') {
                     document.getElementById('fabric_color_fields').classList.remove('hidden');
+                    document.getElementById('image_fields').classList.remove('hidden');
                     priceLabel.textContent = 'Price Adjustment (KD)';
                     priceField.value = data.price_adjustment || 0;
                     document.getElementById('edit_hex_color').value = data.hex_color || '#FFFFFF';
                     document.getElementById('edit_quantity').value = data.quantity || 0;
                     document.getElementById('edit_inStock').checked = data.inStock || false;
-                    // No images for fabric colors
+
+                    const coverPreview = document.getElementById('current_cover_preview');
+                    if (data.cover_url) {
+                        coverPreview.innerHTML = `Current: <a href="${data.cover_url}" target="_blank" class="text-[#5D0B33] hover:underline">View Cover</a>
+                                                <button type="button" onclick="confirmDelete('${data.id}', 'cover')" class="ml-2 text-sm text-[#BF3636] hover:underline">Delete</button>`;
+                    } else {
+                        coverPreview.innerHTML = 'No cover uploaded';
+                    }
                 } else if (componentType === 'fabric_types') {
                     document.getElementById('fabric_type_fields').classList.remove('hidden');
                     priceLabel.textContent = 'Base Price (KD)';
                     priceField.value = data.base_price || 0;
                     document.getElementById('edit_isHidden').checked = data.isHidden || false;
+
+                    document.getElementById('edit_originality').value = data.originality || '';
+                    document.getElementById('edit_originality_arb').value = data.originality_arb || '';
+                    document.getElementById('edit_season').value = data.season || 'all_season';
+                    document.getElementById('edit_category_type').value = data.category_type || 'standard';
+                    document.getElementById('edit_weight').value = data.weight || '';
+                    document.getElementById('edit_weight_arb').value = data.weight_arb || '';
+                    document.getElementById('edit_composition').value = data.composition || '';
+                    document.getElementById('edit_composition_arb').value = data.composition_arb || '';
+                    document.getElementById('edit_softness_grade').value = data.softness_grade || 3;
+
+                    document.getElementById('edit_features').value = data.features ? JSON.stringify(data.features) : '[]';
+                    document.getElementById('edit_features_arb').value = data.features_arb ? JSON.stringify(data.features_arb) : '[]';
+
+                    document.getElementById('edit_texture_name').value = data.texture_name || '';
+                    const texturePreview = document.getElementById('current_texture_preview');
+                    if (data.texture_file) {
+                        texturePreview.innerHTML = `Current: <a href="${data.texture_file}" target="_blank" class="text-[#5D0B33] hover:underline">View Texture</a>`;
+                    } else {
+                        texturePreview.innerHTML = 'No texture uploaded';
+                    }
                     // No images for fabric types
                 } else if (componentType === 'buttons') {
                     document.getElementById('design_fabric_fields').classList.remove('hidden');
@@ -1333,6 +1446,10 @@
                 coverOptionPreview.innerHTML = data.cover_option_url ?
                     `<img src="${data.cover_option_url}" class="w-24 h-24 object-cover rounded-lg border border-[#E6E8E7]">` : '';
 
+                const glbPreview = document.getElementById('current_glb_preview');
+                glbPreview.innerHTML = data.glb_model ? `<a href="${data.glb_model}" target="_blank" class="text-[#0B5D35] hover:underline">View Current GLB</a>` : 'No GLB uploaded';
+
+
                 // Show modal
                 document.getElementById('editModal').classList.remove('hidden');
                 document.getElementById('editModal').classList.add('flex');
@@ -1361,6 +1478,11 @@
         document.getElementById('add_image_fields').classList.add('hidden');
         document.getElementById('add_cover_option_field').classList.add('hidden');
         document.getElementById('add_design_fabric_fields').classList.add('hidden');
+        document.getElementById('add_glb_model_fields').classList.add('hidden');
+
+        if (['collars', 'sleeves', 'pockets', 'buttons', 'body'].includes(componentType)) {
+            document.getElementById('add_glb_model_fields').classList.remove('hidden');
+        }
 
         const priceLabel = document.getElementById('add_price_label');
         const priceField = document.getElementById('add_price');
@@ -1368,6 +1490,7 @@
 
         if (componentType === 'fabric_colors') {
             document.getElementById('add_fabric_color_fields').classList.remove('hidden');
+            document.getElementById('add_image_fields').classList.remove('hidden');
             priceLabel.textContent = 'Price Adjustment (KD) *';
             priceField.value = '0';
             coverField.removeAttribute('required');
@@ -1641,11 +1764,11 @@
 
 <script>
     // Show Django messages as toasts (only for cloudinary/image errors)
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const messagesContainer = document.getElementById('django-messages');
         if (messagesContainer) {
             const messageDivs = messagesContainer.querySelectorAll('[data-message]');
-            messageDivs.forEach(function(div) {
+            messageDivs.forEach(function (div) {
                 const message = div.getAttribute('data-message');
                 const type = div.getAttribute('data-type');
                 showToast(message, type);
